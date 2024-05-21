@@ -6,7 +6,9 @@
 int main(int argc, char **argv){
     LOGI("Hello Soft Game Engine");
     Application app{};
-    if(app.initalize()){
+    ApplicationParam param{};
+    param.env.size = {720, 480};
+    if(app.initalize(param)){
         LOGE("Failed to initalize application!");
         exit(-1);
     }

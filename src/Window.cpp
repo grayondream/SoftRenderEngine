@@ -18,7 +18,7 @@ inline static WindowEventType WindowEventType2SDLEventType(const Uint32 ev){
     return static_cast<WindowEventType>(ev);
 }
 
-Window::Window(const PositionI32 pos)
+Window::Window(const Position pos)
     : m_pos(pos){
 
 }

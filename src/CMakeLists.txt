@@ -12,6 +12,8 @@ message(STATUS "include directory ${PROJECT_SOURCE_DIR}/src/${PLATFORM_DIR}")
 add_executable(${PROJECT_NAME}  main.cpp
                                 Window.cpp
                                 Application.cpp
-                                Environment.cpp)
+                                Environment.cpp
+                                WindowBuffer.cpp
+                                BufferManager.cpp)
 
 target_link_libraries(${PROJECT_NAME} SDL2)

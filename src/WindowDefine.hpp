@@ -19,7 +19,7 @@ struct Vector4 : Vector3<T>{
 };
 
 template<class T>
-struct Position{
+struct Position2d{
     Vector2<T> lf;
     Vector2<T> rb;
 
@@ -32,15 +32,14 @@ struct Position{
     }
 };
 
+struct Size{
+    std::size_t width{};
+    std::size_t height{};
+};
 
-using PositionI32 = Position<int32_t>;
-using PositionUi32 = Position<uint32_t>;
-using PositionI64 = Position<int64_t>;
-using PositionUi64 = Position<uint64_t>;
-using PositionF = Position<float>;
-using PositionD = Position<double>;
-
-using ColorUi8 = Vector4<uint8_t>;
+using Position = Position2d<int32_t>;
+using Color = Vector4<uint8_t>;
+using Point2D = Vector2<int32_t>;
 
 using WindowIDType = long int;
 

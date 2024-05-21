@@ -1,11 +1,16 @@
 #pragma once
 #include <system_error>
 #include <memory>
+#include "Environment.hpp"
 #include "Window.hpp"
+
+struct ApplicationParam{
+    EnvironmentParam env;
+};
 
 class Application : public WindowEventListener{
 public:
-    std::error_code initalize();
+    std::error_code initalize(const ApplicationParam &param);
 
     std::error_code run();
 

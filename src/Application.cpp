@@ -8,13 +8,14 @@
 #include "ErrorCode.hpp"
 #include "Window.hpp"
 #include "Log.hpp"
+#include "WindowBuffer.hpp"
 
 std::error_code Application::initalize(const ApplicationParam &param){
     if(auto err = Environment::instance()->initalize(param.env); err){
         return err;
     }
 
-    m_pwindow = std::make_shared<Window>(param.env.pos);
+    m_pwindow = std::make_shared<Window>(param.env.pos, param.env.format);
     return m_pwindow->init();
 }
 
@@ -34,8 +35,8 @@ std::error_code Application::run(){
     }
 
     m_pwindow->setListener(this);
-    BufferManager::instance()->clear({0, 0, 0, 1});
     while(!m_bQuit){
+        BufferManager::instance()->clear(GenerateColor());
         m_pwindow->processEvent();
         m_pwindow->show();
         std::this_thread::sleep_for(std::chrono::milliseconds(500));

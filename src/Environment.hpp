@@ -4,6 +4,7 @@
 
 struct EnvironmentParam{
     Position pos;
+    RenderFormat format;
 };
 
 class Environment{

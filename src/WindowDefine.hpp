@@ -30,6 +30,11 @@ struct Position2d{
 };
 
 
+enum class RenderFormat : int32_t{
+    RGBA8888,
+    BGRA8888,
+};
+
 using Position = Position2d<int32_t>;
 using Color = Vector4<uint8_t>;
 using Point2D = Vector2<int32_t>;

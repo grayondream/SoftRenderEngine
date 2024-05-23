@@ -3,9 +3,10 @@
 #include <memory>
 #include "Environment.hpp"
 #include "Window.hpp"
+#include "WindowDefine.hpp"
 
 struct ApplicationParam{
-    EnvironmentParam env;
+    EnvironmentParam env{};
 };
 
 class Application : public WindowEventListener{

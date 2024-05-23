@@ -8,9 +8,9 @@
 #include "WindowDefine.hpp"
 #include "Log.hpp"
 
-std::error_code BufferManager::initialize(const Size &sz){
-    m_primaryBuffer  = std::make_shared<WindowBuffer<uint8_t>>(sz);
-    m_auxilaryBuffer = std::make_shared<WindowBuffer<uint8_t>>(sz);
+std::error_code BufferManager::initialize(const Size &sz, const RenderFormat format){
+    m_primaryBuffer  = std::make_shared<WindowBuffer<uint8_t>>(sz, format);
+    m_auxilaryBuffer = std::make_shared<WindowBuffer<uint8_t>>(sz, format);
     return {};
 }
 

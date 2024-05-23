@@ -16,7 +16,7 @@ public:
         return &instance;
     }
 
-    std::error_code initialize(const Size &sz);
+    std::error_code initialize(const Size &sz, const RenderFormat format);
 
     std::error_code draw(const uint8_t *buffer);
 

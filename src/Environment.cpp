@@ -18,7 +18,7 @@ std::error_code Environment::initalize(const EnvironmentParam &param){
         return std::error_code(static_cast<int>(ErrorCode::SDL_INIT_ERROR), std::generic_category());
     }
 
-    if(auto err = BufferManager::instance()->initialize(param.pos.size)){
+    if(auto err = BufferManager::instance()->initialize(param.pos.size, param.format)){
         LOGE("Failed to initalize surface buffer, errorcode is {}!", err.value());
         return std::error_code(static_cast<int>(ErrorCode::SURFACE_ERROR), std::generic_category());
     }

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include "WindowDefine.hpp"
+#include "Utils.hpp"
 
 template<class T>
 struct WindowBufferBase{
@@ -15,9 +16,10 @@ protected:
 template<class T>
 struct WindowBuffer : public WindowBufferBase<T>{
 public:
-    WindowBuffer(const Size &sz){
+    WindowBuffer(const Size &sz, const RenderFormat format){
         this->m_size = sz;
-        this->m_pitch = sz.width * 4;
+        this->m_format = format;
+        this->m_pitch = FetchPitchAccordingFormat(format, sz.width);
         this->m_buffer.reserve(size(0));
     }
 
@@ -43,9 +45,11 @@ public:
         auto height = this->m_size.height;
         auto width  = this->m_size.width;
         auto pitch  = this->m_pitch;
+        auto bytes = FetchPackBytesAccordingFormat(this->m_format);
+        //w b g r
         for(auto i = 0;i < height;i ++){
             for(auto j = 0;j < width;j ++){
-                auto base = i * pitch + j * 4;
+                auto base = i * pitch + j * bytes;
                 buffer[base + 0] = color.w;
                 buffer[base + 1] = color.z;
                 buffer[base + 2] = color.y;
@@ -93,4 +97,5 @@ public:
     }
 public:
     bool m_locked{};
+    RenderFormat m_format{};
 };

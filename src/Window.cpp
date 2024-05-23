@@ -12,30 +12,14 @@
 #include "ErrorCode.hpp"
 #include "Log.hpp"
 #include "WindowDefine.hpp"
-
+#include "Utils.hpp"
 
 constexpr const static char *kGameEngineTitle = "My Soft Game Engine";
 
-//Here is a trick code, I am too lazy to write all switch code
-inline static WindowEventType WindowEventType2SDLEventType(const Uint32 ev){
-    return static_cast<WindowEventType>(ev);
-}
 
-inline static void WriteBufferIntoSDLTexture(SDL_Texture *ptexture, const void *buffer, const std::size_t sz){
-#if ENABLE_DRAWBUFFER_TEST
-    FILE* fp = fopen("/home/ares/home/Code/SoftGameEngine/tmp/720x470.raw", "w");
-    fwrite(buffer, sz, 1, fp);
-    fclose(fp);
-#endif
-    void *pixels{};
-    int pitch{};
-    SDL_LockTexture(ptexture, nullptr, &pixels, &pitch);
-    memcpy(pixels, buffer, sz);
-    SDL_UnlockTexture(ptexture);
-}
-
-Window::Window(const Position pos)
-    : m_pos(pos){
+Window::Window(const Position pos, const RenderFormat format)
+    :   m_pos(pos),
+        m_format(format){
 
 }
 

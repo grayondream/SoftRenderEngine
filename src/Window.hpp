@@ -18,7 +18,7 @@ struct SDL_Renderer;
 struct SDL_Window;
 class Window{
 public:
-    Window(const Position pos = {{WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y}, {WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT}});
+    Window(const Position pos = {{WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y}, {WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT}}, const RenderFormat format = RenderFormat::RGBA8888);
     ~Window();
     
 public:
@@ -46,6 +46,7 @@ private:
 
 private:
     Position m_pos{};
+    RenderFormat m_format{};
     Color  m_color{128, 128, 128, 128};
     SDL_Renderer* m_pRender{};
     SDL_Window* m_pWindow{};

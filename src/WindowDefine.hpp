@@ -18,24 +18,17 @@ struct Vector4 : Vector3<T>{
     T w;
 };
 
-template<class T>
-struct Position2d{
-    Vector2<T> lf;
-    Vector2<T> rb;
-
-    T width() {
-        return rb.x - lf.x;
-    }
-
-    T height(){
-        return rb.y - lf.y;
-    }
-};
-
 struct Size{
     std::size_t width{};
     std::size_t height{};
 };
+
+template<class T>
+struct Position2d{
+    Vector2<T> lf;
+    Size size;
+};
+
 
 using Position = Position2d<int32_t>;
 using Color = Vector4<uint8_t>;

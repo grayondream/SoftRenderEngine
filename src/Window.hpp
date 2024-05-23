@@ -1,4 +1,6 @@
 #pragma once
+#include <SDL2/SDL_render.h>
+#include <cstdint>
 #include <system_error>
 #include "WindowDefine.hpp"
 
@@ -16,13 +18,7 @@ struct SDL_Renderer;
 struct SDL_Window;
 class Window{
 public:
-    Window(const Position pos = {{WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y}, {WINDOW_DEFAULT_X + WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_Y + WINDOW_DEFAULT_HEIGHT}});
-    Window(const Point2D& pt, const Size& sz){
-        m_pos.lf = pt;
-        m_pos.rb.x = pt.x + sz.width;
-        m_pos.rb.y = pt.y + sz.height;
-    }
-
+    Window(const Position pos = {{WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y}, {WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT}});
     ~Window();
     
 public:
@@ -42,13 +38,17 @@ public:
         m_listener = ls;
     }
 
-private:
     void processEvent();
+
+    void draw(const uint8_t* buffer);
+
+private:
 
 private:
     Position m_pos{};
     Color  m_color{128, 128, 128, 128};
     SDL_Renderer* m_pRender{};
     SDL_Window* m_pWindow{};
+    SDL_Texture* m_pTexture{};
     WindowEventListener *m_listener{};
 };

@@ -1,19 +1,20 @@
+#include <chrono>
 #include <memory>
 #include <system_error>
+#include <thread>
 #include "Application.hpp"
 #include "BufferManager.hpp"
 #include "Environment.hpp"
 #include "ErrorCode.hpp"
 #include "Window.hpp"
 #include "Log.hpp"
-#include "WindowDefine.hpp"
 
 std::error_code Application::initalize(const ApplicationParam &param){
     if(auto err = Environment::instance()->initalize(param.env); err){
         return err;
     }
 
-    m_pwindow = std::make_shared<Window>(Point2D{100, 100}, param.env.size);
+    m_pwindow = std::make_shared<Window>(param.env.pos);
     return m_pwindow->init();
 }
 
@@ -33,10 +34,11 @@ std::error_code Application::run(){
     }
 
     m_pwindow->setListener(this);
+    BufferManager::instance()->clear({0, 0, 0, 1});
     while(!m_bQuit){
-        BufferManager::instance()->
-        BufferManager::instance()->swap();
+        m_pwindow->processEvent();
         m_pwindow->show();
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
     LOGI("Quit Normally");

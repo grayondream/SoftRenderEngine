@@ -1,4 +1,3 @@
-#include <SDL/SDL_video.h>
 #include <iostream>
 #include "Log.hpp"
 #include "Application.hpp"
@@ -7,7 +6,7 @@ int main(int argc, char **argv){
     LOGI("Hello Soft Game Engine");
     Application app{};
     ApplicationParam param{};
-    param.env.size = {720, 480};
+    param.env.pos = {{0, 0}, {720, 480}};
     if(app.initalize(param)){
         LOGE("Failed to initalize application!");
         exit(-1);

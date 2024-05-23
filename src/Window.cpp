@@ -1,11 +1,14 @@
 
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_video.h>
+
+#include <SDL2/SDL_pixels.h>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <system_error>
 #include <SDL2/SDL.h>
 
 #include "Window.hpp"
+#include "BufferManager.hpp"
 #include "ErrorCode.hpp"
 #include "Log.hpp"
 #include "WindowDefine.hpp"
@@ -18,12 +21,29 @@ inline static WindowEventType WindowEventType2SDLEventType(const Uint32 ev){
     return static_cast<WindowEventType>(ev);
 }
 
+inline static void WriteBufferIntoSDLTexture(SDL_Texture *ptexture, const void *buffer, const std::size_t sz){
+#if ENABLE_DRAWBUFFER_TEST
+    FILE* fp = fopen("/home/ares/home/Code/SoftGameEngine/tmp/720x470.raw", "w");
+    fwrite(buffer, sz, 1, fp);
+    fclose(fp);
+#endif
+    void *pixels{};
+    int pitch{};
+    SDL_LockTexture(ptexture, nullptr, &pixels, &pitch);
+    memcpy(pixels, buffer, sz);
+    SDL_UnlockTexture(ptexture);
+}
+
 Window::Window(const Position pos)
     : m_pos(pos){
 
 }
 
 Window::~Window(){
+    if(m_pTexture){
+        SDL_DestroyTexture(m_pTexture);
+    }
+
     if(m_pWindow){
         SDL_DestroyWindow(m_pWindow);
     }
@@ -36,7 +56,7 @@ Window::~Window(){
 
 std::error_code Window::init(){
     if(!m_pWindow){
-        m_pWindow = SDL_CreateWindow(kGameEngineTitle, static_cast<int>(m_pos.lf.x), static_cast<int>(m_pos.lf.y), static_cast<int>(m_pos.width()), static_cast<int>(m_pos.height()), 0);
+        m_pWindow = SDL_CreateWindow(kGameEngineTitle, static_cast<int>(m_pos.lf.x), static_cast<int>(m_pos.lf.y), static_cast<int>(m_pos.size.width), static_cast<int>(m_pos.size.height), 0);
     }
     
     if(!m_pWindow){
@@ -53,13 +73,25 @@ std::error_code Window::init(){
         return std::error_code(static_cast<int>(ErrorCode::FAILED), std::generic_category());
     }
 
+    if(!m_pTexture){
+        m_pTexture = SDL_CreateTexture(m_pRender, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, m_pos.size.width, m_pos.size.height);
+    }
+
+    if(!m_pTexture){
+        LOGE("Failed to create screen texture! eeror message: {}", SDL_GetError());
+        return std::error_code(static_cast<int>(ErrorCode::FAILED), std::generic_category());
+    }
+
     return {};
 }
 
 void Window::show(){
     SDL_SetRenderDrawColor(m_pRender, m_color.x, m_color.y, m_color.z, m_color.w);
     SDL_RenderClear(m_pRender);
-    processEvent();
+    BufferManager::instance()->swap();
+    auto buffer = BufferManager::instance()->getRawBuffer();
+    draw(buffer);
+    SDL_RenderCopy(m_pRender, m_pTexture, nullptr, nullptr);
     SDL_RenderPresent(m_pRender);
 }
 
@@ -71,4 +103,8 @@ void Window::processEvent(){
         auto type = WindowEventType2SDLEventType(ev.type);
         (*m_listener)(type);
     }
+}
+
+void Window::draw(const uint8_t *buffer){
+    WriteBufferIntoSDLTexture(m_pTexture, buffer, m_pos.size.width * m_pos.size.height * 4);
 }

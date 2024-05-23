@@ -3,7 +3,7 @@
 #include<system_error>
 
 struct EnvironmentParam{
-    Size size;
+    Position pos;
 };
 
 class Environment{

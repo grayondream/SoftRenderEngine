@@ -20,20 +20,30 @@ std::error_code BufferManager::draw(const uint8_t *buffer){
         return std::error_code(static_cast<int>(ErrorCode::FATAL_ERROR), std::generic_category());
     }
 
+    m_bNeedSwap = true;
     return {};
 }
 
-uint8_t* BufferManager::getBuffer(){
-    assert(!m_primaryBuffer->lock());
+uint8_t* BufferManager::getRawBuffer(){
+    assert(!m_primaryBuffer->locked());
     return m_primaryBuffer->buffer();
 }
 
+std::shared_ptr<BufferManager::BufferType> BufferManager::getBuffer(){
+    return m_auxilaryBuffer;
+}
 void BufferManager::clear(const Color &color){
     assert(!m_auxilaryBuffer->locked());
     m_auxilaryBuffer->clear(color);
+    m_bNeedSwap = true;
 }
 
 void BufferManager::swap(){
+    if(!m_bNeedSwap){
+        return;
+    }
+
     assert(!m_auxilaryBuffer->locked() && !m_primaryBuffer->locked());
     m_auxilaryBuffer.swap(m_primaryBuffer);
+    m_bNeedSwap = false;
 }

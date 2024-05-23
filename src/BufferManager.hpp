@@ -9,6 +9,8 @@ class WindowBuffer;
 
 class BufferManager{
 public:
+    using BufferType = WindowBuffer<uint8_t>;
+public:
     static BufferManager* instance(){
         static BufferManager instance;
         return &instance;
@@ -22,12 +24,15 @@ public:
 
     void swap();
 
-    uint8_t* getBuffer();
+    uint8_t* getRawBuffer();
+
+    std::shared_ptr<BufferType> getBuffer();
 
 private:
     BufferManager() = default;
 
 private:
-    std::shared_ptr<WindowBuffer<uint8_t>> m_primaryBuffer;
-    std::shared_ptr<WindowBuffer<uint8_t>> m_auxilaryBuffer;
+    std::shared_ptr<BufferType> m_primaryBuffer;
+    std::shared_ptr<BufferType> m_auxilaryBuffer;
+    bool m_bNeedSwap{ false };
 };

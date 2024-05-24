@@ -55,7 +55,7 @@ T GenerateRandomValue(const T minv, const T maxv){
 
 inline static Color GenerateColor(){
     auto r = GenerateRandomValue<uint8_t>(0, 255);
-    auto g = GenerateRandomValue<uint8_t>(r, 255);
-    auto b = GenerateRandomValue<uint8_t>(0, r);
+    auto g = GenerateRandomValue<uint8_t>(0, 255);
+    auto b = GenerateRandomValue<uint8_t>(0, 255);
     return {r, g, b, 1};
 }

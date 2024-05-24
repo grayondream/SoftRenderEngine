@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL2/SDL_render.h>
+#include <SDL2/SDL_video.h>
 #include <cstdint>
 #include <system_error>
 #include "WindowDefine.hpp"
@@ -26,6 +27,10 @@ public:
 
     void setBackgroundColor(const Color &color){
         m_color = color;
+    }
+
+    void setTitle(const std::string &title){
+        SDL_SetWindowTitle(m_pWindow, title.c_str());
     }
 
     void show();

@@ -2,20 +2,10 @@
 
 #include <cstdint>
 
-template<class T>
-struct Vector2{
-    T x;
-    T y;
-};
 
-template<class T>
-struct Vector3 : Vector2<T>{
-    T z;
-};
-
-template<class T>
-struct Vector4 : Vector3<T>{
-    T w;
+struct Point2D{
+    std::size_t x;
+    std::size_t y;
 };
 
 struct Size{
@@ -23,21 +13,26 @@ struct Size{
     std::size_t height{};
 };
 
-template<class T>
 struct Position2d{
-    Vector2<T> lf;
+    Point2D lf;
     Size size;
 };
 
+template<class T>
+struct ColorBase{
+    T r;
+    T g;
+    T b;
+    T a;
+};
 
 enum class RenderFormat : int32_t{
     RGBA8888,
     BGRA8888,
 };
 
-using Position = Position2d<int32_t>;
-using Color = Vector4<uint8_t>;
-using Point2D = Vector2<int32_t>;
+using Position = Position2d;
+using Color = ColorBase<uint8_t>;
 
 using WindowIDType = long int;
 

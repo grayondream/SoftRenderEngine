@@ -50,10 +50,10 @@ public:
         for(auto i = 0;i < height;i ++){
             for(auto j = 0;j < width;j ++){
                 auto base = i * pitch + j * bytes;
-                buffer[base + 0] = color.w;
-                buffer[base + 1] = color.z;
-                buffer[base + 2] = color.y;
-                buffer[base + 3] = color.x;
+                buffer[base + 0] = color.a;
+                buffer[base + 1] = color.b;
+                buffer[base + 2] = color.g;
+                buffer[base + 3] = color.r;
             }
         }
 

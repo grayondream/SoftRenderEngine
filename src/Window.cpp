@@ -70,7 +70,7 @@ std::error_code Window::init(){
 }
 
 void Window::show(){
-    SDL_SetRenderDrawColor(m_pRender, m_color.x, m_color.y, m_color.z, m_color.w);
+    SDL_SetRenderDrawColor(m_pRender, m_color.r, m_color.g, m_color.b, m_color.a);
     SDL_RenderClear(m_pRender);
     BufferManager::instance()->swap();
     auto buffer = BufferManager::instance()->getRawBuffer();

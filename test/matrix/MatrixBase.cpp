@@ -16,7 +16,15 @@ TEST(Matrix1DTest, CreateAndPrint){
     LOGI("m1 string: {}", std::to_string(m1));
     LOGI("m2 string: {}", std::to_string(m2));
     LOGI("m3 string: {}", std::to_string(m3));
+
+    //initialize matrix with initalize list
+    Matrix1D m4({1,2,3,4,5,6,7,8,9,10,11}) ;
+    LOGI("m4 size is {}, content {}", m4.size(), std::to_string(m4));
 }
+
+TEST(Matrix2DTest, CreateAndPrint){
+    LOGI("Testing Matrix2D base ability");
+};
 
 int main(int argc, char **argv){
     LOGI("Start matrix base ability test");

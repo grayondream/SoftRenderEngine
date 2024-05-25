@@ -1,4 +1,5 @@
 #pragma once
+#include <initializer_list>
 #include <vector>
 
 using MatrixSizeType = std::size_t;
@@ -16,7 +17,7 @@ template<class T>
 class MatrixIndex1 : public MatrixIndexBase<T>{
 public:
     MatrixIndex1(T* data) : MatrixIndexBase<T>(data){ }
-
+    
     T& operator[](const MatrixSizeType idx) const{
         return *(this->m_pstart + idx);
     }
@@ -67,6 +68,8 @@ public:
     MatrixBase(const MatrixSizeType sz){
         m_data.reserve(sz);
     }
+
+    MatrixBase(const std::initializer_list<T> &ls) : m_data(ls){}
 public:
     MatrixValueType* getRawBuffer(){
         return m_data.data();
@@ -84,6 +87,8 @@ template<class T>
 class Matrix1DBase : public MatrixBase<T>, public MatrixIndex1<T>{
 public:
     Matrix1DBase(const MatrixSizeType d1) : MatrixBase<T>(d1), MatrixIndex1<T>(this->getRawBuffer()), m_d1(d1){}
+    Matrix1DBase(const std::initializer_list<T> &ls) : MatrixBase<T>(ls), MatrixIndex1<T>(this->getRawBuffer()), m_d1(ls.size()){}
+
 public:
     MatrixSizeType m_d1;
 };

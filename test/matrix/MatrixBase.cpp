@@ -41,12 +41,10 @@ static void LogMatrix(const T &mat, const std::string tag = {}){
 TEST(Matrix1DTest, CreateAndPrint){
     LOGI("Testing Matrix1D base ability");
     const int n1 = 5, n2 = 7, n3 = 10;
-    Matrix1D m1(n1);
-    Matrix1D m2(n2);
-    Matrix1D m3(n3);
-    std::fill_n(m1.getRawBuffer(), n1, 3.3);
-    std::fill_n(m2.getRawBuffer(), n2, 2.2);
-    std::fill_n(m3.getRawBuffer(), n3, 7.7);
+    Matrix1D m1(std::vector(n1, 2.2));
+    Matrix1D m2(std::vector(n2, 3.3));
+    Matrix1D m3(std::vector(n3, 4.2));
+    
     Matrix1D m4({1,2,3,4,5,6,7,8,9,10,11}) ;
     LogMatrix(m1);
     LogMatrix(m2);

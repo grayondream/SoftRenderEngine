@@ -86,6 +86,18 @@ TEST(Matrix4DTest, CreateAndPrint){
     LogMatrix(m2);
 }
 
+TEST(Matrix3DTest, IndexAt){
+    LOGI("Testing Matrix4D index at");
+    const std::size_t n1 = 27;
+    std::vector<double> vec1(n1, 5);
+    Matrix3D m1(vec1, 3, 3, 3);
+    LogMatrix(m1);
+    m1[0][0][0] = 1;
+    m1[1][1][1] = 2;
+    m1[2][2][2] = 3;
+    LogMatrix(m1);
+}
+
 int main(int argc, char **argv){
     LOGI("Start matrix base ability test");
     testing::InitGoogleTest(&argc, argv);

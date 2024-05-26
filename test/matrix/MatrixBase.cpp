@@ -1,6 +1,7 @@
 #include "Matrix.hpp"
 #include "Log.hpp"
 #include "MatrixUtils.hpp"
+#include "StaticMatrix.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -94,6 +95,21 @@ TEST(Matrix3DTest, IndexAt){
     m1[1][1][1] = 2;
     m1[2][2][2] = 3;
     LogMatrix(m1);
+}
+
+TEST(StaticMatrixTest, CreateAndPrint){
+    LOGI("Testing Static Matrix 4D create and print");
+    Matrix1x4 mat({1, 2, 3, 4});
+    LOGI("Matrix {} total size: {}, d1 = {}\n{}", "", mat.size(), mat.d1, std::to_string(mat));
+
+    Matrix3x3 m2({1, 2, 3, 4,5,6,7,8,9});
+    LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", "", mat.size(), m2.d1, m2.d2, std::to_string(m2));
+
+    StaticMatrix3DBase<double, 2, 2, 2> m3({1, 2, 3, 4,5,6,7,8});
+    m3[0][0][0] = -1;
+    m3[0][1][1] = -1;
+    m3[0][2][2] = -1;
+    LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", "", mat.size(), m3.d1, m3.d2, std::to_string(m3));
 }
 
 int main(int argc, char **argv){

@@ -7,11 +7,11 @@
 #include <type_traits>
 
 static void LogMatrix1D(const Matrix1D &mat, const std::string tag = {}){
-    LOGI("Matrix {} total size: {}, d1 = {}\n{}", tag, mat.size(), mat.m_d1, std::to_string(mat));
+    LOGI("Matrix {} total size: {}, d1 = {}\n{}", tag, mat.size(), mat.d1, std::to_string(mat));
 }
 
 static void LogMatrix2D(const Matrix2D &mat, const std::string tag = {}){
-    LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", tag, mat.size(), mat.m_d1, mat.m_d2, std::to_string(mat));
+    LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", tag, mat.size(), mat.d1, mat.d2, std::to_string(mat));
 }
 
 template<class T>

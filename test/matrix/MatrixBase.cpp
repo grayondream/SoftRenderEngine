@@ -2,6 +2,7 @@
 #include "Log.hpp"
 #include "MatrixUtils.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <type_traits>
@@ -14,13 +15,27 @@ static void LogMatrix2D(const Matrix2D &mat, const std::string tag = {}){
     LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", tag, mat.size(), mat.d1, mat.d2, std::to_string(mat));
 }
 
+static void LogMatrix3D(const Matrix3D &mat, const std::string tag = {}){
+    LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}, d3 = {}\n{}", tag, mat.size(), mat.d1, mat.d2, mat.d3, std::to_string(mat));
+}
+
+static void LogMatrix4D(const Matrix4D &mat, const std::string tag = {}){
+    LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}, d3 = {}, d4 = {}\n{}", tag, mat.size(), mat.d1, mat.d2, mat.d3, mat.d4, std::to_string(mat));
+}
+
 template<class T>
 static void LogMatrix(const T &mat, const std::string tag = {}){
     if constexpr(std::is_same_v<T, Matrix1D>){
         return LogMatrix1D(mat, tag);
     }else if constexpr(std::is_same_v<T, Matrix2D>){
         return LogMatrix2D(mat, tag);
+    }else if constexpr(std::is_same_v<T, Matrix3D>){
+        return LogMatrix3D(mat, tag);
+    }else if constexpr(std::is_same_v<T, Matrix4D>){
+        return LogMatrix4D(mat, tag);
     }
+
+    assert(0);
 }
 
 TEST(Matrix1DTest, CreateAndPrint){
@@ -50,6 +65,26 @@ TEST(Matrix2DTest, CreateAndPrint){
     LogMatrix(m2);
     LogMatrix(m3);
 };
+
+TEST(Matrix3DTest, CreateAndPrint){
+    LOGI("Testing Matrix3D base ability");
+    const std::size_t n1 = 27, n2 = 8 * 8 * 8;
+    std::vector<double> vec1(n1, 10), vec2(n2, 11);
+    Matrix3D m1(vec1, 3, 3, 3);
+    Matrix3D m2(vec2, 8, 8, 8);
+    LogMatrix(m1);
+    LogMatrix(m2);
+}
+
+TEST(Matrix4DTest, CreateAndPrint){
+    LOGI("Testing Matrix4D base ability");
+    const std::size_t n1 = 81, n2 = 8 * 8 * 8 * 8;
+    std::vector<double> vec1(n1, 10), vec2(n2, 11);
+    Matrix4D m1(vec1, 3, 3, 3, 3);
+    Matrix4D m2(vec2, 8, 8, 8, 8);
+    LogMatrix(m1);
+    LogMatrix(m2);
+}
 
 int main(int argc, char **argv){
     LOGI("Start matrix base ability test");

@@ -100,7 +100,7 @@ template<class T>
 class MatrixIndex4 : public MatrixIndexBase<T>, public MatrixIndex4Size{
 public:
     MatrixIndex4(T* data, const MatrixSizeType d4, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-            : MatrixIndexBase<T>(data), MatrixIndex4Size(d4, d3, d2, d1){}
+            : MatrixIndexBase<T>(data), MatrixIndex4Size(d4, d3, d2, d1){ }
 
     MatrixIndex3<T> operator[](const MatrixSizeType idx) const {
         return MatrixIndex3<T>(this->m_pstart + idx * this->d1 * this->d2 * this->d3, this->d3, this->d2, this->d1);
@@ -109,8 +109,6 @@ public:
     operator Matrix4DBase<T>(){
         return Matrix4DBase<T>(this->m_pstart, this->d4, this->d3, this->d2, this->d1);
     }
-public:
-    MatrixSizeType d4{};
 };
 
 template<class T>
@@ -212,7 +210,7 @@ public:
         : MatrixBase<T>(data, d1 * d2 * d3 * d4), MatrixIndex4<int>(this->getRawBuffer(), d4, d3, d2, d1){ }
 
     Matrix4DBase(const std::vector<T> &vec, const MatrixSizeType d4, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixBase<T>(vec),MatrixIndex4<int>(this->getRawBuffer(), d4, d3, d2, d1){ }
+        : MatrixBase<T>(vec), MatrixIndex4<T>(this->getRawBuffer(), d4, d3, d2, d1){ }
 };
 
 using Matrix1D = Matrix1DBase<double>;

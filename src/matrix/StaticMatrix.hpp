@@ -7,6 +7,47 @@
 
 using StaticMatrixSizeType = std::size_t;
 
+template<class T>
+class StaticMatrixBase{
+public:
+    StaticMatrixBase(T *data)
+        : m_pdata(data){}
+public:
+    T* m_pdata{};
+};
+
+template<class T, StaticMatrixSizeType di1>
+class StaticMatrixIndex1 : public StaticMatrixBase<T>{
+public:
+    T& operator[](const StaticMatrixSizeType idx){
+        return this->m_pdata[idx];
+    }
+};
+
+template<class T, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+class StaticMatrixIndex2 : public StaticMatrixBase<T>{ 
+public:
+    StaticMatrixIndex1<T, d1> operator[](const StaticMatrixSizeType idx){
+        return StaticMatrixIndex1<T, d1>(this->m_pdata + idx * d1);
+    }
+};
+
+template<class T, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+class StaticMatrixIndex3 : public StaticMatrixBase<T>{ 
+public:
+    StaticMatrixIndex2<T, d2, d1> operator[](const StaticMatrixSizeType idx){
+        return { this->m_pdata + idx * d1 * d2};
+    }
+};
+
+template<class T, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+class StaticMatrixIndex4 : public StaticMatrixBase<T>{ 
+public:
+    StaticMatrixIndex3<T, d3, d2, d1> operator[](const StaticMatrixSizeType idx){
+        return { this->m_pdata + idx * d3 * d2 * d1};
+    }
+};
+
 template<class T, StaticMatrixSizeType di1>
 class StaticMatrix1DBase{
 public:
@@ -24,15 +65,19 @@ public:
         std::copy_n(std::begin(ls), size(), getRawBuffer());
     }
     
-    StaticMatrix1DBase(const T* data){
+    StaticMatrix1DBase(T* data){
         std::copy_n(data, size(), getRawBuffer());
+    }
+    
+    StaticMatrix1DBase(const StaticMatrixIndex1<T, d1> mat){
+        std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
     StaticMatrixSizeType size() const{
         return Size;
     }
 
-    const T* getRawBuffer() const{
+    T* getRawBuffer() const{
         return m_pdata;
     }
 
@@ -70,24 +115,28 @@ public:
         std::copy_n(std::begin(ls), size(), getRawBuffer());
     }
 
-    StaticMatrix2DBase(const T* data){
+    StaticMatrix2DBase(T* data){
         std::copy_n(data, size(), getRawBuffer());
+    }
+    
+    StaticMatrix2DBase(const StaticMatrixIndex2<T, d2, d1> &mat){
+        std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
     StaticMatrixSizeType size() const{
         return Size;
     }
 
-    const T* getRawBuffer() const {
-        return reinterpret_cast<const T*>(m_pdata);
+    T* getRawBuffer() const {
+        return (T*)(m_pdata);
     }
 
     T* getRawBuffer(){
         return reinterpret_cast<T*>(m_pdata);
     }
 
-    StaticMatrix1DBase<T, d1> operator[](const StaticMatrixSizeType idx) const {
-        return StaticMatrix1DBase<T, d1>(getRawBuffer() + idx * d1);
+    StaticMatrixIndex1<T, d1> operator[](const StaticMatrixSizeType idx) const {
+        return StaticMatrixIndex1<T, d1>(getRawBuffer() + idx * d1);
     }
 private:
     T m_pdata[d2][d1]{};
@@ -113,24 +162,28 @@ public:
         std::copy_n(std::begin(ls), size(), getRawBuffer());
     }
 
-    StaticMatrix3DBase(const T* data){
+    StaticMatrix3DBase(T* data){
         std::copy_n(data, size(), getRawBuffer());
+    }
+    
+    StaticMatrix3DBase(const StaticMatrixIndex3<T, d3, d2, d1> &mat){
+        std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
     StaticMatrixSizeType size() const{
         return Size;
     }
 
-    const T* getRawBuffer() const{
-        return reinterpret_cast<const T*>(m_pdata);
+    T* getRawBuffer() const{
+        return (T*)(m_pdata);
     }
 
     T* getRawBuffer(){
         return reinterpret_cast<T*>(m_pdata);
     }
 
-    StaticMatrix2DBase<T, d2, d1> operator[](const StaticMatrixSizeType idx) const{
-        return StaticMatrix2DBase<T, d2, d1>(getRawBuffer() + idx * d2 * d1);
+    StaticMatrixIndex2<T, d2, d1> operator[](const StaticMatrixSizeType idx) const{
+        return StaticMatrixIndex2<T, d2, d1>(getRawBuffer());
     }
 private:
     T m_pdata[d3][d2][d1]{};
@@ -156,24 +209,28 @@ public:
         std::copy_n(std::begin(ls), size(), getRawBuffer());
     }
 
-    StaticMatrix4DBase(const T* data){
+    StaticMatrix4DBase(T* data){
         std::copy_n(data, size(), getRawBuffer());
+    }
+
+    StaticMatrix4DBase(const StaticMatrixIndex4<T, d4, d3, d2, d1> &mat){
+        std::copy_n(mat.m_pdata, size(), m_pdata);
     }
 
     StaticMatrixSizeType size() const{
         return Size;
     }
 
-    const T* getRawBuffer() const{
-        return reinterpret_cast<const T*>(m_pdata);
+    T* getRawBuffer() const{
+        return reinterpret_cast<T*>(m_pdata);
     }
 
     T* getRawBuffer(){
         return reinterpret_cast<T*>(m_pdata);
     }
 
-    StaticMatrix3DBase<T, d3, d2, d1> operator[](const StaticMatrixSizeType idx) const {
-        return StaticMatrix3DBase<T, d3, d2, d1>(getRawBuffer() + idx * d3 * d2 * d1);
+    StaticMatrixIndex3<T, d3, d2, d1> operator[](const StaticMatrixSizeType idx) const {
+        return StaticMatrixIndex3<T, d3, d2, d1>(getRawBuffer());
     }
 private:
     T m_pdata[d4][d3][d2][d1]{};

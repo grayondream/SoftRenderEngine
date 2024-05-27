@@ -52,17 +52,40 @@ namespace std{
         return std::to_string(Matrix4DBase<T>(mat));
     }
 
-        template<class T, StaticMatrixSizeType d1, template<class, StaticMatrixSizeType> class MatrixType>
+    template<class T, StaticMatrixSizeType d1, template<class, StaticMatrixSizeType> class MatrixType>
     std::string to_string(const MatrixType<T, d1> &mat);
 
-    template<class T, StaticMatrixSizeType d1, StaticMatrixSizeType d2, template<class, StaticMatrixSizeType, StaticMatrixSizeType> class MatrixType>
-    std::string to_string(const MatrixType<T, d1, d2> &mat);
+    template<class T, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix1DBase<T, d1> &mat);
 
-    template<class T, StaticMatrixSizeType d1, StaticMatrixSizeType d2, StaticMatrixSizeType d3, template<class, StaticMatrixSizeType, StaticMatrixSizeType, StaticMatrixSizeType> class MatrixType>
-    std::string to_string(const MatrixType<T, d1, d2, d3> &mat);
+    template<class T, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix2DBase<T, d2, d1> &mat);
 
-    template<class T, StaticMatrixSizeType d1, StaticMatrixSizeType d2, StaticMatrixSizeType d3, StaticMatrixSizeType d4,template<class, StaticMatrixSizeType, StaticMatrixSizeType, StaticMatrixSizeType, StaticMatrixSizeType> class MatrixType>
-    std::string to_string(const MatrixType<T, d1, d2, d3, d4> &mat);
+    template<class T, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix3DBase<T, d3, d2, d1> &mat);
+
+    template<class T, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix4DBase<T, d4, d3, d2, d1> &mat);
+
+    template<class T, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrixIndex1<T, d1> &mat){
+        return std::to_string(StaticMatrix1DBase<T, d1>(mat));
+    }
+
+    template<class T, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrixIndex2<T, d2, d1> &mat){
+        return std::to_string(StaticMatrix2DBase<T, d2, d1>(mat));
+    }
+
+    template<class T, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrixIndex3<T, d3, d2, d1> &mat){
+        return std::to_string(StaticMatrix3DBase<T, d3, d2, d1>(mat));
+    }
+
+    template<class T, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrixIndex4<T, d4, d3, d2, d1> &mat){
+        return std::to_string(StaticMatrix4DBase<T, d4, d3, d2, d1>(mat));
+    }
 }
 
 inline static std::size_t MatrixStringLoopSize(const std::size_t size){
@@ -162,23 +185,23 @@ template<class T>
         return MatrixSplice2String(mat, std::string(OUT_STREAM_COMET_CHAR) + OUT_STREAM_ENTER_CHAR);
     }
 
-    template<class T, StaticMatrixSizeType d1, template<class, StaticMatrixSizeType> class MatrixType>
-    std::string to_string(const MatrixType<T, d1> &mat){
+    template<class T, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix1DBase<T, d1> &mat){
         return StaticMatrixSplice2String(mat);
     }
 
-    template<class T, StaticMatrixSizeType d1, StaticMatrixSizeType d2, template<class, StaticMatrixSizeType, StaticMatrixSizeType> class MatrixType>
-    std::string to_string(const MatrixType<T, d1, d2> &mat){
+    template<class T, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix2DBase<T, d2, d1> &mat){
         return StaticMatrixSplice2String(mat);
     }
 
-    template<class T, StaticMatrixSizeType d1, StaticMatrixSizeType d2, StaticMatrixSizeType d3, template<class, StaticMatrixSizeType, StaticMatrixSizeType, StaticMatrixSizeType> class MatrixType>
-    std::string to_string(const MatrixType<T, d1, d2, d3> &mat){
+    template<class T, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix3DBase<T, d3, d2, d1> &mat){
         return StaticMatrixSplice2String(mat);
     }
 
-    template<class T, StaticMatrixSizeType d1, StaticMatrixSizeType d2, StaticMatrixSizeType d3, StaticMatrixSizeType d4,template<class, StaticMatrixSizeType, StaticMatrixSizeType, StaticMatrixSizeType, StaticMatrixSizeType> class MatrixType>
-    std::string to_string(const MatrixType<T, d1, d2, d3, d4> &mat){
+    template<class T, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const StaticMatrix4DBase<T, d4, d3, d2, d1> &mat){
         return StaticMatrixSplice2String(mat);
     }
 }

@@ -1,39 +1,50 @@
 #pragma once
 #include <algorithm>
 #include <initializer_list>
+#include <iterator>
 #include <vector>
 
 using MatrixSizeType = std::size_t;
+using ConstMatrixSizeType = const std::size_t;
 
 template<class T>
 class MatrixIndexBase{
 public:
-    MatrixIndexBase(T *data) : m_pstart(data){ }
+    using ValueType = T;
+    using ConstValueType = const T;
+    using Pointer = ValueType*;
+    using ConstPointer = const ValueType*;
+    using Reference = ValueType&;
+    using ConstReference = const ValueType&;
 
 public:
-    T *m_pstart{};
+    MatrixIndexBase(Pointer data) : m_pstart(data){ }
+    MatrixIndexBase(ConstPointer data) : m_pstart(data){ }
+
+public:
+    Pointer m_pstart{};
 };
 
 struct MatrixIndex1Size{
-    MatrixIndex1Size(const MatrixSizeType s1)
+    MatrixIndex1Size(ConstMatrixSizeType s1)
         : d1(s1){}
     MatrixSizeType d1;
 };
 
 struct MatrixIndex2Size : public MatrixIndex1Size{
-    MatrixIndex2Size(const MatrixSizeType s2, const MatrixSizeType s1)
+    MatrixIndex2Size(ConstMatrixSizeType s2, ConstMatrixSizeType s1)
         : MatrixIndex1Size(s1), d2(s2){}
     MatrixSizeType d2;
 };
 
 struct MatrixIndex3Size : public MatrixIndex2Size{
-    MatrixIndex3Size(const MatrixSizeType s3, const MatrixSizeType s2, const MatrixSizeType s1)
+    MatrixIndex3Size(ConstMatrixSizeType s3, ConstMatrixSizeType s2, ConstMatrixSizeType s1)
         : MatrixIndex2Size(s2, s1), d3(s3){}
     MatrixSizeType d3;
 };
 
 struct MatrixIndex4Size : public MatrixIndex3Size{
-    MatrixIndex4Size(const MatrixSizeType s4, const MatrixSizeType s3, const MatrixSizeType s2, const MatrixSizeType s1)
+    MatrixIndex4Size(ConstMatrixSizeType s4, ConstMatrixSizeType s3, ConstMatrixSizeType s2, ConstMatrixSizeType s1)
         : MatrixIndex3Size(s3, s2, s1), d4(s4){}
     MatrixSizeType d4;
 };
@@ -44,15 +55,24 @@ class Matrix1DBase;
 template<class T>
 class MatrixIndex1 : public MatrixIndexBase<T>, public MatrixIndex1Size{
 public:
-    MatrixIndex1(T* data, const MatrixSizeType d1) 
-        : MatrixIndexBase<T>(data), MatrixIndex1Size(d1){ }
+    using ValueType = MatrixIndexBase<T>::ValueType;
+    using Pointer = MatrixIndexBase<T>::Pointer;
+    using ConstPointer = MatrixIndexBase<T>::ConstPointer;
+    using Reference = MatrixIndexBase<T>::Reference;
     
-    T& operator[](const MatrixSizeType idx) const{
+public:
+    MatrixIndex1(Pointer data, ConstMatrixSizeType d1) 
+        : MatrixIndexBase<ValueType>(data), MatrixIndex1Size(d1){ }
+    
+    MatrixIndex1(ConstPointer data, ConstMatrixSizeType d1)
+        : MatrixIndexBase<ValueType>(data), MatrixIndex1Size(d1){}
+
+    Reference operator[](ConstMatrixSizeType idx){
         return *(this->m_pstart + idx);
     }
-
-    operator Matrix1DBase<T>(){
-        return Matrix1DBase<T>(this->m_pstart, this->d1);
+    
+    ValueType operator[](ConstMatrixSizeType idx) const{
+        return *(this->m_pstart + idx);
     }
 };
 
@@ -63,15 +83,24 @@ class Matrix2DBase;
 template<class T>
 class MatrixIndex2 : public MatrixIndexBase<T>, public MatrixIndex2Size{
 public:
-    MatrixIndex2(T* data, const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixIndexBase<T>(data), MatrixIndex2Size(d2, d1){ }
+    using ValueType = MatrixIndexBase<T>::ValueType;
+    using Pointer = MatrixIndexBase<T>::Pointer;
+    using ConstPointer = MatrixIndexBase<T>::ConstPointer;
+    using Reference = ValueType &;
 
-    MatrixIndex1<T> operator[](const MatrixSizeType idx) const{
-        return MatrixIndex1<T>(this->m_pstart + idx * this->d1, this->d1);
+public:
+    MatrixIndex2(Pointer data, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixIndexBase<ValueType>(data), MatrixIndex2Size(d2, d1){ }
+    
+    MatrixIndex2(ConstPointer data, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixIndexBase<ValueType>(data), MatrixIndex2Size(d2, d1){ }
+
+    MatrixIndex1<ValueType> operator[](ConstMatrixSizeType idx) const{
+        return MatrixIndex1<ValueType>(this->m_pstart + idx * this->d1, this->d1);
     }
 
-    operator Matrix2DBase<T>(){
-        return Matrix2DBase<T>(this->m_pstart, this->d2, this->d1);
+    MatrixIndex1<ValueType> operator[](ConstMatrixSizeType idx){
+        return const_cast<const MatrixIndex2<ValueType>*>(this)->operator[](idx);
     }
 };
 
@@ -81,15 +110,24 @@ class Matrix3DBase;
 template<class T>
 class MatrixIndex3 : public MatrixIndexBase<T>, public MatrixIndex3Size{
 public:
-    MatrixIndex3(T* data, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixIndexBase<T>(data), MatrixIndex3Size(d3, d2, d1){}
+    using ValueType = MatrixIndexBase<T>::ValueType;
+    using Pointer = MatrixIndexBase<T>::Pointer;
+    using ConstPointer = MatrixIndexBase<T>::ConstPointer;
+    using Reference = ValueType &;
 
-    MatrixIndex2<T> operator[](const MatrixSizeType idx) const {
-        return MatrixIndex2<T>(this->m_pstart + idx * this->d1 * this->d2, this->d2, this->d1);
+public:
+    MatrixIndex3(Pointer data, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixIndexBase<ValueType>(data), MatrixIndex3Size(d3, d2, d1){}
+
+    MatrixIndex3(ConstPointer data, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixIndexBase<ValueType>(data), MatrixIndex3Size(d3, d2, d1){}
+
+    MatrixIndex2<ValueType> operator[](ConstMatrixSizeType idx) const {
+        return MatrixIndex2<ValueType>(this->m_pstart + idx * this->d1 * this->d2, this->d2, this->d1);
     }
 
-    operator Matrix3DBase<T>(){
-        return Matrix3DBase<T>(this->m_pstart, this->d3, this->d2, this->d1);
+    MatrixIndex2<ValueType> operator[](ConstMatrixSizeType idx){
+        return const_cast<const MatrixIndex3<ValueType>*>(this)->operator[](idx);
     }
 };
 
@@ -99,41 +137,62 @@ class Matrix4DBase;
 template<class T>
 class MatrixIndex4 : public MatrixIndexBase<T>, public MatrixIndex4Size{
 public:
-    MatrixIndex4(T* data, const MatrixSizeType d4, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-            : MatrixIndexBase<T>(data), MatrixIndex4Size(d4, d3, d2, d1){ }
+    using ValueType = MatrixIndexBase<T>::ValueType;
+    using Pointer = MatrixIndexBase<T>::Pointer;
+    using ConstPointer = MatrixIndexBase<T>::ConstPointer;
+    using Reference = ValueType &;
 
-    MatrixIndex3<T> operator[](const MatrixSizeType idx) const {
-        return MatrixIndex3<T>(this->m_pstart + idx * this->d1 * this->d2 * this->d3, this->d3, this->d2, this->d1);
+public:
+    MatrixIndex4(Pointer data, ConstMatrixSizeType d4, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+            : MatrixIndexBase<ValueType>(data), MatrixIndex4Size(d4, d3, d2, d1){ }
+
+    MatrixIndex4(ConstPointer data, ConstMatrixSizeType d4, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+            : MatrixIndexBase<ValueType>(data), MatrixIndex4Size(d4, d3, d2, d1){ }
+
+    MatrixIndex3<ValueType> operator[](ConstMatrixSizeType idx) const {
+        return MatrixIndex3<ValueType>(this->m_pstart + idx * this->d1 * this->d2 * this->d3, this->d3, this->d2, this->d1);
     }
 
-    operator Matrix4DBase<T>(){
-        return Matrix4DBase<T>(this->m_pstart, this->d4, this->d3, this->d2, this->d1);
+    MatrixIndex3<ValueType> operator[](ConstMatrixSizeType idx){
+        return MatrixIndex3<ValueType>(this->m_pstart + idx * this->d1 * this->d2 * this->d3, this->d3, this->d2, this->d1);
     }
 };
 
 template<class T>
 struct MatrixBase{
 public:
-    using MatrixValueType = T;
-    using MatrixDataType = std::vector<MatrixValueType>;
 public:
-    MatrixBase(const MatrixSizeType sz){
+    using ValueType = T;
+    using ConstValueType = const T;
+    using Pointer = ValueType*;
+    using ConstPointer = const ValueType*;
+    using Reference = ValueType&;
+    using ConstReference = const ValueType&;
+    using MatrixDataType = std::vector<ValueType>;
+
+public:
+    MatrixBase(ConstMatrixSizeType sz){
         m_data.reserve(sz);
     }
 
-    MatrixBase(const std::initializer_list<T> &ls) 
+    MatrixBase(const std::initializer_list<ValueType> &ls) 
         : m_data(ls){}
 
-    MatrixBase(const T* data, const std::size_t size){
+    MatrixBase(ConstPointer data, ConstMatrixSizeType size){
         m_data.reserve(size);
         std::copy_n(data, size, std::end(m_data));
     }
 
-    MatrixBase(const std::vector<T> &vec){
+    MatrixBase(const std::vector<ValueType> &vec){
         m_data = vec;
     }
+
 public:
-    MatrixValueType* getRawBuffer(){
+    ConstPointer getRawBuffer() const {
+        return m_data.data();
+    }
+    
+    Pointer getRawBuffer() {
         return m_data.data();
     }
 
@@ -148,79 +207,107 @@ protected:
 template<class T>
 class Matrix1DBase : public MatrixBase<T>, public MatrixIndex1<T>{
 public:
-    Matrix1DBase(const MatrixSizeType d1) 
-        : MatrixBase<T>(d1), MatrixIndex1<T>(this->getRawBuffer(), d1){}
+    using ValueType = MatrixBase<T>::ValueType;
+    using ConstValueType = MatrixBase<T>::ConstValueType;
+    using Pointer = MatrixBase<T>::Pointer;
+    using ConstPointer = MatrixBase<T>::ConstPointer;
+    using MatrixDataType  = MatrixBase<T>::MatrixDataType;
+
+public:
+    Matrix1DBase(ConstMatrixSizeType d1) 
+        : MatrixBase<ValueType>(d1), MatrixIndex1<ValueType>(this->getRawBuffer(), d1){}
     
-    Matrix1DBase(const std::initializer_list<T> &ls) 
-        : MatrixBase<T>(ls), MatrixIndex1<T>(this->getRawBuffer(), ls.size()){}
+    Matrix1DBase(const std::initializer_list<ValueType> &ls) 
+        : MatrixBase<ValueType>(ls), MatrixIndex1<ValueType>(this->getRawBuffer(), ls.size()){}
 
-    Matrix1DBase(const T* data, const MatrixSizeType d1)
-        : MatrixBase<T>(data, d1), MatrixIndex1<T>(this->getRawBuffer(), d1){}
+    Matrix1DBase(ConstPointer data, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(data, d1), MatrixIndex1<ValueType>(this->getRawBuffer(), d1){}
 
-    Matrix1DBase(const std::vector<T> &vec)
-        :MatrixBase<T>(vec), MatrixIndex1<T>(this->getRawBuffer(), vec.size()){}
+    Matrix1DBase(const MatrixDataType &vec)
+        :MatrixBase<ValueType>(vec), MatrixIndex1<ValueType>(this->getRawBuffer(), vec.size()){}
 
-    Matrix1DBase(const MatrixIndex1<T> &index)
-        : MatrixBase<T>(index.m_pstart, index.d1), MatrixIndex1<T>(index){}
+    Matrix1DBase(const MatrixIndex1<ValueType> &index)
+        : MatrixBase<ValueType>(index.m_pstart, index.d1), MatrixIndex1<ValueType>(index){}
 };
 
 template<class T>
 class Matrix2DBase : public MatrixBase<T>, public MatrixIndex2<T>{
 public:
-    Matrix2DBase(const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixBase<T>(d1 * d2), MatrixIndex2<T>(this->getRawBuffer(), d2, d1, d2){} 
+    using ValueType = MatrixBase<T>::ValueType;
+    using ConstValueType = MatrixBase<T>::ConstValueType;
+    using Pointer = MatrixBase<T>::Pointer;
+    using ConstPointer = MatrixBase<T>::ConstPointer;
+    using MatrixDataType  = MatrixBase<T>::MatrixDataType;
 
-    Matrix2DBase(const std::initializer_list<T> &ls, const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixBase<T>(ls), MatrixIndex2<T>(this->getRawBuffer(), d2, d1){
+public:
+    Matrix2DBase(ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixBase<ValueType>(d1 * d2), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1, d2){} 
+
+    Matrix2DBase(const std::initializer_list<ValueType> &ls, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixBase<ValueType>(ls), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){
         assert(this->d2 * this->d1 == ls.size()); 
     } 
 
-    Matrix2DBase(const T* data, const MatrixSizeType d2, const MatrixSizeType d1)
-        : MatrixBase<T>(data, d2 * d1), MatrixIndex2<T>(this->getRawBuffer(), d2, d1){}
+    Matrix2DBase(ConstPointer data, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(data, d2 * d1), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){}
 
-    Matrix2DBase(const std::vector<T> &vec, const MatrixSizeType d2, const MatrixSizeType d1)
-        : MatrixBase<T>(vec), MatrixIndex2<T>(this->getRawBuffer(), d2, d1){}
+    Matrix2DBase(const MatrixDataType &vec, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(vec), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){}
 
-    Matrix2DBase(const MatrixIndex2<T> &index)
-        : MatrixBase<T>(index.m_pstart, index.d1 * index.d2), MatrixIndex2<T>(index){}
+    Matrix2DBase(const MatrixIndex2<ValueType> &index)
+        : MatrixBase<ValueType>(index.m_pstart, index.d1 * index.d2), MatrixIndex2<ValueType>(index){}
 }; 
 
 template<class T> class Matrix3DBase : public MatrixBase<T>, public MatrixIndex3<T>{
 public:
-    Matrix3DBase(const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-    : MatrixBase<T>(d1 * d2 * d3), MatrixIndex3<T>(this->getRawBuffer(), d3, d2, d1){}
+    using ValueType = MatrixBase<T>::ValueType;
+    using ConstValueType = MatrixBase<T>::ConstValueType;
+    using Pointer = MatrixBase<T>::Pointer;
+    using ConstPointer = MatrixBase<T>::ConstPointer;
+    using MatrixDataType  = MatrixBase<T>::MatrixDataType;
 
-    Matrix3DBase(const std::initializer_list<T> &ls, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1)
-        : MatrixBase<T>(ls), MatrixIndex3<T>(this->getRawBuffer(), d3, d2, d1){
+public:
+    Matrix3DBase(ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+    : MatrixBase<ValueType>(d1 * d2 * d3), MatrixIndex3<ValueType>(this->getRawBuffer(), d3, d2, d1){}
+
+    Matrix3DBase(const std::initializer_list<ValueType> &ls, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(ls), MatrixIndex3<ValueType>(this->getRawBuffer(), d3, d2, d1){
         assert(d3 * d2 * d1 == ls.size());
     }
 
-    Matrix3DBase(const T* data, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1)
-        : MatrixBase<T>(data, d3 * d2 * d1), MatrixIndex3<T>(this->getRawBuffer(), d3, d2, d1){}
+    Matrix3DBase(ConstPointer data, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(data, d3 * d2 * d1), MatrixIndex3<ValueType>(this->getRawBuffer(), d3, d2, d1){}
 
-    Matrix3DBase(const std::vector<T> &vec, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1)
-        : MatrixBase<T>(vec), MatrixIndex3<T>(this->getRawBuffer(), d3, d2, d1){}
+    Matrix3DBase(const MatrixDataType &vec, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(vec), MatrixIndex3<ValueType>(this->getRawBuffer(), d3, d2, d1){}
 
-    Matrix3DBase(const MatrixIndex3<T> &index)
-        : MatrixBase<T>(index.m_pstart, index.d1 * index.d2 * index.d3), MatrixIndex3<T>(index){}
+    Matrix3DBase(const MatrixIndex3<ValueType> &index)
+        : MatrixBase<ValueType>(index.m_pstart, index.d1 * index.d2 * index.d3), MatrixIndex3<ValueType>(index){}
 };
 
 template<class T>
 class Matrix4DBase : public MatrixBase<T>, public MatrixIndex4<T>{
 public:
-    Matrix4DBase(const MatrixSizeType d4, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixBase<T>(d1 * d2 * d3 * d4), MatrixIndex4<int>(this->getRawBuffer(), d4, d3, d2, d1){ }
+    using ValueType = MatrixBase<T>::ValueType;
+    using ConstValueType = MatrixBase<T>::ConstValueType;
+    using Pointer = MatrixBase<T>::Pointer;
+    using ConstPointer = MatrixBase<T>::ConstPointer;
+    using MatrixDataType  = MatrixBase<T>::MatrixDataType;
 
-    Matrix4DBase(const std::initializer_list<T> &ls, const MatrixSizeType d4, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1)
-        : MatrixBase<T>(d4 * d3 * d2 * d1), MatrixIndex4<T>(this->getRawBuffer(), d4, d3, d2, d1){
+public:
+    Matrix4DBase(ConstMatrixSizeType d4, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixBase<ValueType>(d1 * d2 * d3 * d4), MatrixIndex4<ValueType>(this->getRawBuffer(), d4, d3, d2, d1){ }
+
+    Matrix4DBase(const std::initializer_list<ValueType> &ls, ConstMatrixSizeType d4, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(d4 * d3 * d2 * d1), MatrixIndex4<ValueType>(this->getRawBuffer(), d4, d3, d2, d1){
         assert(ls.size() == d4 * d3 * d2 * d1);
     }
-    Matrix4DBase(const T* data, const MatrixSizeType d4, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixBase<T>(data, d1 * d2 * d3 * d4), MatrixIndex4<int>(this->getRawBuffer(), d4, d3, d2, d1){ }
+    Matrix4DBase(ConstPointer data, ConstMatrixSizeType d4, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixBase<ValueType>(data, d1 * d2 * d3 * d4), MatrixIndex4<ValueType>(this->getRawBuffer(), d4, d3, d2, d1){ }
 
-    Matrix4DBase(const std::vector<T> &vec, const MatrixSizeType d4, const MatrixSizeType d3, const MatrixSizeType d2, const MatrixSizeType d1) 
-        : MatrixBase<T>(vec), MatrixIndex4<T>(this->getRawBuffer(), d4, d3, d2, d1){ }
+    Matrix4DBase(const MatrixDataType &vec, ConstMatrixSizeType d4, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+        : MatrixBase<ValueType>(vec), MatrixIndex4<ValueType>(this->getRawBuffer(), d4, d3, d2, d1){ }
 
-    Matrix4DBase(const MatrixIndex4<T> &index)
-        : MatrixBase<T>(index.m_pstart, index.d1 * index.d2 * index.d3 * index.d4), MatrixIndex4<T>(index){}
+    Matrix4DBase(const MatrixIndex4<ValueType> &index)
+        : MatrixBase<ValueType>(index.m_pstart, index.d1 * index.d2 * index.d3 * index.d4), MatrixIndex4<ValueType>(index){}
 };

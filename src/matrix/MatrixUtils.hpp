@@ -86,6 +86,26 @@ namespace std{
     std::string to_string(const StaticMatrixIndex4<T, d4, d3, d2, d1> &mat){
         return std::to_string(StaticMatrix4DBase<T, d4, d3, d2, d1>(mat));
     }
+
+    template<class T, StaticMatrixSizeType d1>
+    std::string to_string(const ConstStaticMatrixIndex1<T, d1> &mat){
+        return std::to_string(StaticMatrix1DBase<T, d1>(mat));
+    }
+
+    template<class T, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const ConstStaticMatrixIndex2<T, d2, d1> &mat){
+        return std::to_string(StaticMatrix2DBase<T, d2, d1>(mat));
+    }
+
+    template<class T, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const ConstStaticMatrixIndex3<T, d3, d2, d1> &mat){
+        return std::to_string(StaticMatrix3DBase<T, d3, d2, d1>(mat));
+    }
+
+    template<class T, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+    std::string to_string(const ConstStaticMatrixIndex4<T, d4, d3, d2, d1> &mat){
+        return std::to_string(StaticMatrix4DBase<T, d4, d3, d2, d1>(mat));
+    }
 }
 
 inline static std::size_t MatrixStringLoopSize(const std::size_t size){

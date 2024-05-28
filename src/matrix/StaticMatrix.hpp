@@ -3,115 +3,18 @@
 #include <initializer_list>
 #include <vector>
 #include <cassert>
+#include "StaticMatrixIndex.hpp"
 
-using StaticMatrixSizeType = std::size_t;
-
-template<class T>
-class StaticMatrixBase{
-public:
-    using ValueType = T;
-    using ConstValueType = const T;
-    using Pointer = T*;
-    using ConstPointer = const T*;
-    using Reference = T&;
-    using ConstReference = const T&;
-
-public:
-    StaticMatrixBase(Pointer data)
-        : m_pdata(data){}
-public:
-    Pointer m_pdata{};
-};
-
-template<class T, StaticMatrixSizeType di1>
-class StaticMatrixIndex1 : public StaticMatrixBase<T>{
-public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
-
-public:
-    ValueType& operator[](const StaticMatrixSizeType idx){
-        return this->m_pdata[idx];
-    }
-
-    ValueType operator[](const StaticMatrixSizeType idx) const {
-        return this->m_pdata[idx];
-    }
-};
-
-template<class T, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
-class StaticMatrixIndex2 : public StaticMatrixBase<T>{ 
-public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
-
-public:
-    StaticMatrixIndex1<ValueType, d1> operator[](const StaticMatrixSizeType idx){
-        return StaticMatrixIndex1<ValueType, d1>(this->m_pdata + idx * d1);
-    }
-
-    StaticMatrixIndex1<ValueType, d1> operator[](const StaticMatrixSizeType idx) const{
-        return StaticMatrixIndex1<ValueType, d1>(this->m_pdata + idx * d1);
-    }
-};
-
-template<class T, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
-class StaticMatrixIndex3 : public StaticMatrixBase<T>{ 
-public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
-
-public:
-    StaticMatrixIndex2<ValueType, d2, d1> operator[](const StaticMatrixSizeType idx){
-        return { this->m_pdata + idx * d1 * d2};
-    }
-
-    StaticMatrixIndex2<ValueType, d2, d1> operator[](const StaticMatrixSizeType idx) const {
-        return { this->m_pdata + idx * d1 * d2};
-    }
-};
-
-template<class T, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
-class StaticMatrixIndex4 : public StaticMatrixBase<T>{ 
-public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
-
-public:
-    StaticMatrixIndex3<ValueType, d3, d2, d1> operator[](const StaticMatrixSizeType idx){
-        return { this->m_pdata + idx * d3 * d2 * d1};
-    }
-
-    StaticMatrixIndex3<ValueType, d3, d2, d1> operator[](const StaticMatrixSizeType idx) const{
-        return { this->m_pdata + idx * d3 * d2 * d1};
-    }
-};
 
 template<class T, StaticMatrixSizeType di1>
 class StaticMatrix1DBase{
 public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
+    using ValueType = StaticMatrixTraits<T>::ValueType;
+    using ConstValueType = StaticMatrixTraits<T>::ConstValueType;
+    using Pointer = StaticMatrixTraits<T>::Pointer;
+    using ConstPointer = StaticMatrixTraits<T>::ConstPointer;
+    using Reference = StaticMatrixTraits<T>::Reference;
+    using ConstReference = StaticMatrixTraits<T>::ConstReference;
  
 public:
     constexpr static const StaticMatrixSizeType d1 = di1;
@@ -134,6 +37,10 @@ public:
     }
     
     StaticMatrix1DBase(const StaticMatrixIndex1<ValueType, d1> mat){
+        std::copy_n(mat.m_pdata, size(), getRawBuffer());
+    }
+
+    StaticMatrix1DBase(const ConstStaticMatrixIndex1<ValueType, d1> mat){
         std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
@@ -168,12 +75,12 @@ private:
 template<class T, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
 class StaticMatrix2DBase{
 public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
+    using ValueType = StaticMatrixTraits<T>::ValueType;
+    using ConstValueType = StaticMatrixTraits<T>::ConstValueType;
+    using Pointer = StaticMatrixTraits<T>::Pointer;
+    using ConstPointer = StaticMatrixTraits<T>::ConstPointer;
+    using Reference = StaticMatrixTraits<T>::Reference;
+    using ConstReference = StaticMatrixTraits<T>::ConstReference;
  
 public:
     constexpr static const StaticMatrixSizeType d1 = di1;
@@ -199,6 +106,10 @@ public:
         std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
+    StaticMatrix2DBase(const ConstStaticMatrixIndex2<ValueType, d2, d1> &mat){
+        std::copy_n(mat.m_pdata, size(), getRawBuffer());
+    }
+
     StaticMatrixSizeType size() const{
         return Size;
     }
@@ -207,15 +118,19 @@ public:
         return Size;
     }
 
-    Pointer getRawBuffer() const {
-        return (Pointer)(m_pdata);
+    ConstPointer getRawBuffer() const {
+        return (ConstPointer)(m_pdata);
     }
 
     Pointer getRawBuffer(){
         return reinterpret_cast<Pointer>(m_pdata);
     }
 
-    StaticMatrixIndex1<ValueType, d1> operator[](const StaticMatrixSizeType idx) const {
+    const ConstStaticMatrixIndex1<ValueType, d1> operator[](const StaticMatrixSizeType idx) const {
+        return ConstStaticMatrixIndex1<ValueType, d1>(getRawBuffer() + idx * d1);
+    }
+
+    StaticMatrixIndex1<ValueType, d1> operator[](const StaticMatrixSizeType idx){
         return StaticMatrixIndex1<ValueType, d1>(getRawBuffer() + idx * d1);
     }
 private:
@@ -226,12 +141,12 @@ private:
 template<class T, StaticMatrixSizeType di3, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
 class StaticMatrix3DBase{
 public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
+    using ValueType = StaticMatrixTraits<T>::ValueType;
+    using ConstValueType = StaticMatrixTraits<T>::ConstValueType;
+    using Pointer = StaticMatrixTraits<T>::Pointer;
+    using ConstPointer = StaticMatrixTraits<T>::ConstPointer;
+    using Reference = StaticMatrixTraits<T>::Reference;
+    using ConstReference = StaticMatrixTraits<T>::ConstReference;
  
 public:
     constexpr static const StaticMatrixSizeType d1 = di1;
@@ -259,6 +174,10 @@ public:
         std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
+    StaticMatrix3DBase(const ConstStaticMatrixIndex3<ValueType, d3, d2, d1> &mat){
+        std::copy_n(mat.m_pdata, size(), getRawBuffer());
+    }
+
     StaticMatrixSizeType size() const{
         return Size;
     }
@@ -267,15 +186,19 @@ public:
         return Size;
     }
 
-    Pointer getRawBuffer() const{
-        return (Pointer)(m_pdata);
+    ConstPointer getRawBuffer() const{
+        return (ConstPointer)(m_pdata);
     }
 
     Pointer getRawBuffer(){
         return reinterpret_cast<Pointer>(m_pdata);
     }
 
-    StaticMatrixIndex2<ValueType, d2, d1> operator[](const StaticMatrixSizeType idx) const{
+    ConstStaticMatrixIndex2<ValueType, d2, d1> operator[](const StaticMatrixSizeType idx) const{
+        return ConstStaticMatrixIndex2<ValueType, d2, d1>(getRawBuffer());
+    }
+
+    StaticMatrixIndex2<ValueType, d2, d1> operator[](const StaticMatrixSizeType idx){
         return StaticMatrixIndex2<ValueType, d2, d1>(getRawBuffer());
     }
 private:
@@ -285,12 +208,12 @@ private:
 template<class T, StaticMatrixSizeType di4, StaticMatrixSizeType di3, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
 class StaticMatrix4DBase{
 public:
-    using ValueType = StaticMatrixBase<T>::ValueType;
-    using ConstValueType = StaticMatrixBase<T>::ConstValueType;
-    using Pointer = StaticMatrixBase<T>::Pointer;
-    using ConstPointer = StaticMatrixBase<T>::ConstPointer;
-    using Reference = StaticMatrixBase<T>::Reference;
-    using ConstReference = StaticMatrixBase<T>::ConstReference;
+    using ValueType = StaticMatrixTraits<T>::ValueType;
+    using ConstValueType = StaticMatrixTraits<T>::ConstValueType;
+    using Pointer = StaticMatrixTraits<T>::Pointer;
+    using ConstPointer = StaticMatrixTraits<T>::ConstPointer;
+    using Reference = StaticMatrixTraits<T>::Reference;
+    using ConstReference = StaticMatrixTraits<T>::ConstReference;
  
 public:
     constexpr static const StaticMatrixSizeType d1 = di1;
@@ -319,6 +242,10 @@ public:
         std::copy_n(mat.m_pdata, size(), m_pdata);
     }
     
+    StaticMatrix4DBase(const ConstStaticMatrixIndex4<ValueType, d4, d3, d2, d1> &mat){
+        std::copy_n(mat.m_pdata, size(), m_pdata);
+    }
+
     StaticMatrixSizeType size() const{
         return Size;
     }
@@ -327,16 +254,20 @@ public:
         return Size;
     }
 
-    Pointer getRawBuffer() const{
-        return reinterpret_cast<Pointer>(m_pdata);
+    ConstPointer getRawBuffer() const{
+        return reinterpret_cast<ConstPointer>(m_pdata);
     }
 
     Pointer getRawBuffer(){
         return reinterpret_cast<Pointer>(m_pdata);
     }
 
-    StaticMatrixIndex3<ValueType, d3, d2, d1> operator[](const StaticMatrixSizeType idx) const {
+    StaticMatrixIndex3<ValueType, d3, d2, d1> operator[](const StaticMatrixSizeType idx) {
         return StaticMatrixIndex3<ValueType, d3, d2, d1>(getRawBuffer());
+    }
+
+    ConstStaticMatrixIndex3<ValueType, d3, d2, d1> operator[](const StaticMatrixSizeType idx) const {
+        return ConstStaticMatrixIndex3<ValueType, d3, d2, d1>(getRawBuffer());
     }
 private:
     ValueType m_pdata[d4][d3][d2][d1]{};

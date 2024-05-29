@@ -98,6 +98,16 @@ public:
         std::copy_n(std::begin(ls), size(), getRawBuffer());
     }
 
+    StaticMatrix2DBase(const std::initializer_list<std::initializer_list<ValueType>> &ls){
+        assert(ls.size() == d2);
+        assert(ls.begin()->size() == d1);
+        Pointer p = getRawBuffer();
+        for(auto &&l : ls){
+            std::copy_n(std::begin(l), d1, p);
+            p += d1;
+        }
+    }
+
     StaticMatrix2DBase(Pointer data){
         std::copy_n(data, size(), getRawBuffer());
     }
@@ -178,6 +188,19 @@ public:
         std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
+    StaticMatrix3DBase(const std::initializer_list<std::initializer_list<std::initializer_list<ValueType>>> &ls){
+        assert(ls.size() == d3);
+        assert(ls.begin()->size() == d2);
+        assert(ls.begin()->begin()->size() == d1);
+        Pointer p = getRawBuffer();
+        for(auto &&c : ls){
+            for(auto && r : c){
+                std::copy_n(std::begin(r), d1, p);
+                p += d1;
+            }
+        }
+    }
+
     StaticMatrixSizeType size() const{
         return Size;
     }
@@ -244,6 +267,21 @@ public:
     
     StaticMatrix4DBase(const ConstStaticMatrixIndex4<ValueType, d4, d3, d2, d1> &mat){
         std::copy_n(mat.m_pdata, size(), m_pdata);
+    }
+
+    StaticMatrix4DBase(const std::initializer_list<std::initializer_list<std::initializer_list<std::initializer_list<ValueType>>>> &ls){
+        assert(ls.size() == d3);
+        assert(ls.begin()->size() == d2);
+        assert(ls.begin()->begin()->size() == d1);
+        Pointer p = getRawBuffer();
+        for(auto && c : ls){
+            for(auto &&r : c){
+                for(auto && l : r){
+                    std::copy_n(std::begin(l), d1, p);
+                    p += d1;
+                }
+            }
+        }
     }
 
     StaticMatrixSizeType size() const{

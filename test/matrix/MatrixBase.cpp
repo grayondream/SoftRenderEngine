@@ -2,6 +2,7 @@
 #include "Log.hpp"
 #include "MatrixUtils.hpp"
 #include "StaticMatrix.hpp"
+#include "DynamicMatrixIndex.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -110,6 +111,25 @@ TEST(StaticMatrixTest, CreateAndPrint){
     m3[0][1][1] = -1;
     m3[0][2][2] = -1;
     LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", "", mat.size(), m3.d1, m3.d2, std::to_string(m3));
+}
+
+TEST(StaticMatrixTest, InitializerCreate){
+    LOGI("Testing Static Matrix create and print");
+    Matrix2x2 m1 = {{1,2},{3,4}};
+    LOGI("Matrix2x2 content:\n{}", std::to_string(m1));
+
+    Matrix2x2x2 m2 = {{{2,2},{2,2}}, {{2,2},{2,2}}};
+    LOGI("Matrix2x2x2 content:\n{}", std::to_string(m2));
+}
+
+TEST(DynamicMatrixTest, InitializerCreate){
+    LOGI("Testing Static Matrix create and print");
+    Matrix2DBase<double> m1{{11,22},{33,44}};
+    LOGI("Matrix2x2 content:\n{}", std::to_string(m1));
+
+    Matrix3DBase<double> m2 = {{{2,2},{2,2}}, {{2,2},{2,2}}};
+    LOGI("Matrix2x2x2 content:\n{}", std::to_string(m2));
+    
 }
 
 int main(int argc, char **argv){

@@ -110,6 +110,15 @@ public:
 
     Matrix2DBase(const MatrixIndex2<ValueType> &index)
         : MatrixBase<ValueType>(index.m_pstart, index.d1 * index.d2), MatrixIndex2<ValueType>(index){}
+    
+    Matrix2DBase(const std::initializer_list<std::initializer_list<ValueType>> &ls)
+        : MatrixBase<ValueType>(ls.size() * ls.begin()->size()), MatrixIndex2<ValueType>(this->getRawBuffer(), ls.size(), ls.begin()->size()){
+        Pointer p = this->getRawBuffer();
+        for(auto &&l : ls){
+            std::copy_n(std::begin(l), this->d1, p);
+            p += this->d1;
+        }
+    }
 }; 
 
 template<class T> class Matrix3DBase : public MatrixBase<T>, public MatrixIndex3<T>{
@@ -139,6 +148,18 @@ public:
 
     Matrix3DBase(const MatrixIndex3<ValueType> &index)
         : MatrixBase<ValueType>(index.m_pstart, index.d1 * index.d2 * index.d3), MatrixIndex3<ValueType>(index){}
+
+    Matrix3DBase(const std::initializer_list<std::initializer_list<std::initializer_list<ValueType>>> &ls)
+        :   MatrixBase<ValueType>(ls.size() * ls.begin()->size() * ls.begin()->begin()->size()),
+            MatrixIndex3<ValueType>(this->getRawBuffer(), ls.size(), ls.begin()->size(), ls.begin()->begin()->size()){
+        Pointer p = this->getRawBuffer();
+        for(auto &&c : ls){
+            for(auto && r : c){
+                std::copy_n(std::begin(r), this->d1, p);
+                p += this->d1;
+            }
+        }
+    }
 };
 
 template<class T>
@@ -168,4 +189,18 @@ public:
 
     Matrix4DBase(const MatrixIndex4<ValueType> &index)
         : MatrixBase<ValueType>(index.m_pstart, index.d1 * index.d2 * index.d3 * index.d4), MatrixIndex4<ValueType>(index){}
+
+    Matrix4DBase(const std::initializer_list<std::initializer_list<std::initializer_list<std::initializer_list<ValueType>>>> &ls)
+        :   MatrixBase<ValueType>(ls.size() * ls.begin()->size() * ls.begin()->begin().size() * ls.begin()->begin()->begin()->size()),
+            MatrixIndex4<ValueType>(this->getRawBuffer(), ls.size(), ls.begin()->size(), ls.begin()->begin()->size(), ls.begin()->begin()->begin()->size()){
+        Pointer p = this->getRawBuffer();
+        for(auto && c : ls){
+            for(auto &&r : c){
+                for(auto && l : r){
+                    std::copy_n(std::begin(l), this->d1, p);
+                    p += this->d1;
+                }
+            }
+        }
+    }
 };

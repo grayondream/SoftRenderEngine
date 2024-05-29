@@ -1,14 +1,57 @@
 #pragma once
+#include <cstdint>
 
 template<class T>
-struct Vector4DBase{
+class Vector4DBase{
+public:
+    using ValueType = T;
+    constexpr static const std::size_t Size = 4;
+
+public:
+    Vector4DBase<T> operator+(const Vector4DBase<ValueType> &val){
+        return { x + val.x, y + val.y, z + val.z, w + val.w };
+    }
+
+    Vector4DBase<T> operator-(const Vector4DBase<ValueType> &val){
+        return { x - val.x, y - val.y , z - val.z, w - val.w };
+    }
+
+    Vector4DBase<T> operator*(const Vector4DBase<ValueType> &val){
+        return { x * val.x, y * val.y, z * val.z, w * val.w };
+    }
+
+    Vector4DBase<T> operator/(const Vector4DBase<ValueType> &val){
+        return { x / val.x, y / val.y, z / val.z, w / val.w };
+    }
+
+    Vector4DBase<T>& operator+=(const Vector4DBase<ValueType> &val){
+        *this = (*this) + val;
+        return *this;
+    }
+
+    Vector4DBase<T>& operator-=(const Vector4DBase<ValueType> &val){
+        *this = (*this) - val;
+        return *this;
+    }
+
+    Vector4DBase<T>& operator*=(const Vector4DBase<ValueType> &val){
+        *this = (*this) * val;
+        return *this;
+    }
+
+    Vector4DBase<T>& operator/=(const Vector4DBase<ValueType> &val){
+        *this = (*this) / val;
+        return *this;
+    }
+    
+public:
     union{
-        T data[4];
+        ValueType data[Size];
         struct{
-            T x;
-            T y;
-            T z;
-            T w;
+            ValueType x;
+            ValueType y;
+            ValueType z;
+            ValueType w;
         };
     };
 };

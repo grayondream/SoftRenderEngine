@@ -2,7 +2,8 @@
 #include "Vector.hpp"
 
 template<class T, class Point = Vector2DBase<T>>
-struct PrimitiveLineBase{
+class PrimitiveLineBase{
+public:
     Point p0;
     Point p1;
 };

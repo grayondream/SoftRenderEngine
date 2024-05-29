@@ -1,40 +1,9 @@
 #pragma once
+#include "Vector2DBase.hpp"
+#include "Vector3DBase.hpp"
+#include "Vector4DBase.hpp"
 
-template<class T>
-struct Vector2DBase{
-    union{
-        T data[2];
-        struct{
-            T x;
-            T y;
-        };
-    };
-};
 
-template<class T>
-struct Vector3DBase{
-    union{
-        T data[3];
-        struct{
-            T x;
-            T y;
-            T z;
-        };
-    };
-};
-
-template<class T>
-struct Vector4DBase{
-    union{
-        T data[4];
-        struct{
-            T x;
-            T y;
-            T z;
-            T w;
-        };
-    };
-};
 
 using Vector2D = Vector2DBase<double>;
 using Vector3D = Vector3DBase<double>;

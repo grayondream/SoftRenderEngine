@@ -4,5 +4,5 @@ target_link_libraries(matrix_base   gtest
                                     gtest_main
                                     gmock
                                     gmock_main
-                                    matrix)
+                                    math)
 

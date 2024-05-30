@@ -52,6 +52,9 @@ TEST(Matrix1DTest, CreateAndPrint){
     LogMatrix(m3);
     LogMatrix(m4);
     EXPECT_EQ(m1[0], 2.2);
+    EXPECT_EQ(m2[2], 3.3);
+    EXPECT_EQ(m3[3], 4.2);
+    EXPECT_EQ(m4[2], 3);
 }
 
 TEST(Matrix2DTest, CreateAndPrint){
@@ -64,6 +67,10 @@ TEST(Matrix2DTest, CreateAndPrint){
     LogMatrix(m1);
     LogMatrix(m2);
     LogMatrix(m3);
+
+    EXPECT_EQ(m1[1][1], 10);
+    EXPECT_EQ(m2[2][2], 11);
+    EXPECT_EQ(m3[3][3], 22);
 };
 
 TEST(Matrix3DTest, CreateAndPrint){

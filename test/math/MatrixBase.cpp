@@ -2,7 +2,7 @@
 #include "Log.hpp"
 #include "MatrixUtils.hpp"
 #include "StaticMatrix.hpp"
-#include "DynamicMatrixIndex.hpp"
+#include "DynamicMatrix.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

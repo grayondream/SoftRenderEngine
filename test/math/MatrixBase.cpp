@@ -3,7 +3,6 @@
 #include "MatrixUtils.hpp"
 #include "StaticMatrix.hpp"
 #include "DynamicMatrix.hpp"
-#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <gtest/gtest.h>
@@ -52,6 +51,7 @@ TEST(Matrix1DTest, CreateAndPrint){
     LogMatrix(m2);
     LogMatrix(m3);
     LogMatrix(m4);
+    EXPECT_EQ(m1[0], 2.2);
 }
 
 TEST(Matrix2DTest, CreateAndPrint){

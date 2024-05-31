@@ -1,12 +1,12 @@
-#include "Matrix.hpp"
+#include "Matrix/Matrix.hpp"
 #include "Log.hpp"
-#include "MatrixUtils.hpp"
-#include "StaticMatrix.hpp"
-#include "DynamicMatrix.hpp"
+#include "Matrix/MatrixUtils.hpp"
+#include "Matrix/StaticMatrix.hpp"
+#include "Matrix/DynamicMatrix.hpp"
 #include <cassert>
 #include <cstddef>
 #include <gtest/gtest.h>
-#include <type_traits>
+
 
 static void LogMatrix1D(const Matrix1D &mat, const std::string tag = {}){
     LOGI("Matrix {} total size: {}, d1 = {}\n{}", tag, mat.size(), mat.d1, std::to_string(mat));
@@ -143,8 +143,8 @@ TEST(StaticMatrixTest, InitializerCreate){
     Matrix2x2x2 m2 = {{{2,3},{2,2}}, {{2,2},{2,2}}};
     LOGI("Matrix2x2x2 content:\n{}", std::to_string(m2));
 
-    EXPECT_EQ(m2[0][0], 2);
-    EXPECT_EQ(m2[0][1], 3);
+    EXPECT_EQ(m2[0][0][0], 2);
+    EXPECT_EQ(m2[0][0][1], 3);
 }
 
 TEST(DynamicMatrixTest, InitializerCreate){
@@ -158,7 +158,6 @@ TEST(DynamicMatrixTest, InitializerCreate){
     LOGI("Matrix2x2x2 content:\n{}", std::to_string(m2));
     EXPECT_EQ(m2[0][0][0], 22);
     EXPECT_EQ(m2[0][1][1], 11);
-    
 }
 
 int main(int argc, char **argv){

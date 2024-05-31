@@ -2,7 +2,6 @@
 
 #include "DynamicMatrix.hpp"
 #include "StaticMatrix.hpp"
-#include "StaticMatrix.hpp"
 
 using Matrix1D = Matrix1DBase<double>;
 using Matrix2D = Matrix2DBase<double>;

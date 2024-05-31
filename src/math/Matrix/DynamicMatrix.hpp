@@ -1,3 +1,4 @@
+#pragma once
 #include "DynamicMatrix1D.hpp"
 #include "DynamicMatrix2D.hpp"
 #include "DynamicMatrix3D.hpp"

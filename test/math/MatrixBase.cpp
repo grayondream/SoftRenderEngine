@@ -81,6 +81,9 @@ TEST(Matrix3DTest, CreateAndPrint){
     Matrix3D m2(vec2, 8, 8, 8);
     LogMatrix(m1);
     LogMatrix(m2);
+
+    EXPECT_EQ(m1[0][0][0], 10);
+    EXPECT_EQ(m2[0][0][0], 11);
 }
 
 TEST(Matrix4DTest, CreateAndPrint){
@@ -91,6 +94,8 @@ TEST(Matrix4DTest, CreateAndPrint){
     Matrix4D m2(vec2, 8, 8, 8, 8);
     LogMatrix(m1);
     LogMatrix(m2);
+    EXPECT_EQ(m1[0][0][0][0], 10);
+    EXPECT_EQ(m2[0][0][0][0], 11);
 }
 
 TEST(Matrix3DTest, IndexAt){
@@ -103,6 +108,10 @@ TEST(Matrix3DTest, IndexAt){
     m1[1][1][1] = 2;
     m1[2][2][2] = 3;
     LogMatrix(m1);
+
+    EXPECT_EQ(m1[0][0][0], 1);
+    EXPECT_EQ(m1[1][1][1], 2);
+    EXPECT_EQ(m1[2][2][2], 3);
 }
 
 TEST(StaticMatrixTest, CreateAndPrint){
@@ -115,9 +124,12 @@ TEST(StaticMatrixTest, CreateAndPrint){
 
     StaticMatrix3DBase<double, 2, 2, 2> m3({1, 2, 3, 4,5,6,7,8});
     m3[0][0][0] = -1;
-    m3[0][1][1] = -1;
-    m3[0][2][2] = -1;
+    m3[0][1][1] = -2;
+    m3[0][2][2] = -3;
     LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", "", mat.size(), m3.d1, m3.d2, std::to_string(m3));
+    EXPECT_EQ(m3[0][0][0], -1);
+    EXPECT_EQ(m3[1][1][1], -2);
+    EXPECT_EQ(m3[2][2][2], -3);
 }
 
 TEST(StaticMatrixTest, InitializerCreate){
@@ -125,17 +137,27 @@ TEST(StaticMatrixTest, InitializerCreate){
     Matrix2x2 m1 = {{1,2},{3,4}};
     LOGI("Matrix2x2 content:\n{}", std::to_string(m1));
 
-    Matrix2x2x2 m2 = {{{2,2},{2,2}}, {{2,2},{2,2}}};
+    EXPECT_EQ(m1[0][0], 1);
+    EXPECT_EQ(m1[0][1], 2);
+
+    Matrix2x2x2 m2 = {{{2,3},{2,2}}, {{2,2},{2,2}}};
     LOGI("Matrix2x2x2 content:\n{}", std::to_string(m2));
+
+    EXPECT_EQ(m2[0][0], 2);
+    EXPECT_EQ(m2[0][1], 3);
 }
 
 TEST(DynamicMatrixTest, InitializerCreate){
     LOGI("Testing Static Matrix create and print");
     Matrix2DBase<double> m1{{11,22},{33,44}};
     LOGI("Matrix2x2 content:\n{}", std::to_string(m1));
+    EXPECT_EQ(m1[0][0], 11);
+    EXPECT_EQ(m1[0][1], 22);
 
-    Matrix3DBase<double> m2 = {{{2,2},{2,2}}, {{2,2},{2,2}}};
+    Matrix3DBase<double> m2 = {{{22,2},{2,11}}, {{2,2},{2,2}}};
     LOGI("Matrix2x2x2 content:\n{}", std::to_string(m2));
+    EXPECT_EQ(m2[0][0][0], 22);
+    EXPECT_EQ(m2[0][1][1], 11);
     
 }
 

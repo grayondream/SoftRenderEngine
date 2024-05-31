@@ -1,8 +1,7 @@
 #include "Matrix/Matrix.hpp"
 #include "Log.hpp"
+#include "Matrix/Matrix.hpp"
 #include "Matrix/MatrixUtils.hpp"
-#include "Matrix/StaticMatrix.hpp"
-#include "Matrix/DynamicMatrix.hpp"
 #include <cassert>
 #include <cstddef>
 #include <gtest/gtest.h>

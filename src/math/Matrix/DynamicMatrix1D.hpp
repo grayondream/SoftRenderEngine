@@ -1,17 +1,20 @@
 #pragma once
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix1DIndex.hpp"
+#include <cassert>
+#include <type_traits>
+#include <utility>
 
 template<class T>
 class Matrix1DBase : public MatrixBase<T>, public MatrixIndex1<T>{
 public:
-    using ValueType = DynamicMatrixTraits<T>::ValueType;
-    using ConstValueType = DynamicMatrixTraits<T>::ConstValueType;
-    using Pointer = DynamicMatrixTraits<T>::Pointer;
-    using ConstPointer = DynamicMatrixTraits<T>::ConstPointer;
-    using Reference = DynamicMatrixTraits<T>::Reference;
-    using ConstReference = DynamicMatrixTraits<T>::ConstReference;
-    using MatrixDataType = DynamicMatrixTraits<T>::MatrixDataType;
+    using ValueType = typename DynamicMatrixTraits<T>::ValueType;
+    using ConstValueType = typename DynamicMatrixTraits<T>::ConstValueType;
+    using Pointer = typename DynamicMatrixTraits<T>::Pointer;
+    using ConstPointer = typename DynamicMatrixTraits<T>::ConstPointer;
+    using Reference = typename DynamicMatrixTraits<T>::Reference;
+    using ConstReference = typename DynamicMatrixTraits<T>::ConstReference;
+    using MatrixDataType = typename DynamicMatrixTraits<T>::MatrixDataType;
 
 public:
     Matrix1DBase(ConstMatrixSizeType d1) 
@@ -28,4 +31,184 @@ public:
 
     Matrix1DBase(const MatrixIndex1<ValueType> &index)
         : MatrixBase<ValueType>(index.m_pstart, index.d1), MatrixIndex1<ValueType>(index){}
+
+public:
+    /*
+     * @brief 遍历每个元素，针对当前元素和输入的mat同位置的元素同时执行func，返回的值会写入当前矩阵中
+     */
+    template<class U, typename Func>
+    Matrix1DBase<ValueType>& foreachFuncBetweenMatrix(const Matrix1DBase<U> &mat, Func &&func){
+        assert(mat.d1 == this->d1);
+        for(auto i = 0;i < this->d1;i ++){
+            (*this)[i] = func((*this)[i], mat[i]);
+        }
+
+        return *this;
+    }
+
+    template<class U, typename Func>
+    Matrix1DBase<ValueType> &foreachFuncSingleValue(Func &&func){
+        for(auto i = 0; i < this->d1;i ++){
+            (*this)[i] = func((*this)[i]);
+        }
+
+        return *this;
+    }
+
+    template<class U, typename Func>
+    Matrix1DBase<ValueType> &foreachFuncBinaryValue(const U &u, Func &&func){
+        for(auto i = 0; i < this->d1;i ++){
+            (*this)[i] = func((*this)[i], u);
+        }
+        
+        return *this;
+    }
+
+    template<class U, typename Func>
+    U foreachFuncTotal(Func &&func){
+        U u{};
+        for(auto i = 0;i < this->d1;i ++){
+            u = func(u, (*this)[i]);
+        }
+
+        return u;
+    }
+public:
+    //数学计算相关的operator重载
+    template<class U>
+    bool operator==(const Matrix1DBase<U> &mat) const {
+        if(mat.d1 != this->d1){
+            return false;
+        }
+
+        auto i = 0;
+        for(i = 0;i < mat.d1 && (*this)[i] == mat[i]; i ++){}
+        return i == mat.d1;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator+=(const Matrix1DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 + v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator+(const Matrix1DBase<U> &mat){
+        assert(mat.d1 == this->d1);
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(mat);
+        *this += ret;
+        return ret;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator+=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 + v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator+(const U &val){
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
+        ret += val;
+        return ret;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator-=(const Matrix1DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 - v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator-(const Matrix1DBase<U> &mat){
+        assert(mat.d1 == this->d1);
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
+        ret -= mat;
+        return ret;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator-=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 - v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator-(const U &val){
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
+        ret += val;
+        return ret;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator*=(const Matrix1DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 * v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator*(const Matrix1DBase<U> &mat){
+        assert(mat.d1 == this->d1);
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
+        ret *= mat;
+        return ret;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator*=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 * v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator*(const U &val){
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
+        ret *= val;
+        return ret;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator/=(const Matrix1DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 / v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator/(const Matrix1DBase<U> &mat){
+        assert(mat.d1 == this->d1);
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
+        ret /= mat;
+        return ret;
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType>& operator/=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
+    }
+
+    template<class U>
+    Matrix1DBase<ValueType> operator/(const U &val){
+        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
+        ret /= val;
+        return ret;
+    }
+
+public:
+    template<class U>
+    U sum(){
+        return this->foreachFuncTotal<U>([](const ValueType v1, const ValueType v2){ return v1 + v2; });
+    }
 };
+
+template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
+Matrix1DBase<T> operator+(const U &u, Matrix1DBase<T> &mat){
+    return mat + u;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
+Matrix1DBase<T> operator-(const U &u, Matrix1DBase<T> &mat){
+    return mat - u;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
+Matrix1DBase<T> operator*(const U &u, Matrix1DBase<T> &mat){
+    return mat * u;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
+Matrix1DBase<T> operator/(const U &u, Matrix1DBase<T> &mat){
+    return mat / u;
+}

@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector.hpp"
+#include "Vector/Vector.hpp"
 
 template<class T, template<typename> class VectorBase = Vector3DBase, class Line = VectorBase<T>, class Point = VectorBase<T>>
 struct PrimitivePlaneBase{

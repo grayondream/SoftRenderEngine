@@ -31,7 +31,7 @@ public:
 public:
     MatrixIndexBase(Pointer data) : m_pstart(data){ }
     MatrixIndexBase(ConstPointer data) : m_pstart(data){ }
-
+    
 public:
     Pointer m_pstart{};
 };

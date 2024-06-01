@@ -2,6 +2,7 @@
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix1DIndex.hpp"
 #include <cassert>
+#include <cstddef>
 #include <type_traits>
 #include <utility>
 
@@ -32,6 +33,17 @@ public:
     Matrix1DBase(const MatrixIndex1<ValueType> &index)
         : MatrixBase<ValueType>(index.m_pstart, index.d1), MatrixIndex1<ValueType>(index){}
 
+    Matrix1DBase(const Matrix1DBase &m1)
+        : MatrixBase<ValueType>(m1.m_data), MatrixIndex1<ValueType>(this->getRawBuffer(), m1.d1){}
+    
+    Matrix1DBase& operator=(const Matrix1DBase &m1){
+        if(this == m1) return *this;
+
+        this->m_data = m1.m_data;
+        this->m_pstart = m1.m_pstart;
+        this->d1 = m1.d1;
+        return *this;
+    }
 public:
     /*
      * @brief 遍历每个元素，针对当前元素和输入的mat同位置的元素同时执行func，返回的值会写入当前矩阵中
@@ -46,7 +58,7 @@ public:
         return *this;
     }
 
-    template<class U, typename Func>
+    template<typename Func>
     Matrix1DBase<ValueType> &foreachFuncSingleValue(Func &&func){
         for(auto i = 0; i < this->d1;i ++){
             (*this)[i] = func((*this)[i]);
@@ -132,12 +144,12 @@ public:
         return this->foreachFuncTotal<U>([](const ValueType v1, const ValueType v2){ return v1 + v2; });
     }
 
-    Matrix1DBase<ValueType>& eye(const ValueType v = 1){
+    Matrix1DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
         (*this)[0] = v;
     }
 
-    Matrix1DBase<ValueType>& fill(const ValueType v = 1){
-        return this->foreachFuncBinaryValue(v, [](const ValueType v1, const ValueType v2){ return v1 + v2; });
+    Matrix1DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
+        return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
     }
 };
 
@@ -174,7 +186,7 @@ auto operator-(const Matrix1DBase<T> m1, const U &val){
 
 template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
 auto operator-(const U &val, const Matrix1DBase<T> m1){
-    return m1 - val;
+    return val + ( -1 * m1);
 }
 
 template<class T, class U>

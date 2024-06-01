@@ -14,7 +14,7 @@ TEST(Matrix1DOp, Opeator){
     EXPECT_EQ(m1 - 1, m2);
     EXPECT_EQ(3 - m1, m2);
 
-    EXPECT_EQ(m3 * m2, m1);
+    EXPECT_EQ(m3 * m2, m3);
     EXPECT_EQ(m1 * 1, m1);
     EXPECT_EQ(2 * m2, m1);
 
@@ -22,7 +22,7 @@ TEST(Matrix1DOp, Opeator){
     EXPECT_EQ(m1 / 1, m1);
     EXPECT_EQ(3 / m2, m3);
 
-    EXPECT_EQ(m2.sum<int>(), 9);
+    EXPECT_EQ(m3.sum<int>(), 9);
 }
 
 int main(int argc, char **argv){

@@ -33,7 +33,7 @@ public:
         : MatrixBase<ValueType>(index.m_pstart, index.d1 * index.d2 * index.d3 * index.d4), MatrixIndex4<ValueType>(index){}
 
     Matrix4DBase(const std::initializer_list<std::initializer_list<std::initializer_list<std::initializer_list<ValueType>>>> &ls)
-        :   MatrixBase<ValueType>(ls.size() * ls.begin()->size() * ls.begin()->begin().size() * ls.begin()->begin()->begin()->size()),
+        :   MatrixBase<ValueType>(ls.size() * ls.begin()->size() * ls.begin()->begin()->size() * ls.begin()->begin()->begin()->size()),
             MatrixIndex4<ValueType>(this->getRawBuffer(), ls.size(), ls.begin()->size(), ls.begin()->begin()->size(), ls.begin()->begin()->begin()->size()){
         Pointer p = this->getRawBuffer();
         for(auto && c : ls){
@@ -45,4 +45,240 @@ public:
             }
         }
     }
+
+    Matrix4DBase(const Matrix4DBase &mat)
+    :   MatrixBase<ValueType>(mat.m_data), 
+        MatrixIndex4<ValueType>(this->getRawBuffer(), mat.d4, mat.d3, mat.d2, mat.d1){}
+
+    Matrix4DBase& operator=(const Matrix4DBase &mat){
+        if(this == &mat) return *this;
+        this->m_data = mat.m_data;
+        this->m_pstart = mat.m_pstart;
+        this->d1 = mat.d1;
+        this->d2 = mat.d2;
+        this->d3 = mat.d3;
+        this->d4 = mat.d4;
+        return *this;
+    }
+
+public:
+    template<class U, typename Func>
+    Matrix4DBase<ValueType>& foreachFuncBetweenMatrix(const Matrix4DBase<U> &mat, Func &&func){
+        assert(mat.d1 > 0 && mat.d1 == this->d1 && mat.d2 == this->d2 && mat.d3 == this->d3 && mat.d4 == this->d4);
+        for(auto c = 0; c < this->d4; c ++){
+            for(auto k = 0;k < this->d3; k ++){
+                for(auto i = 0;i < this->d2; i ++){
+                    for(auto j = 0;j < this->d1; j ++){
+                        (*this)[c][k][i][j] = func((*this)[c][k][i][j], mat[c][k][i][j]);
+                    }
+                }
+            }
+        }
+        
+        return *this;
+    }
+
+    template<typename Func>
+    Matrix4DBase<ValueType> &foreachFuncSingleValue(Func &&func){
+        for(auto c = 0; c < this->d4; c ++){
+            for(auto k = 0;k < this->d3; k ++){
+                for(auto i = 0;i < this->d2; i ++){
+                    for(auto j = 0;j < this->d1; j ++){
+                        (*this)[c][k][i][j] = func((*this)[c][k][i][j]);
+                    }
+                }
+            }
+        }
+
+        return *this;
+    }
+
+    template<class U, typename Func>
+    Matrix4DBase<ValueType> &foreachFuncBinaryValue(const U &u, Func &&func){
+        for(auto c = 0; c < this->d4; c ++){
+            for(auto k = 0;k < this->d3; k ++){
+                for(auto i = 0;i < this->d2; i ++){
+                    for(auto j = 0;j < this->d1; j ++){
+                        (*this)[c][k][i][j] = func((*this)[c][k][i][j], u);
+                    }
+                }
+            }
+        }
+        
+        return *this;
+    }
+
+    template<class U, typename Func>
+    U foreachFuncTotal(Func &&func){
+        U u{};
+        for(auto c = 0; c < this->d4; c ++){
+            for(auto k = 0;k < this->d3; k ++){
+                for(auto i = 0;i < this->d2; i ++){
+                    for(auto j = 0;j < this->d1; j ++){
+                        u = func(u, (*this)[c][k][i][j]);
+                    }
+                }
+            }
+        }
+
+        return u;
+    }
+
+public:
+    template<class U>
+    bool operator==(const Matrix4DBase<U> &mat) const{
+        if(mat.d1 != this->d1 || mat.d2 != this->d2 || this->d3 != mat.d3 || mat.d4 != this->d4){
+            return false;
+        }
+
+        auto i = 0, j = 0, k = 0, c = 0;
+        for(c = 0; c < this->d4; c ++){
+            for(k = 0;k < this->d3; k ++){
+                for(i = 0;i < this->d2;i ++){
+                    for(j = 0;j < this->d1 && (*this)[c][k][i][j] == mat[c][k][i][j];j ++){}
+                }
+            }
+        }    
+
+        return i == mat.d1 && j == mat.d2 && k == mat.d3 && c == mat.d4;
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator+=(const Matrix4DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 + v2; });
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator+=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 + v2; });
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator-=(const Matrix4DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 - v2; });
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator-=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 - v2; });
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator*=(const Matrix4DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 * v2; });
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator*=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 * v2; });
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator/=(const Matrix4DBase<U> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 / v2; });
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator/=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
+    }
+
+public:
+    template<class U>
+    U sum(){
+        return this->foreachFuncTotal<U>([](const ValueType v1, const ValueType v2){ return v1 + v2; });
+    }
+
+    Matrix4DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
+        auto size = std::min(std::min(this->d1, this->d2), this->d3);
+        for(auto c = 0;c < this->d4; c++){
+            for(auto j = 0;j < this->d3; j++){
+                for(auto i = 0; i < size ;i ++){
+                    (*this)[c][j][i][i] = v;
+                }
+            }
+        }
+        
+        return *this;
+    }
+
+    Matrix4DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
+        return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
+    }
 };
+
+template<class T, class U>
+auto operator+(const Matrix4DBase<U> &m1, const Matrix4DBase<T> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret += m2;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator+(const Matrix4DBase<T> &m1, const U &val){
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret += val;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator+(const U &val, const Matrix4DBase<T> &m1){
+    return m1 + val;
+}
+
+template<class T, class U>
+auto operator-(const Matrix4DBase<T> m1, const Matrix4DBase<U> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret -= m2;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator-(const Matrix4DBase<T> m1, const U &val){
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret -= val;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator-(const U &val, const Matrix4DBase<T> m1){
+    return val + ( -1 * m1);
+}
+
+template<class T, class U>
+auto operator*(const Matrix4DBase<T> m1, const Matrix4DBase<U> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret *= m2;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator*(const Matrix4DBase<T> m1, const U &val){
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret *= val;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator*(const U &val, const Matrix4DBase<T> m1){
+    return m1 * val;
+}
+
+template<class T, class U>
+auto operator/(const Matrix4DBase<T> &m1, const Matrix4DBase<U> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret /= m2;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator/(const Matrix4DBase<T> &m1,const U &val){
+    Matrix4DBase<std::common_type_t<T, U>> ret(m1);
+    return ret /= val;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix4DBase<T>>>>
+auto operator/(const U &val, const Matrix4DBase<T> &m1){
+    using ReturnType = std::common_type_t<T, U>;
+    Matrix4DBase<ReturnType> ret(m1);
+    ret.fill(ReturnType{} + 1);
+    ret /= m1;
+    return val * ret;
+}

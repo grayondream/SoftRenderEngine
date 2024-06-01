@@ -178,8 +178,10 @@ public:
 
     Matrix3DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
         auto size = std::min(this->d1, this->d2);
-        for(auto i = 0; i < size ;i ++){
-            (*this)[i][i] = v;
+        for(auto j = 0;j < this->d3; j++){
+            for(auto i = 0; i < size ;i ++){
+                (*this)[j][i][i] = v;
+            }
         }
 
         return *this;

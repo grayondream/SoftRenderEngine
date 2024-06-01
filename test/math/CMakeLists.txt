@@ -10,3 +10,5 @@ target_link_libraries(matrix_base ${LINKED_LIBRARIES})
 add_executable(matrix_op MatrixMathOp.cpp)
 target_link_libraries(matrix_op ${LINKED_LIBRARIES})
 
+add_executable(vector_op VectorOp.cpp)
+target_link_libraries(vector_op ${LINKED_LIBRARIES})

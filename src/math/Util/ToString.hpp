@@ -1,6 +1,9 @@
 #pragma once
-#include "DynamicMatrix.hpp"
-#include "StaticMatrix.hpp"
+#include "Matrix/DynamicMatrix.hpp"
+#include "Matrix/StaticMatrix.hpp"
+#include "Vector/Vector2DBase.hpp"
+#include "Vector/Vector3DBase.hpp"
+#include "Vector/Vector4DBase.hpp"
 #include <string>
 #include <cassert>
 #include <cstddef>
@@ -105,6 +108,27 @@ namespace std{
     template<class T, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
     std::string to_string(const ConstStaticMatrixIndex4<T, d4, d3, d2, d1> &mat){
         return std::to_string(StaticMatrix4DBase<T, d4, d3, d2, d1>(mat));
+    }
+
+    template<class T>
+    std::string to_string(Vector2DBase<T> &vec){
+        return OUT_STREAM_LEFT_SEP1 + std::to_string(vec.x) + OUT_STREAM_COMET_CHAR 
+                                    + std::to_string(vec.y) + OUT_STREAM_RIGHT_SEP1;
+    }
+
+    template<class T>
+    std::string to_string(Vector3DBase<T> &vec){
+        return OUT_STREAM_LEFT_SEP1 + std::to_string(vec.x) + OUT_STREAM_COMET_CHAR 
+                                    + std::to_string(vec.y) + OUT_STREAM_COMET_CHAR
+                                    + std::to_string(vec.z) + OUT_STREAM_RIGHT_SEP1;
+    }
+
+    template<class T>
+    std::string to_string(Vector4DBase<T> &vec){
+        return OUT_STREAM_LEFT_SEP1 + std::to_string(vec.x) + OUT_STREAM_COMET_CHAR 
+                                    + std::to_string(vec.y) + OUT_STREAM_COMET_CHAR
+                                    + std::to_string(vec.z) + OUT_STREAM_COMET_CHAR
+                                    + std::to_string(vec.w) + OUT_STREAM_RIGHT_SEP1;
     }
 }
 

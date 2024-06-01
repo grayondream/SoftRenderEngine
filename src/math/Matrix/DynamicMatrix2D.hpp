@@ -1,7 +1,6 @@
 #pragma once
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix2DIndex.hpp"
-#include "Matrix/Matrix.hpp"
 
 template<class T>
 class Matrix2DBase : public MatrixBase<T>, public MatrixIndex2<T>{

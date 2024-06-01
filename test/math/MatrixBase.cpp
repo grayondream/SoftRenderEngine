@@ -1,7 +1,7 @@
 #include "Matrix/Matrix.hpp"
 #include "Log.hpp"
 #include "Matrix/Matrix.hpp"
-#include "Matrix/MatrixUtils.hpp"
+#include "Util/ToString.hpp"
 #include <cassert>
 #include <cstddef>
 #include <gtest/gtest.h>

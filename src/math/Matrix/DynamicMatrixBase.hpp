@@ -58,7 +58,7 @@ public:
 
     MatrixBase(ConstPointer data, ConstMatrixSizeType size){
         m_data.resize(size);
-        std::copy_n(data, size, std::end(m_data));
+        std::copy_n(data, size, m_data.begin());
     }
 
     MatrixBase(const std::vector<ValueType> &vec){

@@ -55,7 +55,7 @@ public:
     }
 
 public:
-        template<class U, typename Func>
+    template<class U, typename Func>
     Matrix2DBase<ValueType>& foreachFuncBetweenMatrix(const Matrix2DBase<U> &mat, Func &&func){
         assert(mat.d1 > 0 && mat.d1 == this->d1 && mat.d2 == this->d2);
         for(auto i = 0;i < this->d2;i ++){
@@ -104,7 +104,7 @@ public:
 public:
     template<class U>
     bool operator==(const Matrix2DBase<U> &mat) const{
-        if(mat.d1 != this->d1 && mat.d2 != this->d2){
+        if(mat.d1 != this->d1 || mat.d2 != this->d2){
             return false;
         }
 

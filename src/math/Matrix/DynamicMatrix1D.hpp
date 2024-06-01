@@ -92,23 +92,8 @@ public:
     }
 
     template<class U>
-    Matrix1DBase<ValueType> operator+(const Matrix1DBase<U> &mat){
-        assert(mat.d1 == this->d1);
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(mat);
-        *this += ret;
-        return ret;
-    }
-
-    template<class U>
     Matrix1DBase<ValueType>& operator+=(const U &val){
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 + v2; });
-    }
-
-    template<class U>
-    Matrix1DBase<ValueType> operator+(const U &val){
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
-        ret += val;
-        return ret;
     }
 
     template<class U>
@@ -117,23 +102,8 @@ public:
     }
 
     template<class U>
-    Matrix1DBase<ValueType> operator-(const Matrix1DBase<U> &mat){
-        assert(mat.d1 == this->d1);
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
-        ret -= mat;
-        return ret;
-    }
-
-    template<class U>
     Matrix1DBase<ValueType>& operator-=(const U &val){
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 - v2; });
-    }
-
-    template<class U>
-    Matrix1DBase<ValueType> operator-(const U &val){
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
-        ret += val;
-        return ret;
     }
 
     template<class U>
@@ -142,23 +112,8 @@ public:
     }
 
     template<class U>
-    Matrix1DBase<ValueType> operator*(const Matrix1DBase<U> &mat){
-        assert(mat.d1 == this->d1);
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
-        ret *= mat;
-        return ret;
-    }
-
-    template<class U>
     Matrix1DBase<ValueType>& operator*=(const U &val){
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 * v2; });
-    }
-
-    template<class U>
-    Matrix1DBase<ValueType> operator*(const U &val){
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
-        ret *= val;
-        return ret;
     }
 
     template<class U>
@@ -167,23 +122,8 @@ public:
     }
 
     template<class U>
-    Matrix1DBase<ValueType> operator/(const Matrix1DBase<U> &mat){
-        assert(mat.d1 == this->d1);
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
-        ret /= mat;
-        return ret;
-    }
-
-    template<class U>
     Matrix1DBase<ValueType>& operator/=(const U &val){
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
-    }
-
-    template<class U>
-    Matrix1DBase<ValueType> operator/(const U &val){
-        Matrix1DBase<std::common_type_t<ValueType, U>> ret(*this);
-        ret /= val;
-        return ret;
     }
 
 public:
@@ -191,24 +131,88 @@ public:
     U sum(){
         return this->foreachFuncTotal<U>([](const ValueType v1, const ValueType v2){ return v1 + v2; });
     }
+
+    Matrix1DBase<ValueType>& eye(const ValueType v = 1){
+        (*this)[0] = v;
+    }
+
+    Matrix1DBase<ValueType>& fill(const ValueType v = 1){
+        return this->foreachFuncBinaryValue(v, [](const ValueType v1, const ValueType v2){ return v1 + v2; });
+    }
 };
 
-template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
-Matrix1DBase<T> operator+(const U &u, Matrix1DBase<T> &mat){
-    return mat + u;
+template<class T, class U>
+auto operator+(const Matrix1DBase<U> &m1, const Matrix1DBase<T> &m2){
+    assert(m1.d1 == m2.d1);
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret += m2;
 }
 
-template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
-Matrix1DBase<T> operator-(const U &u, Matrix1DBase<T> &mat){
-    return mat - u;
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator+(const Matrix1DBase<T> &m1, const U &val){
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret += val;
 }
 
-template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
-Matrix1DBase<T> operator*(const U &u, Matrix1DBase<T> &mat){
-    return mat * u;
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator+(const U &val, const Matrix1DBase<T> &m1){
+    return m1 + val;
 }
 
-template<class T, class U, typename = std::enable_if_t<!std::is_class_v<U>>>
-Matrix1DBase<T> operator/(const U &u, Matrix1DBase<T> &mat){
-    return mat / u;
+template<class T, class U>
+auto operator-(const Matrix1DBase<T> m1, const Matrix1DBase<U> &m2){
+    assert(m1.d1 == m2.d1);
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret -= m2;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator-(const Matrix1DBase<T> m1, const U &val){
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret -= val;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator-(const U &val, const Matrix1DBase<T> m1){
+    return m1 - val;
+}
+
+template<class T, class U>
+auto operator*(const Matrix1DBase<T> m1, const Matrix1DBase<U> &m2){
+    assert(m1.d1 == m2.d1);
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret *= m2;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator*(const Matrix1DBase<T> m1, const U &val){
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret *= val;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator*(const U &val, const Matrix1DBase<T> m1){
+    return m1 * val;
+}
+
+template<class T, class U>
+auto operator/(const Matrix1DBase<T> &m1, const Matrix1DBase<U> &m2){
+    assert(m1.d1 == m2.d1);
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret /= m2;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator/(const Matrix1DBase<T> &m1,const U &val){
+    Matrix1DBase<std::common_type_t<T, U>> ret(m1);
+    return ret /= val;
+}
+
+template<class T, class U, typename = std::enable_if_t<!std::is_same_v<U, Matrix1DBase<T>>>>
+auto operator/(const U &val, const Matrix1DBase<T> &m1){
+    using ReturnType = std::common_type_t<T, U>;
+    Matrix1DBase<ReturnType> ret(m1);
+    ret.fill(ReturnType{} + 1);
+    ret /= m1;
+    return val * ret;
 }

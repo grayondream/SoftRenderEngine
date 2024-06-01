@@ -50,14 +50,14 @@ public:
 
 public:
     MatrixBase(ConstMatrixSizeType sz){
-        m_data.reserve(sz);
+        m_data.resize(sz);
     }
 
     MatrixBase(const std::initializer_list<ValueType> &ls) 
         : m_data(ls){}
 
     MatrixBase(ConstPointer data, ConstMatrixSizeType size){
-        m_data.reserve(size);
+        m_data.resize(size);
         std::copy_n(data, size, std::end(m_data));
     }
 

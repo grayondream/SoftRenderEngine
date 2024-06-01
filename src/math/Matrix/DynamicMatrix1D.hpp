@@ -37,7 +37,7 @@ public:
         : MatrixBase<ValueType>(m1.m_data), MatrixIndex1<ValueType>(this->getRawBuffer(), m1.d1){}
     
     Matrix1DBase& operator=(const Matrix1DBase &m1){
-        if(this == m1) return *this;
+        if(this == &m1) return *this;
 
         this->m_data = m1.m_data;
         this->m_pstart = m1.m_pstart;

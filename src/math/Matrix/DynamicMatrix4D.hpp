@@ -279,6 +279,6 @@ auto operator/(const U &val, const Matrix4DBase<T> &m1){
     using ReturnType = std::common_type_t<T, U>;
     Matrix4DBase<ReturnType> ret(m1);
     ret.fill(ReturnType{} + 1);
-    ret /= m1;
-    return val * ret;
+    ret *= val;
+    return ret / m1;
 }

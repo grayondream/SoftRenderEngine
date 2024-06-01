@@ -264,6 +264,6 @@ auto operator/(const U &val, const Matrix3DBase<T> &m1){
     using ReturnType = std::common_type_t<T, U>;
     Matrix3DBase<ReturnType> ret(m1);
     ret.fill(ReturnType{} + 1);
-    ret /= m1;
-    return val * ret;
+    ret *= val;
+    return ret / m1;
 }

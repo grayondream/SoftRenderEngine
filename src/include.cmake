@@ -9,5 +9,8 @@ include_directories(${MATH_DIR}/Matrix)
 include_directories(${MATH_DIR}/Primitive)
 include_directories(${MATH_DIR}/Util)
 include_directories(${MATH_DIR}/Vector)
+include_directories(${MATH_DIR}/Geometry)
+include_directories(${MATH_DIR}/Math)
+
 
 

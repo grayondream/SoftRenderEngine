@@ -1,6 +1,3 @@
 #pragma once
-#include "Cosine.hpp"
-#include "Sin.hpp"
-#include "Tan.hpp"
+#include "Arithmetic.hpp"
 #include "MathConst.hpp"
-#include "Degree.hpp"

@@ -1,10 +1,13 @@
 
-include_directories(${PROJECT_SOURCE_DIR}/src)
+set(SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
+include_directories(${SOURCE_DIR})
 
-include_directories(${PROJECT_SOURCE_DIR}/src/math)
-include_directories(${PROJECT_SOURCE_DIR}/src/Matrix)
-include_directories(${PROJECT_SOURCE_DIR}/src/Primitive)
-include_directories(${PROJECT_SOURCE_DIR}/src/Util)
-include_directories(${PROJECT_SOURCE_DIR}/src/Vector)
+set(MATH_DIR ${SOURCE_DIR}/math)
+
+include_directories(${MATH_DIR})
+include_directories(${MATH_DIR}/Matrix)
+include_directories(${MATH_DIR}/Primitive)
+include_directories(${MATH_DIR}/Util)
+include_directories(${MATH_DIR}/Vector)
 
 

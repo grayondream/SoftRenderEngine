@@ -4,16 +4,17 @@
 #include <vector>
 #include <cassert>
 #include "StaticMatrixIndex2.hpp"
+#include "StaticMatrixBase.hpp"
 
 template<class T, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
 class StaticMatrix2DBase{
 public:
-    using ValueType = StaticMatrixTraits<T>::ValueType;
-    using ConstValueType = StaticMatrixTraits<T>::ConstValueType;
-    using Pointer = StaticMatrixTraits<T>::Pointer;
-    using ConstPointer = StaticMatrixTraits<T>::ConstPointer;
-    using Reference = StaticMatrixTraits<T>::Reference;
-    using ConstReference = StaticMatrixTraits<T>::ConstReference;
+    using ValueType = typename StaticMatrixTraits<T>::ValueType;
+    using ConstValueType = typename StaticMatrixTraits<T>::ConstValueType;
+    using Pointer = typename StaticMatrixTraits<T>::Pointer;
+    using ConstPointer = typename StaticMatrixTraits<T>::ConstPointer;
+    using Reference = typename StaticMatrixTraits<T>::Reference;
+    using ConstReference = typename StaticMatrixTraits<T>::ConstReference;
  
 public:
     constexpr static const StaticMatrixSizeType d1 = di1;
@@ -53,6 +54,20 @@ public:
         std::copy_n(mat.m_pdata, size(), getRawBuffer());
     }
 
+    StaticMatrix2DBase(const StaticMatrix2DBase &mat){
+        std::copy_n(mat.getRawBuffer(), mat.size(), getRawBuffer());
+    }
+
+    StaticMatrix2DBase& operator=(const StaticMatrix2DBase &mat){
+        if(this == &mat){
+            return *this;
+        }
+
+        std::copy_n(mat.getRawBuffer(), mat.size(), getRawBuffer());
+        return *this;
+    }
+
+public:
     StaticMatrixSizeType size() const{
         return Size;
     }
@@ -76,6 +91,205 @@ public:
     StaticMatrixIndex1<ValueType, d1> operator[](const StaticMatrixSizeType idx){
         return StaticMatrixIndex1<ValueType, d1>(getRawBuffer() + idx * d1);
     }
+
+public:
+    template<class U, StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename Func>
+    StaticMatrix2DBase<ValueType, d2,d1>& foreachFuncBetweenMatrix(const StaticMatrix2DBase<U, d2, d1> &mat, Func &&func){
+        assert(mat.d1 > 0 && mat.d1 == this->d1 && mat.d2 == this->d2);
+        for(auto i = 0;i < this->d2;i ++){
+            for(auto j = 0;j < this->d1;j ++){
+                (*this)[i][j] = func((*this)[i][j], mat[i][j]);
+            }
+        }
+        
+        return *this;
+    }
+
+    template<typename Func>
+    StaticMatrix2DBase<ValueType, d2,d1> &foreachFuncSingleValue(Func &&func){
+        for(auto i = 0;i < this->d2;i ++){
+            for(auto j = 0;j < this->d1;j ++){
+                (*this)[i][j] = func((*this)[i][j]);
+            }
+        }
+
+        return *this;
+    }
+
+    template<class U, typename Func>
+    StaticMatrix2DBase<ValueType, d2,d1> &foreachFuncBinaryValue(const U &u, Func &&func){
+        for(auto i = 0;i < this->d2;i ++){
+            for(auto j = 0;j < this->d1;j ++){
+                (*this)[i][j] = func((*this)[i][j], u);
+            }
+        }
+        
+        return *this;
+    }
+
+    template<class U, typename Func>
+    U foreachFuncTotal(Func &&func){
+        U u{};
+        for(auto i = 0;i < this->d2;i ++){
+            for(auto j = 0;j < this->d1;j ++){
+                u = func(u, (*this)[i][j]);
+            }
+        }
+
+        return u;
+    }
+
+public:
+    template<class U>
+    bool operator==(const StaticMatrix2DBase<U, d2, d1> &mat) const{
+        if(mat.d1 != this->d1 || mat.d2 != this->d2){
+            return false;
+        }
+
+        auto i = 0, j = 0;
+        for(i = 0;i < this->d2;i ++){
+            for(j = 0;j < this->d1 && (*this)[i][j] == mat[i][j];j ++){}
+        }
+
+        return i == mat.d1 && j == mat.d2;
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator+=(const StaticMatrix2DBase<U, d2, d1> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 + v2; });
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator+=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 + v2; });
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator-=(const StaticMatrix2DBase<U, d2, d1> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 - v2; });
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator-=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 - v2; });
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator*=(const StaticMatrix2DBase<U, d2, d1> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 * v2; });
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator*=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 * v2; });
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator/=(const StaticMatrix2DBase<U, d2, d1> &mat){
+        return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 / v2; });
+    }
+
+    template<class U>
+    StaticMatrix2DBase<ValueType, d2,d1>& operator/=(const U &val){
+        return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
+    }
+
+public:
+    template<class U>
+    U sum(){
+        return this->foreachFuncTotal<U>([](const ValueType v1, const ValueType v2){ return v1 + v2; });
+    }
+
+    StaticMatrix2DBase<ValueType, d2,d1>& eye(const ValueType v = 1 + ValueType{}){
+        auto size = std::min(this->d1, this->d2);
+        for(auto i = 0; i < size ;i ++){
+            (*this)[i][i] = v;
+        }
+
+        return *this;
+    }
+
+    StaticMatrix2DBase<ValueType, d2,d1>& fill(const ValueType v = 1 + ValueType{}){
+        return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
+    }
+
+
 private:
     ValueType m_pdata[d2][d1]{};
 };
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+auto operator+(const StaticMatrix2DBase<U, d2, d1> &m1, const StaticMatrix2DBase<T, d2, d1> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret += m2;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator+(const StaticMatrix2DBase<T, d2, d1> &m1, const U &val){
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret += val;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator+(const U &val, const StaticMatrix2DBase<T, d2, d1> &m1){
+    return m1 + val;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+auto operator-(const StaticMatrix2DBase<T, d2, d1> m1, const StaticMatrix2DBase<U, d2, d1> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret -= m2;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator-(const StaticMatrix2DBase<T, d2, d1> m1, const U &val){
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret -= val;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator-(const U &val, const StaticMatrix2DBase<T, d2, d1> m1){
+    return val + ( -1 * m1);
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+auto operator*(const StaticMatrix2DBase<T, d2, d1> m1, const StaticMatrix2DBase<U, d2, d1> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret *= m2;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator*(const StaticMatrix2DBase<T, d2, d1> m1, const U &val){
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret *= val;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator*(const U &val, const StaticMatrix2DBase<T, d2, d1> m1){
+    return m1 * val;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
+auto operator/(const StaticMatrix2DBase<T, d2, d1> &m1, const StaticMatrix2DBase<U, d2, d1> &m2){
+    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret /= m2;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator/(const StaticMatrix2DBase<T, d2, d1> &m1,const U &val){
+    StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
+    return ret /= val;
+}
+
+template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename = std::enable_if_t<!std::is_same_v<U, StaticMatrix2DBase<T, d2, d1>>>>
+auto operator/(const U &val, const StaticMatrix2DBase<T, d2, d1> &m1){
+    using ReturnType = std::common_type_t<T, U>;
+    StaticMatrix2DBase<ReturnType, d2, d1> ret(m1);
+    ret.fill(ReturnType{} + 1);
+    ret *= val;
+    return ret / m1;
+}

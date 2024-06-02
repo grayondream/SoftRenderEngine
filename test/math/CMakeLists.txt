@@ -12,3 +12,9 @@ target_link_libraries(matrix_op ${LINKED_LIBRARIES})
 
 add_executable(vector_op VectorOp.cpp)
 target_link_libraries(vector_op ${LINKED_LIBRARIES})
+
+add_executable(static_matrix_op StaticMatrix.cpp)
+target_link_libraries(static_matrix_op ${LINKED_LIBRARIES})
+
+get_target_property(LIBA_INCLUDES static_matrix_op INCLUDE_DIRECTORIES)
+message(STATUS ${LIBA_INCLUDES})

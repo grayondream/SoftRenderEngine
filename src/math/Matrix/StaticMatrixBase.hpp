@@ -17,12 +17,12 @@ public:
 template<class T>
 class StaticMatrixIndexBase{
 public:
-    using ValueType = StaticMatrixTraits<T>::ValueType;
-    using ConstValueType = StaticMatrixTraits<T>::ConstValueType;
-    using Pointer = StaticMatrixTraits<T>::Pointer;
-    using ConstPointer = StaticMatrixTraits<T>::ConstPointer;
-    using Reference = StaticMatrixTraits<T>::Reference;
-    using ConstReference = StaticMatrixTraits<T>::ConstReference;
+    using ValueType = typename StaticMatrixTraits<T>::ValueType;
+    using ConstValueType = typename StaticMatrixTraits<T>::ConstValueType;
+    using Pointer = typename StaticMatrixTraits<T>::Pointer;
+    using ConstPointer = typename StaticMatrixTraits<T>::ConstPointer;
+    using Reference = typename StaticMatrixTraits<T>::Reference;
+    using ConstReference = typename StaticMatrixTraits<T>::ConstReference;
 
 public:
     StaticMatrixIndexBase(Pointer data)
@@ -36,12 +36,12 @@ public:
 template<class T>
 class ConstStaticMatrixIndexBase{
 public:
-    using ValueType = StaticMatrixTraits<T>::ValueType;
-    using ConstValueType = StaticMatrixTraits<T>::ConstValueType;
-    using Pointer = StaticMatrixTraits<T>::Pointer;
-    using ConstPointer = StaticMatrixTraits<T>::ConstPointer;
-    using Reference = StaticMatrixTraits<T>::Reference;
-    using ConstReference = StaticMatrixTraits<T>::ConstReference;
+    using ValueType = typename StaticMatrixTraits<T>::ValueType;
+    using ConstValueType = typename StaticMatrixTraits<T>::ConstValueType;
+    using Pointer = typename StaticMatrixTraits<T>::Pointer;
+    using ConstPointer = typename StaticMatrixTraits<T>::ConstPointer;
+    using Reference = typename StaticMatrixTraits<T>::Reference;
+    using ConstReference = typename StaticMatrixTraits<T>::ConstReference;
 
 public:
     ConstStaticMatrixIndexBase(ConstPointer data)

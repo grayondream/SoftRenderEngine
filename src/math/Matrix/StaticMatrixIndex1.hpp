@@ -4,7 +4,7 @@
 template<class T, StaticMatrixSizeType di1>
 class StaticMatrixIndex1 : public StaticMatrixIndexBase<T>{
 public:
-    using ValueType = StaticMatrixTraits<T>::ValueType;
+    using ValueType = typename StaticMatrixTraits<T>::ValueType;
 
 public:
     ValueType& operator[](const StaticMatrixSizeType idx){
@@ -15,7 +15,7 @@ public:
 template<class T, StaticMatrixSizeType di1>
 class ConstStaticMatrixIndex1 : public ConstStaticMatrixIndexBase<T>{
 public:
-    using ValueType = StaticMatrixTraits<T>::ValueType;
+    using ValueType = typename StaticMatrixTraits<T>::ValueType;
 
 public:
     ValueType operator[](const StaticMatrixSizeType idx) const {

@@ -1,10 +1,15 @@
 #pragma once
 
+#include <cmath>
 #include <cstddef>
 #include <initializer_list>
 #include <utility>
 #include <cassert>
 #include <algorithm>
+#include "Polar2D.hpp"
+
+template<class T>
+class Polar2DBase;
 
 template<class T>
 class Vector2DBase{
@@ -21,6 +26,13 @@ public:
     Vector2DBase(const Vector2DBase &vec){
         std::copy_n(vec.data, Size, data);
     }
+
+    template<class U>
+    Vector2DBase(const Polar2DBase<U> &pt){
+        x = pt.r * std::cos(pt.thetha);
+        y = pt.r * std::sin(pt.thetha);
+    }
+
 public:
     template<class U>
     Vector2DBase<ValueType>& operator+=(const Vector2DBase<U> &mat){

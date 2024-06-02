@@ -2,6 +2,11 @@
 #include <cstdint>
 #include <utility>
 #include <algorithm>
+#include "Polar2D.hpp"
+#include "Polar3D.hpp"
+
+template<class T>
+class Polar3DBase;
 
 template<class T>
 class Vector3DBase{
@@ -20,6 +25,12 @@ public:
         std::copy_n(vec.data, Size, data);
     }
 
+    template<class U>
+    Vector3DBase(const Polar2DBase<U> &pt){
+        z = pt.z;
+        x = pt.r * std::cos(pt.thetha);
+        y = pt.r * std::sin(pt.thetha);
+    }
 public:
     template<class U>
     Vector3DBase<ValueType>& operator+=(const Vector3DBase<U> &mat){

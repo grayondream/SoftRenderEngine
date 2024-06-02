@@ -1,22 +1,19 @@
 #pragma once
-
 #include "MathConst.hpp"
 #include "Degree.hpp"
-#include <cstdint>
 
 namespace Math{
-inline static constexpr std::size_t TaylorIterations = 10;
 inline static constexpr double CosTaylor(const double x, const std::size_t iter = TaylorIterations){
-    double result = 1.0;
-    double term = 1.0;
-    bool neg = false;
-    for (int i = 2; i <= TaylorIterations * 2; i += 2) {
-        term *= x * x / (i * (i - 1));
-        result += neg ? -term : term;
-        neg = !neg;
+    double ret = 1.0;
+    double sig = -1;
+    double lastTerm = 1.0;
+    for(int n = 1;n < TaylorIterations - 1;++n){
+        lastTerm = lastTerm * x * x / ((2 * n) * (2 * n - 1));
+        ret += lastTerm * sig;
+        sig *= -1;
     }
 
-    return result;
+    return ret;
 }
 
 inline static constexpr double Cos(const int angle){

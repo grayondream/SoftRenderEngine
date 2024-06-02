@@ -38,4 +38,6 @@ inline static constexpr const MathConstIntType ConstAnagle90 = 90;
 inline static constexpr const MathConstIntType ConstAnagle180 = 180;
 inline static constexpr const MathConstIntType ConstAnagle270 = 270;
 inline static constexpr const MathConstIntType ConstAnagle360 = 360;
+
+inline static constexpr std::size_t TaylorIterations = 100;
 }

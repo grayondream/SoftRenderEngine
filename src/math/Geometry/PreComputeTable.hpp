@@ -7,15 +7,25 @@
 
 namespace Geometry{
 
-template<Math::MathConstIntType... angle>
-constexpr auto GenerateCosineTable(std::integer_sequence<Math::MathConstIntType, angle...>){
-    return std::array<Math::MathConstType, sizeof...(angle)>{ Math::Cos(angle)... };
+template<typename Func, Math::MathConstIntType... angle>
+constexpr auto GeneratePrecomputedTrigonometricTable(Func &&func, std::integer_sequence<Math::MathConstIntType, angle...>){
+    return std::array<Math::MathConstType, sizeof...(angle)>{ func(angle)... };
 }
 
-constexpr auto MakeCosineTable(){
-    return GenerateCosineTable(std::make_index_sequence<Math::ConstAnagle360 + 1>{});
+inline static constexpr auto MakeCosineTable(){
+    return GeneratePrecomputedTrigonometricTable(Math::Cos, std::make_index_sequence<Math::ConstAnagle360 + 1>{});
 }
 
-inline constexpr auto CosineTable = MakeCosineTable();
+inline static constexpr auto MakeSinTable(){
+    return GeneratePrecomputedTrigonometricTable(Math::Sin, std::make_index_sequence<Math::ConstAnagle360 + 1>{});
+}
+
+inline static constexpr auto MakeTanTable(){
+    return GeneratePrecomputedTrigonometricTable(Math::Tan, std::make_index_sequence<Math::ConstAnagle360 + 1>{});
+}
+
+inline constexpr auto PrecomputedCosineTable = MakeCosineTable();
+inline constexpr auto PrecomputedSinTable = MakeSinTable();
+inline constexpr auto PrecomputedTanTable = MakeTanTable();
 
 }

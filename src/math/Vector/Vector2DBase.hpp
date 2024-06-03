@@ -33,6 +33,11 @@ public:
         y = pt.r * std::sin(pt.thetha);
     }
 
+    //从两个点来创建一个向量
+    template<class U, class K>
+    Vector2DBase(const Vector2DBase<U> &rst, const Vector2DBase<K> &snd){
+        *this = rst - snd;
+    }
 public:
     template<class U>
     Vector2DBase<ValueType>& operator+=(const Vector2DBase<U> &mat){
@@ -78,6 +83,17 @@ public:
         return vec.x == this->x && vec.y == this->y;
     }
 
+    template<class U>
+    auto dot(const Vector2DBase<U> &vec){
+        auto r = (*this) * vec;
+        return r.x + r.y;
+    }
+
+    template<class U>
+    double thetha(const Vector2DBase<U> &vec){
+        return std::acos( dot(vec) / (this->length() * vec.length()));
+    }
+
 public:
     /*
      * @brief 遍历每个元素，针对当前元素和输入的mat同位置的元素同时执行func，返回的值会写入当前矩阵中
@@ -117,6 +133,20 @@ public:
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
     }
 
+    T length() const {
+        return std::sqrt(x * x + y * y);
+    }
+
+    Vector2DBase& normalize() {
+        const auto l = length();
+        x /= l;
+        y /= l;
+        return *this;
+    }
+
+    Vector2DBase normalize() const{
+        return this->normalize();
+    }
 public:
     union{
         ValueType data[Size]{};
@@ -197,4 +227,14 @@ auto operator/(const U &val, const Vector2DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
+}
+
+template<class T, class U>
+double Vector2DThetha(const Vector2DBase<T> &rst, const Vector2DBase<U> &snd){
+    return rst.thetha(snd);
+}
+
+template<class T, class U>
+auto Vector2DDot(const Vector2DBase<T> &rst, const Vector2DBase<U> &snd){
+    return rst.dot(snd);
 }

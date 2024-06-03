@@ -1,7 +1,13 @@
 #pragma once
+#include "Vector2DBase.hpp"
+#include "Vector3DBase.hpp"
+#include <cmath>
 #include <cstdint>
 #include <utility>
 #include <algorithm>
+
+template<class T>
+class Vector3DBase;
 
 template<class T>
 class Vector4DBase{
@@ -19,6 +25,12 @@ public:
 
     Vector4DBase(const Vector4DBase &vec){
         std::copy_n(vec.data, Size, data);
+    }
+
+    //从两个点来创建一个向量
+    template<class U, class K>
+    Vector4DBase(const Vector4DBase<U> &rst, const Vector4DBase<K> &snd){
+        *this = rst - snd;
     }
 
 public:
@@ -109,6 +121,27 @@ public:
 
     Vector4DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
+    }
+
+    Vector3DBase<T> homogeneous() const{
+        return Vector3DBase<T>(*this);
+    }
+
+    T length() const {
+        return std::sqrt(x * x + y * y + z * z + w * w);
+    }
+
+    Vector4DBase& normalize() {
+        const auto l = length();
+        x /= l;
+        y /= l;
+        z /= l;
+        w /= l;
+        return *this;
+    }
+
+    Vector4DBase normalize() const{
+        return this->normalize();
     }
 
 public:

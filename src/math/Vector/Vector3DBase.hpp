@@ -4,9 +4,17 @@
 #include <algorithm>
 #include "Polar2D.hpp"
 #include "Polar3D.hpp"
+#include "Spherical3D.hpp"
+#include "Vector4DBase.hpp"
 
 template<class T>
 class Polar3DBase;
+
+template<class T>
+class Spherical3DBase;
+
+template<class T>
+class Vector4DBase;
 
 template<class T>
 class Vector3DBase{
@@ -31,6 +39,28 @@ public:
         x = pt.r * std::cos(pt.thetha);
         y = pt.r * std::sin(pt.thetha);
     }
+
+    template<class U>
+    Vector3DBase(const Spherical3DBase<U> &pt){
+        z = pt.r * std::cos(pt.thetha);
+        const auto xy = pt.r * std::sin(pt.thetha);
+        x = xy * std::cos(pt.phi);
+        y = xy * std::sin(pt.phi);
+    }
+
+    template<class U>
+    Vector3DBase(const Vector4DBase<U> &vec){
+        x = vec.x / vec.w;
+        y = vec.y / vec.w;
+        z = vec.z / vec.w;
+    }
+
+    //从两个点来创建一个向量
+    template<class U, class K>
+    Vector3DBase(const Vector3DBase<U> &rst, const Vector3DBase<K> &snd){
+        *this = rst - snd;
+    }
+
 public:
     template<class U>
     Vector3DBase<ValueType>& operator+=(const Vector3DBase<U> &mat){
@@ -116,6 +146,22 @@ public:
 
     Vector3DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
+    }
+
+    T length() const {
+        return std::sqrt(x * x + y * y + z * z);
+    }
+
+    Vector3DBase& normalize() {
+        const auto l = length();
+        x /= l;
+        y /= l;
+        z /= l;
+        return *this;
+    }
+
+    Vector3DBase normalize() const{
+        return this->normalize();
     }
 
 public:

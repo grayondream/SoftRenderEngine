@@ -7,6 +7,12 @@ class Vector2DBase;
 template<class T>
 class Polar2DBase{
 public:
+    Polar2DBase() = default;
+    Polar2DBase(const T ri, const T t){
+        r = ri;
+        thetha = t;
+    }
+    
     template<class U>
     Polar2DBase(const Vector2DBase<U> &pt){
         r = std::sqrt(pt.x * pt.x + pt.y * pt.y);

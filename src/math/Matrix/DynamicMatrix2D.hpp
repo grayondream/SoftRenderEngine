@@ -2,6 +2,7 @@
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix2DIndex.hpp"
 #include "StaticMatrix2D.hpp"
+#include "Vector2DBase.hpp"
 
 template<class T>
 class Matrix2DBase : public MatrixBase<T>, public MatrixIndex2<T>{
@@ -147,6 +148,30 @@ public:
     }
 
     template<class U>
+    Matrix2DBase<ValueType>& operator+=(const Vector2DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix2DBase<ValueType>& operator-=(const Vector2DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix2DBase<ValueType>& operator*=(const Vector2DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix2DBase<ValueType>& operator/=(const Vector2DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
     Matrix2DBase<ValueType>& operator/=(const Matrix2DBase<U> &mat){
         return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 / v2; });
     }
@@ -183,6 +208,21 @@ public:
 
     Matrix2DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
+    }
+
+    double det() const{
+        //TODO:
+        return {};
+    }
+
+    Matrix2DBase<T>& inverse(){
+        //TODO:
+        return {};
+    }
+
+    Matrix2DBase<T> inverse(const int) const{
+        //TODO:
+        return {};
     }
 }; 
 
@@ -260,4 +300,28 @@ auto operator/(const U &val, const Matrix2DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
+}
+
+template<class T, class U>
+Matrix2DBase<T> operator+(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix2DBase<T> operator-(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix2DBase<T> operator*(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix2DBase<T> operator/(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
+    //TODO:
+    return {};
 }

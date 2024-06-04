@@ -81,6 +81,11 @@ public:
     MatrixSizeType size(){
         return m_data.size();
     }
+
+    bool empty() const {
+        return m_data.empty();
+    }
+    
 protected:
     MatrixDataType m_data{};
 };

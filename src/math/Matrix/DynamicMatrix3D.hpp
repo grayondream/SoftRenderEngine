@@ -1,7 +1,7 @@
 #pragma once
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix3DIndex.hpp"
-
+#include "Vector3DBase.hpp"
 
 template<class T> class Matrix3DBase : public MatrixBase<T>, public MatrixIndex3<T>{
 public:
@@ -170,6 +170,30 @@ public:
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
     }
 
+    template<class U>
+    Matrix3DBase<ValueType>& operator+=(const Vector3DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix3DBase<ValueType>& operator-=(const Vector3DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix3DBase<ValueType>& operator*=(const Vector3DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix3DBase<ValueType>& operator/=(const Vector3DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
 public:
     template<class U>
     U sum(){
@@ -189,6 +213,16 @@ public:
 
     Matrix3DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
+    }
+
+    Matrix3DBase<T>& inverse(){
+        //TODO:
+        return {};
+    }
+
+    Matrix3DBase<T> inverse(const int) const{
+        //TODO:
+        return {};
     }
 };
 
@@ -266,4 +300,28 @@ auto operator/(const U &val, const Matrix3DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
+}
+
+template<class T, class U>
+Matrix3DBase<T> operator+(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix3DBase<T> operator-(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix3DBase<T> operator*(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix3DBase<T> operator/(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
+    //TODO:
+    return {};
 }

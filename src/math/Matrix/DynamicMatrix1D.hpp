@@ -149,6 +149,10 @@ public:
     Matrix2DBase<ValueType> mul(const StaticMatrix2DBase<U, di2, di1> &mat){
         //TODO:
     }
+
+    double det() const{
+        //TODO:
+    }
 public:
     template<class U>
     U sum(){

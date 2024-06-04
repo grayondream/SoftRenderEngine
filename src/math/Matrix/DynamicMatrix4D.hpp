@@ -3,6 +3,7 @@
 #pragma once
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix4DIndex.hpp"
+#include "Vector4DBase.hpp"
 
 template<class T>
 class Matrix4DBase : public MatrixBase<T>, public MatrixIndex4<T>{
@@ -183,6 +184,30 @@ public:
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
     }
 
+    template<class U>
+    Matrix4DBase<ValueType>& operator+=(const Vector4DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator-=(const Vector4DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator*=(const Vector4DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
+    template<class U>
+    Matrix4DBase<ValueType>& operator/=(const Vector4DBase<U> &pt){
+        //TODO:
+        return {};
+    }
+
 public:
     template<class U>
     U sum(){
@@ -204,6 +229,16 @@ public:
 
     Matrix4DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
+    }
+
+    Matrix4DBase<T>& inverse(){
+        //TODO:
+        return {};
+    }
+
+    Matrix4DBase<T> inverse(const int) const{
+        //TODO:
+        return {};
     }
 };
 
@@ -281,4 +316,28 @@ auto operator/(const U &val, const Matrix4DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
+}
+
+template<class T, class U>
+Matrix4DBase<T> operator+(const Matrix4DBase<T> &m1, const Vector4DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix4DBase<T> operator-(const Matrix4DBase<T> &m1, const Vector4DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix4DBase<T> operator*(const Matrix4DBase<T> &m1, const Vector4DBase<T> &pt){
+    //TODO:
+    return {};
+}
+
+template<class T, class U>
+Matrix4DBase<T> operator/(const Matrix4DBase<T> &m1, const Vector4DBase<T> &pt){
+    //TODO:
+    return {};
 }

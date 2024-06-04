@@ -1,6 +1,8 @@
 #pragma once
+#include "DynamicMatrix2D.hpp"
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix1DIndex.hpp"
+#include "StaticMatrix2D.hpp"
 #include <cassert>
 #include <cstddef>
 #include <type_traits>
@@ -138,6 +140,15 @@ public:
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
     }
 
+    template<class U>
+    Matrix2DBase<ValueType> mul(const Matrix2DBase<U> &mat){
+        //TODO:
+    }
+
+    template<class U, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
+    Matrix2DBase<ValueType> mul(const StaticMatrix2DBase<U, di2, di1> &mat){
+        //TODO:
+    }
 public:
     template<class U>
     U sum(){

@@ -17,6 +17,11 @@ public:
     using ValueType = T;
     constexpr static const std::size_t Size = 2;
 public:
+    Vector2DBase(const T xx, const T yy){
+        x = xx;
+        y = yy;
+    }
+
     Vector2DBase(const std::initializer_list<T> &ls){
         assert(Size == ls.size());
         this->x = *(ls.begin());

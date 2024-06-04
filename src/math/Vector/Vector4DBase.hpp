@@ -144,6 +144,12 @@ public:
         return this->normalize();
     }
 
+    template<class U>
+    auto dot(const Vector4DBase<U> &vec){
+        auto r = *this * vec;
+        return r.x + r.y + r.z + r.w;
+    }
+
 public:
     union{
         ValueType data[Size];
@@ -226,4 +232,9 @@ auto operator/(const U &val, const Vector4DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
+}
+
+template<class T, class U>
+auto Vector4DDot(const Vector4DBase<T> &rst, const Vector4DBase<U> &snd){
+    return rst.dot(snd);
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <type_traits>
 #include <utility>
 #include <algorithm>
 #include "Polar2D.hpp"
@@ -22,6 +23,12 @@ public:
     using ValueType = T;
     constexpr static const std::size_t Size = 3;
 public:
+    Vector3DBase(const T xx, const T yy, const T zz){
+        x = xx;
+        y = yy;
+        z = zz;
+    }
+
     Vector3DBase(const std::initializer_list<T> &ls){
         assert(Size == ls.size());
         this->x = *(ls.begin());
@@ -164,6 +171,21 @@ public:
         return this->normalize();
     }
 
+    template<class U>
+    auto dot(const Vector3DBase<U> &vec){
+        auto r = (*this) * vec;
+        return r.x + r.y + r.z;
+    }
+
+    template<class U>
+    double thetha(const Vector3DBase<U> &vec){
+        return std::acos(dot(vec) / (this->length() * vec.length()));
+    }
+
+    template<class U>
+    auto mul(const Vector3DBase<U> &vec){
+        return Vector3DBase<T>(y * vec.z - vec.y * z, vec.x * z - x * vec.z, x * vec.y - vec.x * y);
+    }
 public:
     union{
         ValueType data[Size]{};
@@ -245,4 +267,19 @@ auto operator/(const U &val, const Vector3DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
+}
+
+template<class T, class U>
+auto Vector3DThetha(const Vector3DBase<T> &rst, const Vector3DBase<U> &snd){
+    return rst.thetha(snd);
+}
+
+template<class T, class U>
+auto Vector3DDot(const Vector3DBase<T> &rst, const Vector3DBase<U> &snd){
+    return rst.dot(snd);
+}
+
+template<class T, class U>
+auto Vector3DMul(const Vector3DBase<T> &rst, const Vector3DBase<U> &snd){
+    return rst.mul(snd);
 }

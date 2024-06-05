@@ -115,6 +115,16 @@ TEST(Matrix4DOp, Operator){
     EXPECT_EQ(m3.sum<int>(), 48);
 }
 
+TEST(Matrix1DOp, ComplexOperator){
+    Matrix1D m1{2,3};
+    Matrix2D m2{{1,2}, {3,4}};
+    Matrix1D m3{11, 16};
+    Matrix2D m4{{2}, {3}};
+    EXPECT_EQ(m1.mul(m2), m3);
+    EXPECT_EQ(m1.transpose(), m4);
+}
+
+
 int main(int argc, char **argv){
     LOGI("Start matrix math operator ability test");
     testing::InitGoogleTest(&argc, argv);

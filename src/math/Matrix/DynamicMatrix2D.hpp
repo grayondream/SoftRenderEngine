@@ -17,7 +17,7 @@ public:
 
 public:
     Matrix2DBase(ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
-        : MatrixBase<ValueType>(d1 * d2), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1, d2){} 
+        : MatrixBase<ValueType>(d1 * d2), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){} 
 
     Matrix2DBase(const std::initializer_list<ValueType> &ls, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
         : MatrixBase<ValueType>(ls), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){
@@ -104,20 +104,6 @@ public:
 
 public:
     template<class U>
-    bool operator==(const Matrix2DBase<U> &mat) const{
-        if(mat.d1 != this->d1 || mat.d2 != this->d2){
-            return false;
-        }
-
-        auto i = 0, j = 0;
-        for(i = 0;i < this->d2;i ++){
-            for(j = 0;j < this->d1 && (*this)[i][j] == mat[i][j];j ++){}
-        }
-
-        return i == mat.d1 && j == mat.d2;
-    }
-
-    template<class U>
     Matrix2DBase<ValueType>& operator+=(const Matrix2DBase<U> &mat){
         return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 + v2; });
     }
@@ -201,6 +187,20 @@ public:
         return {};
     }
 }; 
+
+template<class T, class U>
+bool operator==(const Matrix2DBase<T> &m1, const Matrix2DBase<U> &m2){
+    if(m2.d1 != m1.d1 || m2.d2 != m1.d2){
+        return false;
+    }
+
+    auto i = 0, j = 0;
+    for(i = 0;i < m1.d2;i ++){
+        for(j = 0;j < m1.d1 && m1[i][j] == m2[i][j];j ++){}
+    }
+
+    return i == m2.d2 && j == m2.d1;
+}
 
 template<class T, class U>
 auto operator+(const Matrix2DBase<U> &m1, const Matrix2DBase<T> &m2){

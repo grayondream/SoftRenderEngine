@@ -127,24 +127,6 @@ public:
 
 public:
     template<class U>
-    bool operator==(const Matrix4DBase<U> &mat) const{
-        if(mat.d1 != this->d1 || mat.d2 != this->d2 || this->d3 != mat.d3 || mat.d4 != this->d4){
-            return false;
-        }
-
-        auto i = 0, j = 0, k = 0, c = 0;
-        for(c = 0; c < this->d4; c ++){
-            for(k = 0;k < this->d3; k ++){
-                for(i = 0;i < this->d2;i ++){
-                    for(j = 0;j < this->d1 && (*this)[c][k][i][j] == mat[c][k][i][j];j ++){}
-                }
-            }
-        }    
-
-        return i == mat.d1 && j == mat.d2 && k == mat.d3 && c == mat.d4;
-    }
-
-    template<class U>
     Matrix4DBase<ValueType>& operator+=(const Matrix4DBase<U> &mat){
         return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 + v2; });
     }
@@ -217,6 +199,24 @@ public:
         return {};
     }
 };
+
+template<class T, class U>
+bool operator==(const Matrix4DBase<U> &m1, const Matrix4DBase<T> &m2){
+    if(m2.d1 != m1.d1 || m2.d2 != m1.d2 || m1.d3 != m2.d3 || m2.d4 != m1.d4){
+        return false;
+    }
+
+    auto i = 0, j = 0, k = 0, c = 0;
+    for(c = 0; c < m1.d4; c ++){
+        for(k = 0;k < m1.d3; k ++){
+            for(i = 0;i < m1.d2;i ++){
+                for(j = 0;j < m1.d1 && m1[c][k][i][j] == m2[c][k][i][j];j ++){}
+            }
+        }
+    }    
+
+    return i == m2.d1 && j == m2.d2 && k == m2.d3 && c == m2.d4;
+}
 
 template<class T, class U>
 auto operator+(const Matrix4DBase<U> &m1, const Matrix4DBase<T> &m2){

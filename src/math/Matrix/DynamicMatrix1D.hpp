@@ -90,17 +90,6 @@ public:
 public:
     //数学计算相关的operator重载
     template<class U>
-    bool operator==(const Matrix1DBase<U> &mat) const {
-        if(mat.d1 != this->d1){
-            return false;
-        }
-
-        auto i = 0;
-        for(i = 0;i < mat.d1 && (*this)[i] == mat[i]; i ++){}
-        return i == mat.d1;
-    }
-
-    template<class U>
     Matrix1DBase<ValueType>& operator+=(const Matrix1DBase<U> &mat){
         return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 + v2; });
     }
@@ -141,17 +130,58 @@ public:
     }
 
     template<class U>
-    Matrix2DBase<ValueType> mul(const Matrix2DBase<U> &mat){
-        //TODO:
+    Matrix1DBase<ValueType> mul(const Matrix2DBase<U> &mat) const{
+        //1 * xd1 X yd2 * yd1
+        //[x1 x2 x3]    X   [y1 y11]
+        //                  [y2 y22]
+        //                  [y3 y33]
+        assert(this->d1 == mat.d2);
+        Matrix1DBase<ValueType> ret(mat.d1);
+        for(auto k = 0;k < ret.d1;k ++){
+            ValueType sum {};
+            for(auto i = 0;i < this->d1;i ++){
+                sum += (*this)[i] * mat[i][k];
+            }
+
+            ret[k] = sum;
+        }
+        
+        return ret;
     }
 
     template<class U, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
-    Matrix2DBase<ValueType> mul(const StaticMatrix2DBase<U, di2, di1> &mat){
-        //TODO:
+    Matrix1DBase<ValueType> mul(const StaticMatrix2DBase<U, di2, di1> &mat) const{
+        assert(this->d1 == mat.d2);
+        Matrix1DBase<ValueType> ret(mat.d1, 1);
+        for(auto k = 0;k < ret.d2;k ++){
+            ValueType sum {};
+            for(auto i = 0;i < this->d1;i ++){
+                sum += (*this)[i] * mat[i][k];
+            }
+
+            ret[0][k] = sum;
+        }
+        
+        return ret;
     }
 
     double det() const{
-        //TODO:
+        for(auto i = 0;i < this->d1;i ++){
+            if((*this)[i] != 0){
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    Matrix2DBase<ValueType> transpose() const{
+        Matrix2DBase<ValueType> ret(this->d1, 1);
+        for(auto i = 0;i < ret.d2;i ++){
+            ret[i][0] = (*this)[i];
+        }
+
+        return ret;
     }
 public:
     template<class U>
@@ -167,6 +197,17 @@ public:
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
     }
 };
+
+template<class T, class U>
+auto operator==(const Matrix1DBase<U> &m1, const Matrix1DBase<T> &m2){
+    if(m1.d1 != m2.d1){
+        return false;
+    }
+
+    auto i = 0;
+    for(i = 0;i < m1.d1 && m2[i] == m1[i]; i ++){}
+    return i == m1.d1;
+}
 
 template<class T, class U>
 auto operator+(const Matrix1DBase<U> &m1, const Matrix1DBase<T> &m2){
@@ -243,3 +284,4 @@ auto operator/(const U &val, const Matrix1DBase<T> &m1){
     ret *= val;
     return ret / m1;
 }
+

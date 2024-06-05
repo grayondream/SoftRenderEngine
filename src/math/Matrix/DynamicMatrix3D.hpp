@@ -114,23 +114,6 @@ public:
 
 public:
     template<class U>
-    bool operator==(const Matrix3DBase<U> &mat) const{
-        if(mat.d1 != this->d1 || mat.d2 != this->d2 || this->d3 != mat.d3){
-            return false;
-        }
-
-        auto i = 0, j = 0, k = 0;
-        for(k = 0;k < this->d3; k ++){
-            for(i = 0;i < this->d2;i ++){
-                for(j = 0;j < this->d1 && (*this)[k][i][j] == mat[k][i][j];j ++){}
-            }
-        }
-        
-
-        return i == mat.d1 && j == mat.d2 && k == mat.d3;
-    }
-
-    template<class U>
     Matrix3DBase<ValueType>& operator+=(const Matrix3DBase<U> &mat){
         return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 + v2; });
     }
@@ -201,6 +184,23 @@ public:
         return {};
     }
 };
+
+
+template<class T, class U>
+bool operator==(const Matrix3DBase<U> &m1, const Matrix3DBase<T> &m2){
+    if(m2.d1 != m1.d1 || m2.d2 != m1.d2 || m1.d3 != m2.d3){
+        return false;
+    }
+
+    auto i = 0, j = 0, k = 0;
+    for(k = 0;k < m1.d3; k ++){
+        for(i = 0;i < m1.d2;i ++){
+            for(j = 0;j < m1.d1 && m1[k][i][j] == m2[k][i][j];j ++){}
+        }
+    }
+    
+    return i == m2.d1 && j == m2.d2 && k == m2.d3;
+}
 
 template<class T, class U>
 auto operator+(const Matrix3DBase<U> &m1, const Matrix3DBase<T> &m2){

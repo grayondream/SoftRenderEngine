@@ -170,30 +170,6 @@ public:
         return this->foreachFuncBinaryValue(val, [](const T &v1, const U &v2){ return v1 / v2; });
     }
 
-    template<class U>
-    Matrix3DBase<ValueType>& operator+=(const Vector3DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
-    template<class U>
-    Matrix3DBase<ValueType>& operator-=(const Vector3DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
-    template<class U>
-    Matrix3DBase<ValueType>& operator*=(const Vector3DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
-    template<class U>
-    Matrix3DBase<ValueType>& operator/=(const Vector3DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
 public:
     template<class U>
     U sum(){
@@ -300,28 +276,4 @@ auto operator/(const U &val, const Matrix3DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
-}
-
-template<class T, class U>
-Matrix3DBase<T> operator+(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
-    //TODO:
-    return {};
-}
-
-template<class T, class U>
-Matrix3DBase<T> operator-(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
-    //TODO:
-    return {};
-}
-
-template<class T, class U>
-Matrix3DBase<T> operator*(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
-    //TODO:
-    return {};
-}
-
-template<class T, class U>
-Matrix3DBase<T> operator/(const Matrix3DBase<T> &m1, const Vector3DBase<T> &pt){
-    //TODO:
-    return {};
 }

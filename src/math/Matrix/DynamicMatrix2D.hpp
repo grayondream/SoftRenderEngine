@@ -148,30 +148,6 @@ public:
     }
 
     template<class U>
-    Matrix2DBase<ValueType>& operator+=(const Vector2DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
-    template<class U>
-    Matrix2DBase<ValueType>& operator-=(const Vector2DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
-    template<class U>
-    Matrix2DBase<ValueType>& operator*=(const Vector2DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
-    template<class U>
-    Matrix2DBase<ValueType>& operator/=(const Vector2DBase<U> &pt){
-        //TODO:
-        return {};
-    }
-
-    template<class U>
     Matrix2DBase<ValueType>& operator/=(const Matrix2DBase<U> &mat){
         return this->foreachFuncBetweenMatrix(mat, [](const T &v1, const U &v2){ return v1 / v2; });
     }
@@ -300,28 +276,4 @@ auto operator/(const U &val, const Matrix2DBase<T> &m1){
     ret.fill(ReturnType{} + 1);
     ret *= val;
     return ret / m1;
-}
-
-template<class T, class U>
-Matrix2DBase<T> operator+(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
-    //TODO:
-    return {};
-}
-
-template<class T, class U>
-Matrix2DBase<T> operator-(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
-    //TODO:
-    return {};
-}
-
-template<class T, class U>
-Matrix2DBase<T> operator*(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
-    //TODO:
-    return {};
-}
-
-template<class T, class U>
-Matrix2DBase<T> operator/(const Matrix2DBase<T> &m1, const Vector2DBase<T> &pt){
-    //TODO:
-    return {};
 }

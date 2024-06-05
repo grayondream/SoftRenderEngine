@@ -7,9 +7,3 @@ public:
     Point p0;
     Point p1;
 };
-
-namespace Utils{
-namespace Line{
-    
-}
-}

@@ -145,12 +145,28 @@ public:
 
     template<class U>
     Matrix2DBase<ValueType> mul(const Matrix2DBase<U> &mat){
-        //TODO:
+        assert(this->d1 == mat.d2);
+        //d12 x d11 X d22 x d21
+        //d11 ==d22
+        //return d12 x d21
+        Matrix2DBase<ValueType> ret(this->d2, mat.d1);
+        for(auto i = 0;i < this->d2;i ++){
+            for(auto j = 0;j < mat.d1;j++){
+                ValueType sum{};
+                for(auto k = 0;k < mat.d2;k ++){
+                    sum += (*this)[i][k] * mat[k][j];
+                }
+                ret[i][j] = sum;
+            }
+        }
+
+        return ret;
     }
 
     template<class U, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
     Matrix2DBase<ValueType> mul(const StaticMatrix2DBase<U, di2, di1> &mat){
         //TODO:
+        return {};
     }
 
 public:
@@ -177,14 +193,15 @@ public:
         return {};
     }
 
-    Matrix2DBase<T>& inverse(){
-        //TODO:
-        return {};
-    }
+    Matrix2DBase<ValueType> transpose() const{
+        Matrix2DBase<ValueType> ret(this->d1, this->d2);
+        for(auto i = 0;i < ret.d2;i ++){
+            for(auto j = 0;j < ret.d1;j ++){
+                ret[i][j] = (*this)[j][i];
+            }
+        }
 
-    Matrix2DBase<T> inverse(const int) const{
-        //TODO:
-        return {};
+        return ret;
     }
 }; 
 

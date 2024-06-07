@@ -192,14 +192,17 @@ bool operator==(const Matrix3DBase<U> &m1, const Matrix3DBase<T> &m2){
         return false;
     }
 
-    auto i = 0, j = 0, k = 0;
-    for(k = 0;k < m1.d3; k ++){
-        for(i = 0;i < m1.d2;i ++){
-            for(j = 0;j < m1.d1 && m1[k][i][j] == m2[k][i][j];j ++){}
+    for(auto k = 0;k < m1.d3; k ++){
+        for(auto i = 0;i < m1.d2;i ++){
+            for(auto j = 0;j < m1.d1;j ++){
+                if(m1[k][i][j] != m2[k][i][j]){
+                    return false;
+                }
+            }
         }
     }
     
-    return i == m2.d1 && j == m2.d2 && k == m2.d3;
+    return true;
 }
 
 template<class T, class U>

@@ -206,16 +206,19 @@ bool operator==(const Matrix4DBase<U> &m1, const Matrix4DBase<T> &m2){
         return false;
     }
 
-    auto i = 0, j = 0, k = 0, c = 0;
-    for(c = 0; c < m1.d4; c ++){
-        for(k = 0;k < m1.d3; k ++){
-            for(i = 0;i < m1.d2;i ++){
-                for(j = 0;j < m1.d1 && m1[c][k][i][j] == m2[c][k][i][j];j ++){}
+    for(auto c = 0; c < m1.d4; c ++){
+        for(auto k = 0;k < m1.d3; k ++){
+            for(auto i = 0;i < m1.d2;i ++){
+                for(auto j = 0;j < m1.d1;j ++){
+                    if(m1[c][k][i][j] != m2[c][k][i][j]){
+                        return false;
+                    }
+                }
             }
         }
     }    
 
-    return i == m2.d1 && j == m2.d2 && k == m2.d3 && c == m2.d4;
+    return true;
 }
 
 template<class T, class U>

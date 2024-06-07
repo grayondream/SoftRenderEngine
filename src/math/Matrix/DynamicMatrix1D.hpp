@@ -9,6 +9,9 @@
 #include <utility>
 
 template<class T>
+class MatrixIndex1;
+
+template<class T>
 class Matrix1DBase : public MatrixBase<T>, public MatrixIndex1<T>{
 public:
     using ValueType = typename DynamicMatrixTraits<T>::ValueType;
@@ -204,9 +207,13 @@ auto operator==(const Matrix1DBase<U> &m1, const Matrix1DBase<T> &m2){
         return false;
     }
 
-    auto i = 0;
-    for(i = 0;i < m1.d1 && m2[i] == m1[i]; i ++){}
-    return i == m1.d1;
+    for(auto i = 0;i < m1.d1; i ++){
+        if(m2[i] != m1[i]){
+            return false;
+        }
+    }
+
+    return true;
 }
 
 template<class T, class U>

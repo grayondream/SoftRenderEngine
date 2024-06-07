@@ -1,4 +1,5 @@
 #pragma once
+#include "DynamicMatrix1D.hpp"
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix2DIndex.hpp"
 #include "StaticMatrix2D.hpp"
@@ -102,6 +103,12 @@ public:
         return u;
     }
 
+    Matrix2DBase<ValueType>& swapRows(const ConstMatrixSizeType rst, const ConstMatrixSizeType snd){
+        Matrix1DBase<ValueType> r1 = (*this)[rst];
+        (*this)[rst] = (*this)[snd];
+        (*this)[snd] = r1;
+        return *this;
+    }
 public:
     template<class U>
     Matrix2DBase<ValueType>& operator+=(const Matrix2DBase<U> &mat){
@@ -202,9 +209,22 @@ public:
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
     }
 
-    double det() const{
-        //TODO:
-        return {};
+    auto runk() const{
+        //高斯消元法计算矩阵的秩
+        auto& mat = *this;
+        ConstMatrixSizeType rank = 0;
+        for(auto i = 0;i < this->d2;i ++){
+            if(0 == mat[i][rank]){
+                bool found = false;
+                for(auto j = i + 1;j < this->d2;j ++){
+                    if(0 != mat[j][rank]){
+                        //TODO:
+                    }
+                }
+            }
+        }
+
+        return rank;
     }
 
     Matrix2DBase<ValueType> transpose() const{
@@ -225,12 +245,15 @@ bool operator==(const Matrix2DBase<T> &m1, const Matrix2DBase<U> &m2){
         return false;
     }
 
-    auto i = 0, j = 0;
-    for(i = 0;i < m1.d2;i ++){
-        for(j = 0;j < m1.d1 && m1[i][j] == m2[i][j];j ++){}
+    for(auto i = 0;i < m1.d2;i ++){
+        for(auto j = 0;j < m1.d1;j ++){
+            if(m1[i][j] != m2[i][j]){
+                return false;
+            }
+        }
     }
 
-    return i == m2.d2 && j == m2.d1;
+    return true;
 }
 
 template<class T, class U>

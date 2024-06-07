@@ -126,12 +126,20 @@ TEST(Matrix1DOp, ComplexOperator){
 
 
 TEST(Matrix2DOp, ComplexOperator){
-    Matrix2D m1{{1,2},{3,4}};
-    Matrix2D m2{{1,2, 3}, {4, 5, 6}};
-    Matrix2D m3{{9, 12, 15},{19,26,33}};
-    Matrix2D m4{{1,3}, {2,4}};
-    EXPECT_EQ(m1.mul(m2), m3);
-    EXPECT_EQ(m1.transpose(), m4);
+    {
+        Matrix2D m1{{1,2},{3,4}};
+        Matrix2D m2{{1,2, 3}, {4, 5, 6}};
+        Matrix2D m3{{9, 12, 15},{19,26,33}};
+        Matrix2D m4{{1,3}, {2,4}};
+        EXPECT_EQ(m1.mul(m2), m3);
+        EXPECT_EQ(m1.transpose(), m4);
+    }
+
+    {
+        Matrix2D m1{{1,2},{3,4}};
+        Matrix2D m2{{3,4}, {1,2}};
+        EXPECT_EQ(m1.swapRows(0, 1), m2);
+    }
 }
 
 int main(int argc, char **argv){

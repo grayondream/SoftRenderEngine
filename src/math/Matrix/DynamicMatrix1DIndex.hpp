@@ -1,5 +1,10 @@
 #pragma once
 #include "DynamicMatrixBase.hpp"
+#include "DynamicMatrix1D.hpp"
+#include <algorithm>
+
+template<class T>
+class Matrix1DBase;
 
 template<class T>
 class MatrixIndex1 : public MatrixIndexBase<T>, public MatrixIndex1Size{
@@ -24,5 +29,15 @@ public:
     
     ValueType operator[](ConstMatrixSizeType idx) const{
         return *(this->m_pstart + idx);
+    }
+
+    auto& operator=(const Matrix1DBase<ValueType> &mat){
+        std::copy_n(mat.getRawBuffer(), this->d1, this->m_pstart);
+        return *this;
+    }
+
+    auto& operator=(const MatrixIndex1<ValueType> &mat){
+        std::copy_n(mat.m_pstart, this->d1, this->m_pstart);
+        return *this;
     }
 };

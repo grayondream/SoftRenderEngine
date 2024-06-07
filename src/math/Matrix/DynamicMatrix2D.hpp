@@ -210,18 +210,47 @@ public:
     }
 
     auto runk() const{
-        //高斯消元法计算矩阵的秩
-        auto& mat = *this;
-        ConstMatrixSizeType rank = 0;
-        for(auto i = 0;i < this->d2;i ++){
-            if(0 == mat[i][rank]){
+        //高斯消元法计算矩阵的秩，代码有些问题后面再修复
+        //TODO:
+        Matrix2DBase<ValueType> mat = *this;
+        MatrixSizeType rank = 0;
+        auto m = mat.d2, n = mat.d1;
+        for (int row = 0; row < m; ++row) {
+            // If the leading element in the current row is zero, try to swap with a row below it
+            if (mat[row][rank] == 0) {
                 bool found = false;
-                for(auto j = i + 1;j < this->d2;j ++){
-                    if(0 != mat[j][rank]){
-                        //TODO:
+                for (int i = row + 1; i < m; ++i) {
+                    if (mat[i][rank] != 0) {
+                        mat.swapRows(row, i);
+                        found = true;
+                        break;
                     }
                 }
+                // If no non-zero element is found, move to the next column
+                if (!found) {
+                    if (++rank >= n) {
+                        return rank;
+                    }
+                    --row;
+                    continue;
+                }
             }
+
+            // Normalize the leading element to 1
+            double leading = mat[row][rank];
+            for (int col = 0; col < n; ++col) {
+                mat[row][col] /= leading;
+            }
+
+            // Make all rows below this one 0 in the current column
+            for (int i = row + 1; i < m; ++i) {
+                double factor = mat[i][rank];
+                for (int col = 0; col < n; ++col) {
+                    mat[i][col] -= factor * mat[row][col];
+                }
+            }
+
+            ++rank;
         }
 
         return rank;

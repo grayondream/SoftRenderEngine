@@ -138,7 +138,12 @@ TEST(Matrix2DOp, ComplexOperator){
     {
         Matrix2D m1{{1,2},{3,4}};
         Matrix2D m2{{3,4}, {1,2}};
+        Matrix2D m3{{1,2}, {1,2}};
         EXPECT_EQ(m1.swapRows(0, 1), m2);
+        EXPECT_EQ(m1.runk(), 2);
+        EXPECT_EQ(m1.eye().runk(), 2);
+        EXPECT_EQ(m3.runk(), 1);
+        EXPECT_EQ(m3.fill(0).runk(), 0);
     }
 }
 

@@ -9,9 +9,14 @@ set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Werror")
 
-include(src/include.cmake)
+set(SGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src CACHE INTERNAL "Source Directory")
+set(SGE_TEST_DIR ${CMAKE_SOURCE_DIR}/test CACHE INTERNAL "Test Source Directory")
+
+include(${SGE_SOURCE_DIR}/include.cmake)
 
 option(ENABLE_TEST "test basic ability" ON)
 
-add_subdirectory(src)
-add_subdirectory(test)
+add_subdirectory(${SGE_SOURCE_DIR})
+if(ENABLE_TEST)
+    add_subdirectory(${SGE_TEST_DIR})
+endif()

@@ -212,44 +212,44 @@ public:
     auto runk() const{
         //高斯消元法计算矩阵的秩，代码有些问题后面再修复
         //TODO:
-        Matrix2DBase<ValueType> mat = *this;
+        Matrix2DBase<ValueType> matrix = *this;
         MatrixSizeType rank = 0;
-        auto m = mat.d2, n = mat.d1;
-        for (int row = 0; row < m; ++row) {
-            // If the leading element in the current row is zero, try to swap with a row below it
-            if (mat[row][rank] == 0) {
-                bool found = false;
-                for (int i = row + 1; i < m; ++i) {
-                    if (mat[i][rank] != 0) {
-                        mat.swapRows(row, i);
-                        found = true;
-                        break;
+        auto m = matrix.d2, n = matrix.d1;
+        for (int col = 0; col < n; ++col) {
+            // Find the pivot row for this column
+            int pivotRow = -1;
+            for (int row = rank; row < m; ++row) {
+                if (fabs(matrix[row][col]) > 1e-10) { // Use a small threshold to account for floating-point precision issues
+                    pivotRow = row;
+                    break;
+                }
+            }
+
+            // If there is no pivot in this column, continue to the next column
+            if (pivotRow == -1) {
+                continue;
+            }
+
+            // Swap the pivot row with the current row
+            matrix.swapRows(pivotRow, rank);
+
+            // Normalize the pivot row
+            double pivotValue = matrix[rank][col];
+            for (int j = col; j < n; ++j) {
+                matrix[rank][j] /= pivotValue;
+            }
+
+            // Eliminate the current column from all other rows
+            for (int i = 0; i < m; ++i) {
+                if (i != rank) {
+                    double factor = matrix[i][col];
+                    for (int j = col; j < n; ++j) {
+                        matrix[i][j] -= factor * matrix[rank][j];
                     }
                 }
-                // If no non-zero element is found, move to the next column
-                if (!found) {
-                    if (++rank >= n) {
-                        return rank;
-                    }
-                    --row;
-                    continue;
-                }
             }
 
-            // Normalize the leading element to 1
-            double leading = mat[row][rank];
-            for (int col = 0; col < n; ++col) {
-                mat[row][col] /= leading;
-            }
-
-            // Make all rows below this one 0 in the current column
-            for (int i = row + 1; i < m; ++i) {
-                double factor = mat[i][rank];
-                for (int col = 0; col < n; ++col) {
-                    mat[i][col] -= factor * mat[row][col];
-                }
-            }
-
+            // Move to the next row
             ++rank;
         }
 

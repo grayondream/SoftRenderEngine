@@ -62,6 +62,10 @@ public:
         z = vec.z / vec.w;
     }
 
+    Vector3DBase& operator=(const ValueType &v){
+        this->fill(v);
+    }
+    
     //从两个点来创建一个向量
     template<class U, class K>
     Vector3DBase(const Vector3DBase<U> &rst, const Vector3DBase<K> &snd){

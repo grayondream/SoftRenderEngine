@@ -1,6 +1,6 @@
 #pragma once
 #include "Trigonometric.hpp"
-#include "MathUtil.hpp"
+#include "FixPoint.hpp"
 #include "MathConst.hpp"
 #include <utility>
 #include <array>

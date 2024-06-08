@@ -43,6 +43,11 @@ public:
     Vector2DBase(const Vector2DBase<U> &rst, const Vector2DBase<K> &snd){
         *this = rst - snd;
     }
+
+    Vector2DBase& operator=(const ValueType &v){
+        this->fill(v);
+    }
+
 public:
     template<class U>
     Vector2DBase<ValueType>& operator+=(const Vector2DBase<U> &mat){
@@ -151,6 +156,10 @@ public:
 
     Vector2DBase normalize() const{
         return this->normalize();
+    }
+
+    double distance(Vector2DBase& vec){
+        return std::sqrt(std::pow(this->x - vec.x,2), std::pow(this->y - vec.y, 2));
     }
 public:
     union{

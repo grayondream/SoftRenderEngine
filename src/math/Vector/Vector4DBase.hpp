@@ -33,6 +33,9 @@ public:
         *this = rst - snd;
     }
 
+    Vector4DBase& operator=(const ValueType &v){
+        this->fill(v);
+    }
 public:
     template<class U>
     Vector4DBase<ValueType>& operator+=(const Vector4DBase<U> &mat){

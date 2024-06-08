@@ -15,6 +15,24 @@ public:
         std::copy_n(number.data, Size, data);
     }
 
+    QuantNumber(const ValueType q, const Vector3DBase<ValueType> &vec){
+        this->qo = q;
+        this->qv = vec;
+    }
+
+    QuantNumber(const ValueType v){
+        this->q0 = v;
+        this->qv = v;
+    }
+
+    QuantNumber& operator=(const QuantNumber &q){
+        this->q0 = q.q0;
+        this->qv = q.qv;
+    }
+
+    QuantNumber& fill(const ValueType &v){
+        *this = QuantNumber(v);
+    }
 public:
     union{
         ValueType data[Size]{};

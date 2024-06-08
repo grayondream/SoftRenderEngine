@@ -49,6 +49,11 @@ public:
         this->d1 = m1.d1;
         return *this;
     }
+
+    Matrix1DBase& operator=(const ValueType &val){
+        std::fill_n(this->m_pstart, this->d1, val);
+        return *this;
+    }
 public:
     /*
      * @brief 遍历每个元素，针对当前元素和输入的mat同位置的元素同时执行func，返回的值会写入当前矩阵中

@@ -5,6 +5,7 @@
 #include "MathConst.hpp"
 #include "StaticMatrix2D.hpp"
 #include "Vector2DBase.hpp"
+#include <cassert>
 #include <optional>
 
 template<class T>
@@ -58,6 +59,9 @@ public:
         return *this;
     }
 
+    Matrix2DBase& operator=(const ValueType &val){
+        this->fill(val);
+    }
 public:
     template<class U, typename Func>
     Matrix2DBase<ValueType>& foreachFuncBetweenMatrix(const Matrix2DBase<U> &mat, Func &&func){
@@ -106,6 +110,7 @@ public:
     }
 
     Matrix2DBase<ValueType>& swapRows(const ConstMatrixSizeType rst, const ConstMatrixSizeType snd){
+        assert(rst < this->d2 && snd < this->d2 && rst >= 0 && snd >= 0);
         if(rst == snd){
             return *this;
         }
@@ -113,6 +118,19 @@ public:
         Matrix1DBase<ValueType> r1 = (*this)[rst];
         (*this)[rst] = (*this)[snd];
         (*this)[snd] = r1;
+        return *this;
+    }
+
+    Matrix2DBase<ValueType>& swapCols(const ConstMatrixSizeType rst, const ConstMatrixSizeType snd){
+        assert(rst < this->d1 && snd < this->d1 && rst >= 0 && snd >= 0);
+        if(rst == snd){
+            return *this;
+        }
+
+        for(auto i = 0;i < this->d2;i ++){
+            std::swap((*this)[i][rst], (*this)[i][snd]);
+        }
+
         return *this;
     }
 public:

@@ -40,4 +40,9 @@ public:
         std::copy_n(mat.m_pstart, this->d1, this->m_pstart);
         return *this;
     }
+
+    MatrixIndex1& operator=(const ValueType &val){
+        std::fill_n(this->m_pstart, this->d1, val);
+        return *this;
+    }
 };

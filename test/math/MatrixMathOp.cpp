@@ -141,7 +141,9 @@ TEST(Matrix2DOp, ComplexOperator){
         Matrix2D m1{{1,2},{3,4}};
         Matrix2D m2{{3,4}, {1,2}};
         Matrix2D m3{{1,2}, {1,2}};
-        EXPECT_EQ(m1.swapRows(0, 1), m2);
+        Matrix2D m4{{2,1},{4,3}};
+        EXPECT_EQ(m1.swapRows(0, 1), Matrix2D({{3,4}, {1,2}}));
+        EXPECT_EQ(m2.swapCols(0, 1), Matrix2D({{4,3}, {2,1}}));
         EXPECT_EQ(m1.runk(), 2);
         EXPECT_EQ(m1.eye().runk(), 2);
         EXPECT_EQ(m3.runk(), 1);
@@ -154,7 +156,16 @@ TEST(Matrix2DOp, ComplexOperator){
         if(m1.invert()){
             EXPECT_EQ(m1.equal(m2, [](const double v1, const double v2){ return std::fabs(v1 - v2) < Math::EpsilonE7;}), true);
         }
-        
+    }
+
+    {
+        Matrix1D m1(4);
+        Matrix2D m2{{1,2},{3,4}};
+        Matrix2D m3{{1,2},{10,10}};
+        m1 = 4;
+        m2[1] = 10;
+        EXPECT_EQ( m1, Matrix1D({4,4,4,4}));
+        EXPECT_EQ(m2, m3);
     }
 }
 

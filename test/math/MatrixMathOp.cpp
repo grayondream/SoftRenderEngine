@@ -1,6 +1,8 @@
 #include "Log.hpp"
+#include "MathConst.hpp"
 #include "Matrix/Matrix.hpp"
 #include "Util/ToString.hpp"
+#include <cmath>
 #include <gtest/gtest.h>
 
 TEST(Matrix1DOp, Opeator){
@@ -144,6 +146,15 @@ TEST(Matrix2DOp, ComplexOperator){
         EXPECT_EQ(m1.eye().runk(), 2);
         EXPECT_EQ(m3.runk(), 1);
         EXPECT_EQ(m3.fill(0).runk(), 0);
+    }
+
+    {
+        Matrix2D m1{{1,2},{3,4}};
+        Matrix2D m2{{-2,1},{3.0/2,-1.0/2}};
+        if(m1.invert()){
+            EXPECT_EQ(m1.equal(m2, [](const double v1, const double v2){ return std::fabs(v1 - v2) < Math::EpsilonE7;}), true);
+        }
+        
     }
 }
 

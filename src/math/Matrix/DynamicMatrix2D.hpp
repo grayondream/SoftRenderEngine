@@ -2,8 +2,10 @@
 #include "DynamicMatrix1D.hpp"
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix2DIndex.hpp"
+#include "MathConst.hpp"
 #include "StaticMatrix2D.hpp"
 #include "Vector2DBase.hpp"
+#include <optional>
 
 template<class T>
 class Matrix2DBase : public MatrixBase<T>, public MatrixIndex2<T>{
@@ -50,7 +52,7 @@ public:
     Matrix2DBase& operator=(const Matrix2DBase &mat){
         if(this == &mat) return *this;
         this->m_data = mat.m_data;
-        this->m_pstart = mat.m_pstart;
+        this->m_pstart = this->getRawBuffer();
         this->d1 = mat.d1;
         this->d2 = mat.d2;
         return *this;
@@ -104,6 +106,10 @@ public:
     }
 
     Matrix2DBase<ValueType>& swapRows(const ConstMatrixSizeType rst, const ConstMatrixSizeType snd){
+        if(rst == snd){
+            return *this;
+        }
+
         Matrix1DBase<ValueType> r1 = (*this)[rst];
         (*this)[rst] = (*this)[snd];
         (*this)[snd] = r1;
@@ -219,7 +225,7 @@ public:
             // Find the pivot row for this column
             int pivotRow = -1;
             for (int row = rank; row < m; ++row) {
-                if (fabs(matrix[row][col]) > 1e-10) { // Use a small threshold to account for floating-point precision issues
+                if (fabs(matrix[row][col]) > Math::EpsilonE7) { // Use a small threshold to account for floating-point precision issues
                     pivotRow = row;
                     break;
                 }
@@ -266,23 +272,78 @@ public:
 
         return ret;
     }
+
+    bool invert(){
+        auto& matrix = *this;
+        int n = matrix.d2;
+        assert(matrix.d1 == matrix.d2);
+        Matrix2DBase<ValueType> inverse(n, n);
+        inverse.eye();
+        // Perform Gaussian-Jordan elimination
+        for (int col = 0; col < n; ++col) {
+            // Find the pivot row
+            int pivotRow = col;
+            for (int row = col + 1; row < n; ++row) {
+                if (fabs(matrix[row][col]) > fabs(matrix[pivotRow][col])) {
+                    pivotRow = row;
+                }
+            }
+
+            // If the pivot element is zero, the matrix is singular and cannot be inverted
+            if (fabs(matrix[pivotRow][col]) < Math::EpsilonE7) {
+                return false;
+            }
+
+            // Swap the pivot row with the current row
+            matrix.swapRows(col, pivotRow);
+            inverse.swapRows(col, pivotRow);
+
+            // Normalize the pivot row
+            double pivotValue = matrix[col][col];
+            for (int j = 0; j < n; ++j) {
+                matrix[col][j] /= pivotValue;
+                inverse[col][j] /= pivotValue;
+            }
+
+            // Eliminate the current column from all other rows
+            for (int i = 0; i < n; ++i) {
+                if (i != col) {
+                    double factor = matrix[i][col];
+                    for (int j = 0; j < n; ++j) {
+                        matrix[i][j] -= factor * matrix[col][j];
+                        inverse[i][j] -= factor * inverse[col][j];
+                    }
+                }
+            }
+        }
+
+        // Replace the matrix with its inverse
+        matrix = inverse;
+        return true;
+    }
+
+    template<class U, class Func>
+    bool equal(const Matrix2DBase<U> &m2, Func &&comapreEqual) const{
+        auto& m1 = *this;
+        if(m2.d1 != m1.d1 || m2.d2 != m1.d2){
+            return false;
+        }
+
+        for(auto i = 0;i < m1.d2;i ++){
+            for(auto j = 0;j < m1.d1;j ++){
+                if(!comapreEqual(m1[i][j], m2[i][j])){
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }; 
 
 template<class T, class U>
 bool operator==(const Matrix2DBase<T> &m1, const Matrix2DBase<U> &m2){
-    if(m2.d1 != m1.d1 || m2.d2 != m1.d2){
-        return false;
-    }
-
-    for(auto i = 0;i < m1.d2;i ++){
-        for(auto j = 0;j < m1.d1;j ++){
-            if(m1[i][j] != m2[i][j]){
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return m1.equal(m2, [](const T v1, const U v2){ return v1 == v2; });
 }
 
 template<class T, class U>

@@ -33,6 +33,9 @@ inline static constexpr const MathConstType EpsilonE4 = 1E-4;
 inline static constexpr const MathConstType EpsilonE5 = 1E-5;
 inline static constexpr const MathConstType EpsilonE6 = 1E-6;
 inline static constexpr const MathConstType EpsilonE7 = 1E-7;
+inline static constexpr const MathConstType EpsilonE8 = 1E-8;
+inline static constexpr const MathConstType EpsilonE9 = 1E-9;
+inline static constexpr const MathConstType EpsilonE10 = 1E-10;
 
 inline static constexpr const MathConstIntType ConstAnagle90 = 90;
 inline static constexpr const MathConstIntType ConstAnagle180 = 180;

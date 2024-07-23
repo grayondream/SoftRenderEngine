@@ -11,11 +11,23 @@ constexpr static const int kPolyListLen = 128;
 class Object4D{
 public:
     enum class Object4VState{
-        None
+        None,
+        Active,
+        Clipped,
+        Backface
     };
 
     enum class Object4VAttr{
-        None
+        None,
+        SIDED2,
+        TRANSPARENT,
+        Color8Bit,
+        RGB16,
+        RGB24,
+        ShadeModePure,
+        ShadeModeFlat,
+        ShadeModeGouraud,
+        ShadeModePhong
     };
 public:
     UUID id;

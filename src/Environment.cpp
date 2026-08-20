@@ -12,6 +12,10 @@ Environment* Environment::instance(){
     return &env;
 }
 
+Environment::~Environment(){
+    SDL_Quit();
+}
+
 std::error_code Environment::initalize(const EnvironmentParam &param){
     if(auto err = SDL_Init(SDL_INIT_VIDEO); err != 0){
         LOGE("Failed to initalize sdl, errorcode is {}!", err);

@@ -186,6 +186,7 @@ public:
 
     StaticMatrix1DBase<ValueType, d1>& eye(const ValueType v = 1 + ValueType{}){
         (*this)[0] = v;
+        return *this;
     }
 
     StaticMatrix1DBase<ValueType, d1>& fill(const ValueType v = 1 + ValueType{}){

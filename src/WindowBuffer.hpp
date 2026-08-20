@@ -20,7 +20,7 @@ public:
         this->m_size = sz;
         this->m_format = format;
         this->m_pitch = FetchPitchAccordingFormat(format, sz.width);
-        this->m_buffer.reserve(size(0));
+        this->m_buffer.resize(size(0));
     }
 
     bool fill(const T *buffer){
@@ -46,7 +46,7 @@ public:
         auto width  = this->m_size.width;
         auto pitch  = this->m_pitch;
         auto bytes = FetchPackBytesAccordingFormat(this->m_format);
-        //w b g r
+        //rgba 8bit，内存顺序为 a b g r（配合 SDL RGBA8888 小端布局）
         for(auto i = 0;i < height;i ++){
             for(auto j = 0;j < width;j ++){
                 auto base = i * pitch + j * bytes;

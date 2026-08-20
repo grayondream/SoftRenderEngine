@@ -11,12 +11,12 @@ int main(int argc, char **argv){
     param.env.format = RenderFormat::RGBA8888;
     if(app.initalize(param)){
         LOGE("Failed to initalize application!");
-        exit(-1);
+        return 1;
     }
 
     if(app.run()){
         LOGE("Failed to run application!");
-        exit(-1);
+        return 1;
     }
 
     return 0;

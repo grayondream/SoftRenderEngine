@@ -45,7 +45,7 @@ public:
         if(this == &m1) return *this;
 
         this->m_data = m1.m_data;
-        this->m_pstart = m1.m_pstart;
+        this->m_pstart = this->getRawBuffer();
         this->d1 = m1.d1;
         return *this;
     }
@@ -160,14 +160,14 @@ public:
     template<class U, StaticMatrixSizeType di2, StaticMatrixSizeType di1>
     Matrix1DBase<ValueType> mul(const StaticMatrix2DBase<U, di2, di1> &mat) const{
         assert(this->d1 == mat.d2);
-        Matrix1DBase<ValueType> ret(mat.d1, 1);
-        for(auto k = 0;k < ret.d2;k ++){
+        Matrix1DBase<ValueType> ret(mat.d1);
+        for(auto k = 0;k < ret.d1;k ++){
             ValueType sum {};
             for(auto i = 0;i < this->d1;i ++){
                 sum += (*this)[i] * mat[i][k];
             }
 
-            ret[0][k] = sum;
+            ret[k] = sum;
         }
         
         return ret;
@@ -199,6 +199,7 @@ public:
 
     Matrix1DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
         (*this)[0] = v;
+        return *this;
     }
 
     Matrix1DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){

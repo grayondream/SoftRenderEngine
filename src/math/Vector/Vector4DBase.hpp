@@ -15,6 +15,8 @@ public:
     using ValueType = T;
     constexpr static const std::size_t Size = 4;
 public:
+    Vector4DBase() = default;
+
     Vector4DBase(const std::initializer_list<T> &ls){
         assert(Size == ls.size());
         this->x = *(ls.begin());
@@ -35,6 +37,7 @@ public:
 
     Vector4DBase& operator=(const ValueType &v){
         this->fill(v);
+        return *this;
     }
 public:
     template<class U>
@@ -114,7 +117,12 @@ public:
 
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
-        return this->x + this->y + this->z + this->w;
+        U u{};
+        u = func(u, this->x);
+        u = func(u, this->y);
+        u = func(u, this->z);
+        u = func(u, this->w);
+        return u;
     }
 public:
     template<class U>
@@ -144,7 +152,8 @@ public:
     }
 
     Vector4DBase normalize() const{
-        return this->normalize();
+        Vector4DBase ret(*this);
+        return ret.normalize();
     }
 
     template<class U>

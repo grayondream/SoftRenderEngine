@@ -61,6 +61,7 @@ public:
 
     Matrix2DBase& operator=(const ValueType &val){
         this->fill(val);
+        return *this;
     }
 public:
     template<class U, typename Func>
@@ -221,6 +222,7 @@ public:
     }
 
     Matrix2DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
+        this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
         for(auto i = 0; i < size ;i ++){
             (*this)[i][i] = v;

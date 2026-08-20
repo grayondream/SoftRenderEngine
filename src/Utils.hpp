@@ -1,23 +1,29 @@
+#pragma once
 #include "WindowDefine.hpp"
 #include "Window.hpp"
+#include <cstring>
 #include <random>
 #include <ctime>
 
 //Here is a trick code, I am too lazy to write all switch code
-inline static WindowEventType WindowEventType2SDLEventType(const Uint32 ev){
+inline static WindowEventType SDLEventType2WindowEventType(const Uint32 ev){
     return static_cast<WindowEventType>(ev);
 }
 
-inline static void WriteBufferIntoSDLTexture(SDL_Texture *ptexture, const void *buffer, const std::size_t sz){
-#if ENABLE_DRAWBUFFER_TEST
-    FILE* fp = fopen("/home/ares/home/Code/SoftGameEngine/tmp/720x470.raw", "w");
-    fwrite(buffer, sz, 1, fp);
-    fclose(fp);
-#endif
+inline static void WriteBufferIntoSDLTexture(SDL_Texture *ptexture, const void *buffer, const std::size_t width, const std::size_t height){
     void *pixels{};
     int pitch{};
-    SDL_LockTexture(ptexture, nullptr, &pixels, &pitch);
-    memcpy(pixels, buffer, sz);
+    if(SDL_LockTexture(ptexture, nullptr, &pixels, &pitch) != 0){
+        return;
+    }
+
+    const auto *src = static_cast<const uint8_t*>(buffer);
+    auto *dst = static_cast<uint8_t*>(pixels);
+    const auto bytesPerRow = width * 4;
+    for(std::size_t row = 0; row < height; ++row){
+        std::memcpy(dst + static_cast<std::size_t>(pitch) * row, src + bytesPerRow * row, bytesPerRow);
+    }
+
     SDL_UnlockTexture(ptexture);
 }
 
@@ -57,5 +63,5 @@ inline static Color GenerateColor(){
     auto r = GenerateRandomValue<uint8_t>(0, 255);
     auto g = GenerateRandomValue<uint8_t>(0, 255);
     auto b = GenerateRandomValue<uint8_t>(0, 255);
-    return {r, g, b, 1};
+    return {r, g, b, 255};
 }

@@ -18,18 +18,21 @@ public:
         uuid_copy(m_uuid, id.m_uuid);
     }
 
-    UUID(const UUID &&id){
+    UUID(UUID &&id) noexcept{
         uuid_copy(m_uuid, id.m_uuid);
     }
 
     UUID& operator=(const UUID& id){
-        uuid_copy(m_uuid, id.m_uuid);
+        if(this != &id){
+            uuid_copy(m_uuid, id.m_uuid);
+        }
         return *this;
     }
 
-
-    UUID& operator=(const UUID&& id){
-        uuid_copy(m_uuid, id.m_uuid);
+    UUID& operator=(UUID&& id) noexcept{
+        if(this != &id){
+            uuid_copy(m_uuid, id.m_uuid);
+        }
         return *this;
     }
 
@@ -49,11 +52,9 @@ inline bool operator!=(const UUID& rst, const UUID &snd){
 }
 
 inline std::string to_string(const UUID &obj){
-    std::string ret;
-    ret.resize(kUUIDLen + 1);
-    std::copy_n(obj.m_uuid, kUUIDLen, ret.data());
-    ret.data()[kUUIDLen] = '\0';
-    return ret;
+    char buf[37];
+    uuid_unparse(obj.m_uuid, buf);
+    return std::string(buf);
 }
 
 

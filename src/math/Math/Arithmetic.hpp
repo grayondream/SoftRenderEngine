@@ -3,6 +3,10 @@
 
 namespace Math{
 inline static constexpr double Pow(double x, int exp){
+    if(exp < 0){
+        return 1.0 / Pow(x, -exp);
+    }
+
     return (0 == exp) ? 1 : x * Pow(x, exp - 1);
 }
 

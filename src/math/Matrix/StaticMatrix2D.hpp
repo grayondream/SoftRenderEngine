@@ -146,12 +146,15 @@ public:
             return false;
         }
 
-        auto i = 0, j = 0;
-        for(i = 0;i < this->d2;i ++){
-            for(j = 0;j < this->d1 && (*this)[i][j] == mat[i][j];j ++){}
+        for(auto i = 0;i < this->d2;i ++){
+            for(auto j = 0;j < this->d1;j ++){
+                if((*this)[i][j] != mat[i][j]){
+                    return false;
+                }
+            }
         }
 
-        return i == mat.d1 && j == mat.d2;
+        return true;
     }
 
     template<class U>
@@ -201,6 +204,7 @@ public:
     }
 
     StaticMatrix2DBase<ValueType, d2,d1>& eye(const ValueType v = 1 + ValueType{}){
+        this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
         for(auto i = 0; i < size ;i ++){
             (*this)[i][i] = v;

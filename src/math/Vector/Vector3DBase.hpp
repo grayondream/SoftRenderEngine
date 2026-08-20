@@ -23,6 +23,8 @@ public:
     using ValueType = T;
     constexpr static const std::size_t Size = 3;
 public:
+    Vector3DBase() = default;
+
     Vector3DBase(const T xx, const T yy, const T zz){
         x = xx;
         y = yy;
@@ -64,6 +66,7 @@ public:
 
     Vector3DBase& operator=(const ValueType &v){
         this->fill(v);
+        return *this;
     }
     
     //从两个点来创建一个向量
@@ -147,7 +150,11 @@ public:
 
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
-        return this->x + this->y + this->z;
+        U u{};
+        u = func(u, this->x);
+        u = func(u, this->y);
+        u = func(u, this->z);
+        return u;
     }
 public:
     template<class U>
@@ -172,7 +179,8 @@ public:
     }
 
     Vector3DBase normalize() const{
-        return this->normalize();
+        Vector3DBase ret(*this);
+        return ret.normalize();
     }
 
     template<class U>

@@ -124,11 +124,11 @@ TEST(StaticMatrixTest, CreateAndPrint){
     StaticMatrix3DBase<double, 2, 2, 2> m3({1, 2, 3, 4,5,6,7,8});
     m3[0][0][0] = -1;
     m3[0][1][1] = -2;
-    m3[0][2][2] = -3;
+    m3[1][0][0] = -3;
     LOGI("Matrix {} total size: {}, d1 = {}, d2 = {}\n{}", "", mat.size(), m3.d1, m3.d2, std::to_string(m3));
     EXPECT_EQ(m3[0][0][0], -1);
-    EXPECT_EQ(m3[1][1][1], -2);
-    EXPECT_EQ(m3[2][2][2], -3);
+    EXPECT_EQ(m3[0][1][1], -2);
+    EXPECT_EQ(m3[1][0][0], -3);
 }
 
 TEST(StaticMatrixTest, InitializerCreate){

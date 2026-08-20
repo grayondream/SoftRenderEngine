@@ -54,7 +54,7 @@ public:
     Matrix4DBase& operator=(const Matrix4DBase &mat){
         if(this == &mat) return *this;
         this->m_data = mat.m_data;
-        this->m_pstart = mat.m_pstart;
+        this->m_pstart = this->getRawBuffer();
         this->d1 = mat.d1;
         this->d2 = mat.d2;
         this->d3 = mat.d3;
@@ -173,6 +173,7 @@ public:
     }
 
     Matrix4DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
+        this->fill(ValueType{});
         auto size = std::min(std::min(this->d1, this->d2), this->d3);
         for(auto c = 0;c < this->d4; c++){
             for(auto j = 0;j < this->d3; j++){

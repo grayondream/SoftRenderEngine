@@ -47,9 +47,10 @@ public:
     }
 
     StaticMatrix4DBase(const std::initializer_list<std::initializer_list<std::initializer_list<std::initializer_list<ValueType>>>> &ls){
-        assert(ls.size() == d3);
-        assert(ls.begin()->size() == d2);
-        assert(ls.begin()->begin()->size() == d1);
+        assert(ls.size() == d4);
+        assert(ls.begin()->size() == d3);
+        assert(ls.begin()->begin()->size() == d2);
+        assert(ls.begin()->begin()->begin()->size() == d1);
         Pointer p = getRawBuffer();
         for(auto && c : ls){
             for(auto &&r : c){
@@ -166,16 +167,19 @@ public:
             return false;
         }
 
-        auto i = 0, j = 0, k = 0, c = 0;
-        for(c = 0; c < this->d4; c ++){
-            for(k = 0;k < this->d3; k ++){
-                for(i = 0;i < this->d2;i ++){
-                    for(j = 0;j < this->d1 && (*this)[c][k][i][j] == mat[c][k][i][j];j ++){}
+        for(auto c = 0; c < this->d4; c ++){
+            for(auto k = 0;k < this->d3; k ++){
+                for(auto i = 0;i < this->d2;i ++){
+                    for(auto j = 0;j < this->d1;j ++){
+                        if((*this)[c][k][i][j] != mat[c][k][i][j]){
+                            return false;
+                        }
+                    }
                 }
             }
         }    
 
-        return i == mat.d1 && j == mat.d2 && k == mat.d3 && c == mat.d4;
+        return true;
     }
 
     template<class U>
@@ -225,6 +229,7 @@ public:
     }
 
     StaticMatrix4DBase<ValueType, d4, d3, d2, d1>& eye(const ValueType v = 1 + ValueType{}){
+        this->fill(ValueType{});
         auto size = std::min(std::min(this->d1, this->d2), this->d3);
         for(auto c = 0;c < this->d4; c++){
             for(auto j = 0;j < this->d3; j++){

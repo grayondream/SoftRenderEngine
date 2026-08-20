@@ -11,6 +11,7 @@ class Environment{
 private:
     Environment(){};
     Environment(const Environment&){}
+    ~Environment();
 
 public:
     static Environment* instance();

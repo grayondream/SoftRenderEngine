@@ -10,3 +10,4 @@ aux_source_directory(${PRIMITIVE_SOURCE_DIR} PRIMITIVE_SRC_FILES)
 
 message(STATUS "libmatrix source files are: ${MATRIX_SRC_FILES}")
 add_library(math ${MATRIX_SRC_FILES} ${MATH_SRC_FILES} ${PRIMITIVE_SRC_FILES})
+target_compile_options(math PRIVATE ${SGE_WARNING_FLAGS})

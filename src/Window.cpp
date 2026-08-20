@@ -26,16 +26,18 @@ Window::Window(const Position pos, const RenderFormat format)
 Window::~Window(){
     if(m_pTexture){
         SDL_DestroyTexture(m_pTexture);
-    }
-
-    if(m_pWindow){
-        SDL_DestroyWindow(m_pWindow);
+        m_pTexture = nullptr;
     }
 
     if(m_pRender){
         SDL_DestroyRenderer(m_pRender);
+        m_pRender = nullptr;
     }
 
+    if(m_pWindow){
+        SDL_DestroyWindow(m_pWindow);
+        m_pWindow = nullptr;
+    }
 }
 
 std::error_code Window::init(){
@@ -58,7 +60,7 @@ std::error_code Window::init(){
     }
 
     if(!m_pTexture){
-        m_pTexture = SDL_CreateTexture(m_pRender, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, m_pos.size.width, m_pos.size.height);
+        m_pTexture = SDL_CreateTexture(m_pRender, Format2SDLFormat(m_format), SDL_TEXTUREACCESS_STREAMING, m_pos.size.width, m_pos.size.height);
     }
 
     if(!m_pTexture){
@@ -84,11 +86,11 @@ void Window::processEvent(){
 
     SDL_Event ev{};
     while(SDL_PollEvent(&ev)){
-        auto type = WindowEventType2SDLEventType(ev.type);
+        auto type = SDLEventType2WindowEventType(ev.type);
         (*m_listener)(type);
     }
 }
 
 void Window::draw(const uint8_t *buffer){
-    WriteBufferIntoSDLTexture(m_pTexture, buffer, m_pos.size.width * m_pos.size.height * 4);
+    WriteBufferIntoSDLTexture(m_pTexture, buffer, m_pos.size.width, m_pos.size.height);
 }

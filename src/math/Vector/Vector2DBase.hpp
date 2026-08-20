@@ -17,6 +17,8 @@ public:
     using ValueType = T;
     constexpr static const std::size_t Size = 2;
 public:
+    Vector2DBase() = default;
+
     Vector2DBase(const T xx, const T yy){
         x = xx;
         y = yy;
@@ -46,6 +48,7 @@ public:
 
     Vector2DBase& operator=(const ValueType &v){
         this->fill(v);
+        return *this;
     }
 
 public:
@@ -131,7 +134,10 @@ public:
 
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
-        return this->x + this->y;
+        U u{};
+        u = func(u, this->x);
+        u = func(u, this->y);
+        return u;
     }
 public:
     template<class U>
@@ -155,11 +161,12 @@ public:
     }
 
     Vector2DBase normalize() const{
-        return this->normalize();
+        Vector2DBase ret(*this);
+        return ret.normalize();
     }
 
-    double distance(Vector2DBase& vec){
-        return std::sqrt(std::pow(this->x - vec.x,2), std::pow(this->y - vec.y, 2));
+    double distance(const Vector2DBase& vec) const{
+        return std::sqrt(std::pow(this->x - vec.x, 2) + std::pow(this->y - vec.y, 2));
     }
 public:
     union{

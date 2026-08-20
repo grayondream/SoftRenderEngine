@@ -21,6 +21,41 @@ class Window{
 public:
     Window(const Position pos = {{WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y}, {WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT}}, const RenderFormat format = RenderFormat::RGBA8888);
     ~Window();
+
+    Window(const Window &) = delete;
+    Window& operator=(const Window &) = delete;
+
+    Window(Window &&other) noexcept
+        : m_pos(other.m_pos),
+          m_format(other.m_format),
+          m_color(other.m_color),
+          m_pRender(other.m_pRender),
+          m_pWindow(other.m_pWindow),
+          m_pTexture(other.m_pTexture),
+          m_listener(other.m_listener){
+        other.m_pRender = nullptr;
+        other.m_pWindow = nullptr;
+        other.m_pTexture = nullptr;
+        other.m_listener = nullptr;
+    }
+
+    Window& operator=(Window &&other) noexcept{
+        if(this != &other){
+            this->~Window();
+            m_pos = other.m_pos;
+            m_format = other.m_format;
+            m_color = other.m_color;
+            m_pRender = other.m_pRender;
+            m_pWindow = other.m_pWindow;
+            m_pTexture = other.m_pTexture;
+            m_listener = other.m_listener;
+            other.m_pRender = nullptr;
+            other.m_pWindow = nullptr;
+            other.m_pTexture = nullptr;
+            other.m_listener = nullptr;
+        }
+        return *this;
+    }
     
 public:
     std::error_code init();

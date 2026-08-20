@@ -10,6 +10,12 @@ add_subdirectory(${SGE_MATH_DIR})
 add_subdirectory(${SGE_RENDER_DIR})
 
 aux_source_directory(${SGE_SOURCE_DIR} APP_SRC_FILES)
+list(REMOVE_ITEM APP_SRC_FILES ${SGE_SOURCE_DIR}/main.cpp)
 
-add_executable(${PROJECT_NAME}  ${APP_SRC_FILES})
-target_link_libraries(${PROJECT_NAME}   SDL2 math render)
+add_library(core ${APP_SRC_FILES})
+target_compile_options(core PRIVATE ${SGE_WARNING_FLAGS})
+target_link_libraries(core PUBLIC SDL2 math render)
+
+add_executable(${PROJECT_NAME} ${SGE_SOURCE_DIR}/main.cpp)
+target_compile_options(${PROJECT_NAME} PRIVATE ${SGE_WARNING_FLAGS})
+target_link_libraries(${PROJECT_NAME} core)

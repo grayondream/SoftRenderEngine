@@ -18,13 +18,13 @@ using FPNumber32 = int32_t;
 using FPNumber64 = int64_t;
 
 inline static constexpr const FPNumber32 FP32Shift = 16;
-inline static constexpr const FPNumber32 FP32Mag = 2 ^ FP32Shift;
+inline static constexpr const FPNumber32 FP32Mag = 1 << FP32Shift;
 inline static constexpr const FPNumber32 FP32DpMask = 0x0000ffff;
 inline static constexpr const FPNumber32 FP32WpMask = 0xffff0000;
 inline static constexpr const FPNumber32 FP32RoundUpMask = 0x8000;
 
 inline static constexpr const FPNumber64 FP64Shift = 32;
-inline static constexpr const FPNumber64 FP64Mag = 2 ^ FP64Shift;
+inline static constexpr const FPNumber64 FP64Mag = int64_t{1} << FP64Shift;
 inline static constexpr const FPNumber64 FP64DpMask = 0x00000000ffffffff;
 inline static constexpr const FPNumber64 FP64WpMask = 0xffffffff00000000;
 inline static constexpr const FPNumber64 FP64RoundUpMask = 0x80000000;

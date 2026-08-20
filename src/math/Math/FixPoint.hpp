@@ -1,7 +1,7 @@
+#pragma once
 #include "MathConst.hpp"
 
 #include "Geometry.hpp"
-#include "MathConst.hpp"
 #include <type_traits>
 #include "Math.hpp"
 
@@ -56,12 +56,12 @@ inline constexpr static FPType FixedPointGetMag(){
 
 template<class FPType>
 inline constexpr static FPType FixedPointDp(const FPType fp){
-    return fp >> FPGetShift<FPType>();
+    return fp >> FixedPointGetShift<FPType>();
 }
 
 template<class FPType>
 inline constexpr static FPType FixedPointWp(const FPType fp){
-    return fp && FixedPointGetWpMask<FPType>();
+    return fp & FixedPointGetWpMask<FPType>();
 }
 
 template<class FPType, class T>

@@ -50,7 +50,7 @@ public:
     Matrix3DBase& operator=(const Matrix3DBase &mat){
         if(this == &mat) return *this;
         this->m_data = mat.m_data;
-        this->m_pstart = mat.m_pstart;
+        this->m_pstart = this->getRawBuffer();
         this->d1 = mat.d1;
         this->d2 = mat.d2;
         this->d3 = mat.d3;
@@ -160,6 +160,7 @@ public:
     }
 
     Matrix3DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
+        this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
         for(auto j = 0;j < this->d3; j++){
             for(auto i = 0; i < size ;i ++){

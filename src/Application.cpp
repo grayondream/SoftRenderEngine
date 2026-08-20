@@ -24,6 +24,7 @@ std::error_code Application::initalize(const ApplicationParam &param){
     switch(t){
         case WindowEventType::WINDOE_EVENT_QUIT:
             m_bQuit = true;
+            break;
         default:
             //LOGI("Not handle {}", static_cast<int>(t));
             break;

@@ -154,15 +154,17 @@ public:
             return false;
         }
 
-        auto i = 0, j = 0, k = 0;
-        for(k = 0;k < this->d3; k ++){
-            for(i = 0;i < this->d2;i ++){
-                for(j = 0;j < this->d1 && (*this)[k][i][j] == mat[k][i][j];j ++){}
+        for(auto k = 0;k < this->d3; k ++){
+            for(auto i = 0;i < this->d2;i ++){
+                for(auto j = 0;j < this->d1;j ++){
+                    if((*this)[k][i][j] != mat[k][i][j]){
+                        return false;
+                    }
+                }
             }
         }
         
-
-        return i == mat.d1 && j == mat.d2 && k == mat.d3;
+        return true;
     }
 
     template<class U>
@@ -212,6 +214,7 @@ public:
     }
 
     StaticMatrix3DBase<ValueType, d3, d2, d1>& eye(const ValueType v = 1 + ValueType{}){
+        this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
         for(auto j = 0;j < this->d3; j++){
             for(auto i = 0; i < size ;i ++){

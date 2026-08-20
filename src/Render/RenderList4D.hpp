@@ -15,11 +15,21 @@ public:
     static constexpr const int32_t kMaxPolys = 128;
 
 public:
-    void reset();
+    void reset(){
+        _numberOfPolys = 0;
+        for(auto i = 0; i < kMaxPolys; i++){
+            _polys[i] = nullptr;
+            _polyData[i] = nullptr;
+        }
+    }
+
+    int numberOfPolys() const{
+        return _numberOfPolys;
+    }
 
 private:
-    RenderListState _state;
-    RenderListAttr _attr;
+    RenderListState _state{};
+    RenderListAttr _attr{};
     PolyF4D *_polys[kMaxPolys]{};
     PolyF4D *_polyData[kMaxPolys]{};
     int _numberOfPolys{};

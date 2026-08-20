@@ -172,6 +172,9 @@ public:
 
     Vector3DBase& normalize() {
         const auto l = length();
+        if(l == 0){
+            return *this;
+        }
         x /= l;
         y /= l;
         z /= l;
@@ -184,19 +187,28 @@ public:
     }
 
     template<class U>
-    auto dot(const Vector3DBase<U> &vec){
+    auto dot(const Vector3DBase<U> &vec) const{
         auto r = (*this) * vec;
         return r.x + r.y + r.z;
     }
 
     template<class U>
-    double thetha(const Vector3DBase<U> &vec){
-        return std::acos(dot(vec) / (this->length() * vec.length()));
+    double thetha(const Vector3DBase<U> &vec) const{
+        const auto lenThis = this->length();
+        const auto lenVec = vec.length();
+        if(lenThis == 0 || lenVec == 0){
+            return 0;
+        }
+
+        auto ratio = dot(vec) / (lenThis * lenVec);
+        ratio = std::clamp(ratio, -1.0, 1.0);
+        return std::acos(ratio);
     }
 
     template<class U>
-    auto mul(const Vector3DBase<U> &vec){
-        return Vector3DBase<T>(y * vec.z - vec.y * z, vec.x * z - x * vec.z, x * vec.y - vec.x * y);
+    auto mul(const Vector3DBase<U> &vec) const{
+        using ResultType = std::common_type_t<T, U>;
+        return Vector3DBase<ResultType>(y * vec.z - vec.y * z, vec.x * z - x * vec.z, x * vec.y - vec.x * y);
     }
 public:
     union{

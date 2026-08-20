@@ -34,9 +34,13 @@ public:
     Matrix3DBase(const std::initializer_list<std::initializer_list<std::initializer_list<ValueType>>> &ls)
         :   MatrixBase<ValueType>(ls.size() * ls.begin()->size() * ls.begin()->begin()->size()),
             MatrixIndex3<ValueType>(this->getRawBuffer(), ls.size(), ls.begin()->size(), ls.begin()->begin()->size()){
+        assert(ls.size() > 0);
+        assert(ls.begin()->size() == this->d2 && ls.begin()->begin()->size() == this->d1);
         Pointer p = this->getRawBuffer();
         for(auto &&c : ls){
+            assert(c.size() == this->d2);
             for(auto && r : c){
+                assert(r.size() == this->d1);
                 std::copy_n(std::begin(r), this->d1, p);
                 p += this->d1;
             }
@@ -174,16 +178,6 @@ public:
     Matrix3DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
     }
-
-    Matrix3DBase<T>& inverse(){
-        //TODO:
-        return {};
-    }
-
-    Matrix3DBase<T> inverse(const int) const{
-        //TODO:
-        return {};
-    }
 };
 
 
@@ -208,7 +202,7 @@ bool operator==(const Matrix3DBase<U> &m1, const Matrix3DBase<T> &m2){
 
 template<class T, class U>
 auto operator+(const Matrix3DBase<U> &m1, const Matrix3DBase<T> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     Matrix3DBase<std::common_type_t<T, U>> ret(m1);
     return ret += m2;
 }
@@ -226,7 +220,7 @@ auto operator+(const U &val, const Matrix3DBase<T> &m1){
 
 template<class T, class U>
 auto operator-(const Matrix3DBase<T> m1, const Matrix3DBase<U> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     Matrix3DBase<std::common_type_t<T, U>> ret(m1);
     return ret -= m2;
 }
@@ -244,7 +238,7 @@ auto operator-(const U &val, const Matrix3DBase<T> m1){
 
 template<class T, class U>
 auto operator*(const Matrix3DBase<T> m1, const Matrix3DBase<U> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     Matrix3DBase<std::common_type_t<T, U>> ret(m1);
     return ret *= m2;
 }
@@ -262,7 +256,7 @@ auto operator*(const U &val, const Matrix3DBase<T> m1){
 
 template<class T, class U>
 auto operator/(const Matrix3DBase<T> &m1, const Matrix3DBase<U> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     Matrix3DBase<std::common_type_t<T, U>> ret(m1);
     return ret /= m2;
 }

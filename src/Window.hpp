@@ -6,7 +6,7 @@
 #include "WindowDefine.hpp"
 
 enum class WindowEventType : uint32_t{
-    WINDOE_EVENT_QUIT = 0x100,
+    WINDOW_EVENT_QUIT = 0x100,
 };
 
 

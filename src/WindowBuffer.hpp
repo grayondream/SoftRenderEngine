@@ -46,14 +46,22 @@ public:
         auto width  = this->m_size.width;
         auto pitch  = this->m_pitch;
         auto bytes = FetchPackBytesAccordingFormat(this->m_format);
-        //rgba 8bit，内存顺序为 a b g r（配合 SDL RGBA8888 小端布局）
+        //SDL 像素格式为 32 位小端存储：
+        //RGBA8888 内存顺序为 a b g r；BGRA8888 内存顺序为 a r g b
+        const bool bgra = (this->m_format == RenderFormat::BGRA8888);
         for(auto i = 0;i < height;i ++){
             for(auto j = 0;j < width;j ++){
                 auto base = i * pitch + j * bytes;
                 buffer[base + 0] = color.a;
-                buffer[base + 1] = color.b;
-                buffer[base + 2] = color.g;
-                buffer[base + 3] = color.r;
+                if(bgra){
+                    buffer[base + 1] = color.r;
+                    buffer[base + 2] = color.g;
+                    buffer[base + 3] = color.b;
+                }else{
+                    buffer[base + 1] = color.b;
+                    buffer[base + 2] = color.g;
+                    buffer[base + 3] = color.r;
+                }
             }
         }
 

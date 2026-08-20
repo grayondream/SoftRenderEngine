@@ -5,7 +5,7 @@
 namespace Math{
 
 inline static double FastTrigonometric(const double x, const decltype(PrecomputedCosineTable) &table){
-    auto angle = fmodf64(x, 360);
+    auto angle = std::fmod(x, 360);
     angle = angle < 0 ? angle + 360 : angle;
     int angleInt = angle;
     double angleFloat = angle - angleInt;

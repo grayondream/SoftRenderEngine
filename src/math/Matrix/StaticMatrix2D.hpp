@@ -224,7 +224,7 @@ private:
 
 template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator+(const StaticMatrix2DBase<U, d2, d1> &m1, const StaticMatrix2DBase<T, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
     return ret += m2;
 }
@@ -242,7 +242,7 @@ auto operator+(const U &val, const StaticMatrix2DBase<T, d2, d1> &m1){
 
 template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator-(const StaticMatrix2DBase<T, d2, d1> m1, const StaticMatrix2DBase<U, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
     return ret -= m2;
 }
@@ -260,7 +260,7 @@ auto operator-(const U &val, const StaticMatrix2DBase<T, d2, d1> m1){
 
 template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator*(const StaticMatrix2DBase<T, d2, d1> m1, const StaticMatrix2DBase<U, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
     return ret *= m2;
 }
@@ -278,7 +278,7 @@ auto operator*(const U &val, const StaticMatrix2DBase<T, d2, d1> m1){
 
 template<class T, class U , StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator/(const StaticMatrix2DBase<T, d2, d1> &m1, const StaticMatrix2DBase<U, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     StaticMatrix2DBase<std::common_type_t<T, U>, d2, d1> ret(m1);
     return ret /= m2;
 }

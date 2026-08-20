@@ -235,7 +235,7 @@ private:
 
 template<class T, class U, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator+(const StaticMatrix3DBase<U, d3, d2, d1> &m1, const StaticMatrix3DBase<T, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix3DBase<ReturnType, d3, d2, d1> ret(m1);
     return ret += m2;
@@ -255,7 +255,7 @@ auto operator+(const U &val, const StaticMatrix3DBase<T, d3, d2, d1> &m1){
 
 template<class T, class U, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator-(const StaticMatrix3DBase<T, d3, d2, d1> m1, const StaticMatrix3DBase<U, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix3DBase<ReturnType, d3, d2, d1> ret(m1);
     return ret -= m2;
@@ -275,7 +275,7 @@ auto operator-(const U &val, const StaticMatrix3DBase<T, d3, d2, d1> m1){
 
 template<class T, class U, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator*(const StaticMatrix3DBase<T, d3, d2, d1> m1, const StaticMatrix3DBase<U, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix3DBase<ReturnType, d3, d2, d1> ret(m1);
     return ret *= m2;
@@ -295,7 +295,7 @@ auto operator*(const U &val, const StaticMatrix3DBase<T, d3, d2, d1> m1){
 
 template<class T, class U, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator/(const StaticMatrix3DBase<T, d3, d2, d1> &m1, const StaticMatrix3DBase<U, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix3DBase<ReturnType, d3, d2, d1> ret(m1);
     return ret /= m2;

@@ -22,7 +22,7 @@ std::error_code Application::initalize(const ApplicationParam &param){
 
  void Application::operator()(const WindowEventType t){
     switch(t){
-        case WindowEventType::WINDOE_EVENT_QUIT:
+        case WindowEventType::WINDOW_EVENT_QUIT:
             m_bQuit = true;
             break;
         default:

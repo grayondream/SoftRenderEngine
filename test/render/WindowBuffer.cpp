@@ -37,6 +37,20 @@ TEST(WindowBufferTest, FillReplacesContent){
     }
 }
 
+TEST(WindowBufferTest, ClearBGRAOrder){
+    const Size sz{2, 1};
+    WindowBuffer<uint8_t> buf(sz, RenderFormat::BGRA8888);
+    Color c(1, 2, 3, 4);
+    EXPECT_TRUE(buf.clear(c));
+    for(auto j = 0; j < sz.width; j++){
+        const auto base = j * 4;
+        EXPECT_EQ(buf.buffer()[base + 0], 4);
+        EXPECT_EQ(buf.buffer()[base + 1], 1);
+        EXPECT_EQ(buf.buffer()[base + 2], 2);
+        EXPECT_EQ(buf.buffer()[base + 3], 3);
+    }
+}
+
 TEST(BufferManagerTest, SwapTogglesPrimary){
     const Size sz{2, 1};
     ASSERT_TRUE(!BufferManager::instance()->initialize(sz, RenderFormat::RGBA8888));

@@ -39,8 +39,11 @@ public:
     
     Matrix2DBase(const std::initializer_list<std::initializer_list<ValueType>> &ls)
         : MatrixBase<ValueType>(ls.size() * ls.begin()->size()), MatrixIndex2<ValueType>(this->getRawBuffer(), ls.size(), ls.begin()->size()){
+        assert(ls.size() > 0);
+        assert(ls.begin()->size() == this->d1);
         Pointer p = this->getRawBuffer();
         for(auto &&l : ls){
+            assert(l.size() == this->d1);
             std::copy_n(std::begin(l), this->d1, p);
             p += this->d1;
         }
@@ -296,7 +299,9 @@ public:
     bool invert(){
         auto& matrix = *this;
         int n = matrix.d2;
-        assert(matrix.d1 == matrix.d2);
+        if(matrix.d1 != matrix.d2){
+            return false;
+        }
         Matrix2DBase<ValueType> inverse(n, n);
         inverse.eye();
         // Perform Gaussian-Jordan elimination
@@ -368,7 +373,7 @@ bool operator==(const Matrix2DBase<T> &m1, const Matrix2DBase<U> &m2){
 
 template<class T, class U>
 auto operator+(const Matrix2DBase<U> &m1, const Matrix2DBase<T> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     Matrix2DBase<std::common_type_t<T, U>> ret(m1);
     return ret += m2;
 }
@@ -386,7 +391,7 @@ auto operator+(const U &val, const Matrix2DBase<T> &m1){
 
 template<class T, class U>
 auto operator-(const Matrix2DBase<T> m1, const Matrix2DBase<U> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     Matrix2DBase<std::common_type_t<T, U>> ret(m1);
     return ret -= m2;
 }
@@ -404,7 +409,7 @@ auto operator-(const U &val, const Matrix2DBase<T> m1){
 
 template<class T, class U>
 auto operator*(const Matrix2DBase<T> m1, const Matrix2DBase<U> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     Matrix2DBase<std::common_type_t<T, U>> ret(m1);
     return ret *= m2;
 }
@@ -422,7 +427,7 @@ auto operator*(const U &val, const Matrix2DBase<T> m1){
 
 template<class T, class U>
 auto operator/(const Matrix2DBase<T> &m1, const Matrix2DBase<U> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2);
     Matrix2DBase<std::common_type_t<T, U>> ret(m1);
     return ret /= m2;
 }

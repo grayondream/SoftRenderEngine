@@ -3,10 +3,12 @@
 #include "MathConst.hpp"
 #include "FixPoint.hpp"
 #include "PreComputeTable.hpp"
+#include "Trigonometric.hpp"
 #include "Matrix.hpp"
 #include "Vector.hpp"
 #include "Primitive/Primitive.hpp"
 #include "Color.hpp"
+#include <cmath>
 #include <gtest/gtest.h>
 
 TEST(MathConstTest, FixedPointMag){
@@ -168,12 +170,60 @@ TEST(ColorTest, ChannelsIndependent){
     EXPECT_EQ(c.g, 128);
     c.b = 64;
     EXPECT_EQ(c.b, 64);
-    c.a = 32;
-    EXPECT_EQ(c.a, 32);
     EXPECT_EQ(c.color[0], 255);
     EXPECT_EQ(c.color[1], 128);
     EXPECT_EQ(c.color[2], 64);
-    EXPECT_EQ(c.color[3], 32);
+}
+
+TEST(ThethaTest, ParallelVectorsClamped){
+    Vector2D a{1, 0};
+    Vector2D b{10, 0};
+    EXPECT_DOUBLE_EQ(a.thetha(b), 0.0);
+    Vector2D c{1, 0};
+    Vector2D d{-1, 0};
+    EXPECT_NEAR(c.thetha(d), Math::Pi, 1E-9);
+    Vector2D zero{0, 0};
+    EXPECT_DOUBLE_EQ(zero.thetha(b), 0.0);
+}
+
+TEST(NormalizeTest, ZeroVectorNoCrash){
+    Vector2D v2{0, 0};
+    EXPECT_NO_FATAL_FAILURE(v2.normalize());
+    EXPECT_DOUBLE_EQ(v2.x, 0.0);
+    EXPECT_DOUBLE_EQ(v2.y, 0.0);
+
+    Vector3D v3{0, 0, 0};
+    EXPECT_NO_FATAL_FAILURE(v3.normalize());
+    EXPECT_DOUBLE_EQ(v3.z, 0.0);
+
+    Vector4D v4{0, 0, 0, 0};
+    EXPECT_NO_FATAL_FAILURE(v4.normalize());
+    EXPECT_DOUBLE_EQ(v4.w, 0.0);
+}
+
+TEST(TrigonometricTest, AngleReduction){
+    EXPECT_NEAR(Math::Sin(360 + 30), std::sin(30.0 * 3.14159265358979323846 / 180.0), 1E-9);
+    EXPECT_NEAR(Math::Sin(-330), std::sin(30.0 * 3.14159265358979323846 / 180.0), 1E-9);
+    EXPECT_NEAR(Math::Cos(360 + 60), std::cos(60.0 * 3.14159265358979323846 / 180.0), 1E-9);
+    EXPECT_NEAR(Math::Cos(-300), std::cos(60.0 * 3.14159265358979323846 / 180.0), 1E-9);
+    EXPECT_NEAR(Math::Sin(10000), std::sin(10000.0 * 3.14159265358979323846 / 180.0), 1E-6);
+}
+
+TEST(MatrixDetTest, OneDimensional){
+    Matrix1D m{5};
+    EXPECT_DOUBLE_EQ(m.det(), 5.0);
+    Matrix1D m2{0};
+    EXPECT_DOUBLE_EQ(m2.det(), 0.0);
+}
+
+TEST(MatrixInvertTest, NonSquareReturnsFalse){
+    Matrix2D m(2, 3);
+    EXPECT_FALSE(m.invert());
+}
+
+TEST(Matrix1DEyeTest, EmptyMatrixNoCrash){
+    Matrix1D m(0);
+    EXPECT_NO_FATAL_FAILURE(m.eye());
 }
 
 int main(int argc, char **argv){

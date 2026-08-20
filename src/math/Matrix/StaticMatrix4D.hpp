@@ -252,7 +252,7 @@ private:
 
 template<class T, class U, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator+(const StaticMatrix4DBase<U, d4, d3, d2, d1> &m1, const StaticMatrix4DBase<T, d4, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3 && m1.d4 == m2.d4);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix4DBase<ReturnType, d4, d3, d2, d1> ret(m1);
     return ret += m2;
@@ -272,7 +272,7 @@ auto operator+(const U &val, const StaticMatrix4DBase<T, d4, d3, d2, d1> &m1){
 
 template<class T, class U, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator-(const StaticMatrix4DBase<T, d4, d3, d2, d1> m1, const StaticMatrix4DBase<U, d4, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3 && m1.d4 == m2.d4);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix4DBase<ReturnType, d4, d3, d2, d1> ret(m1);
     return ret -= m2;
@@ -292,7 +292,7 @@ auto operator-(const U &val, const StaticMatrix4DBase<T, d4, d3, d2, d1> m1){
 
 template<class T, class U, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator*(const StaticMatrix4DBase<T, d4, d3, d2, d1> m1, const StaticMatrix4DBase<U, d4, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3 && m1.d4 == m2.d4);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix4DBase<ReturnType, d4, d3, d2, d1> ret(m1);
     return ret *= m2;
@@ -312,7 +312,7 @@ auto operator*(const U &val, const StaticMatrix4DBase<T, d4, d3, d2, d1> m1){
 
 template<class T, class U, StaticMatrixSizeType d4, StaticMatrixSizeType d3, StaticMatrixSizeType d2, StaticMatrixSizeType d1>
 auto operator/(const StaticMatrix4DBase<T, d4, d3, d2, d1> &m1, const StaticMatrix4DBase<U, d4, d3, d2, d1> &m2){
-    assert(m1.d1 > 0 && m1.d1 == m2.d1);
+    assert(m1.d1 > 0 && m1.d1 == m2.d1 && m1.d2 == m2.d2 && m1.d3 == m2.d3 && m1.d4 == m2.d4);
     using ReturnType = std::common_type_t<T, U>;
     StaticMatrix4DBase<ReturnType, d4, d3, d2, d1> ret(m1);
     return ret /= m2;

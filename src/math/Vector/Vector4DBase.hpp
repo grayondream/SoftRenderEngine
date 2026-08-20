@@ -144,6 +144,9 @@ public:
 
     Vector4DBase& normalize() {
         const auto l = length();
+        if(l == 0){
+            return *this;
+        }
         x /= l;
         y /= l;
         z /= l;

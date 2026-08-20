@@ -174,12 +174,9 @@ public:
     }
 
     double det() const{
-        for(auto i = 0;i < this->d1;i ++){
-            if((*this)[i] != 0){
-                return 1;
-            }
+        if(this->d1 == 1){
+            return (*this)[0];
         }
-
         return 0;
     }
 
@@ -198,7 +195,9 @@ public:
     }
 
     Matrix1DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
-        (*this)[0] = v;
+        if(this->d1 > 0){
+            (*this)[0] = v;
+        }
         return *this;
     }
 

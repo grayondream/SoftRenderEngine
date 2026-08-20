@@ -16,7 +16,7 @@ public:
     }
 
     QuantNumber(const ValueType q, const Vector3DBase<ValueType> &vec){
-        this->qo = q;
+        this->q0 = q;
         this->qv = vec;
     }
 
@@ -28,10 +28,12 @@ public:
     QuantNumber& operator=(const QuantNumber &q){
         this->q0 = q.q0;
         this->qv = q.qv;
+        return *this;
     }
 
     QuantNumber& fill(const ValueType &v){
         *this = QuantNumber(v);
+        return *this;
     }
 public:
     union{

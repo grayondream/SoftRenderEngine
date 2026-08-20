@@ -97,14 +97,22 @@ public:
     }
 
     template<class U>
-    auto dot(const Vector2DBase<U> &vec){
+    auto dot(const Vector2DBase<U> &vec) const{
         auto r = (*this) * vec;
         return r.x + r.y;
     }
 
     template<class U>
-    double thetha(const Vector2DBase<U> &vec){
-        return std::acos( dot(vec) / (this->length() * vec.length()));
+    double thetha(const Vector2DBase<U> &vec) const{
+        const auto lenThis = this->length();
+        const auto lenVec = vec.length();
+        if(lenThis == 0 || lenVec == 0){
+            return 0;
+        }
+
+        auto ratio = dot(vec) / (lenThis * lenVec);
+        ratio = std::clamp(ratio, -1.0, 1.0);
+        return std::acos(ratio);
     }
 
 public:
@@ -155,6 +163,9 @@ public:
 
     Vector2DBase& normalize() {
         const auto l = length();
+        if(l == 0){
+            return *this;
+        }
         x /= l;
         y /= l;
         return *this;

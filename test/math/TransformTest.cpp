@@ -64,6 +64,75 @@ TEST(TransformTest, MatrixMul){
     EXPECT_NEAR(result.w, 1.0, 1e-10);
 }
 
+TEST(TransformTest, LookAt){
+    Matrix4DBase<double> m = SGE::Math::lookAt(
+        Vector3DBase<double>{0.0, 0.0, 0.0},
+        Vector3DBase<double>{0.0, 0.0, -1.0},
+        Vector3DBase<double>{0.0, 1.0, 0.0});
+    // Eye position maps to origin
+    Vector4DBase<double> v{0.0, 0.0, 0.0, 1.0};
+    auto result = m.mul(v);
+    EXPECT_NEAR(result.x, 0.0, 1e-10);
+    EXPECT_NEAR(result.y, 0.0, 1e-10);
+    EXPECT_NEAR(result.z, 0.0, 1e-10);
+    EXPECT_NEAR(result.w, 1.0, 1e-10);
+}
+
+TEST(TransformTest, LookAtForward){
+    // Camera at origin looking down -Z (OpenGL convention):
+    // a point in front of the camera keeps negative view-space Z
+    Matrix4DBase<double> m = SGE::Math::lookAt(
+        Vector3DBase<double>{0.0, 0.0, 0.0},
+        Vector3DBase<double>{0.0, 0.0, -1.0},
+        Vector3DBase<double>{0.0, 1.0, 0.0});
+    Vector4DBase<double> v{0.0, 0.0, -5.0, 1.0};
+    auto result = m.mul(v);
+    EXPECT_NEAR(result.z, -5.0, 1e-10);
+    EXPECT_NEAR(result.x, 0.0, 1e-10);
+    EXPECT_NEAR(result.y, 0.0, 1e-10);
+}
+
+TEST(TransformTest, Perspective){
+    Matrix4DBase<double> m = SGE::Math::perspective(M_PI / 4.0, 800.0/600.0, 0.1, 100.0);
+    // Near plane center maps to z=-1 in NDC
+    Vector4DBase<double> vNear{0.0, 0.0, -0.1, 1.0};
+    auto rNear = m.mul(vNear);
+    EXPECT_NEAR(rNear.z / rNear.w, -1.0, 1e-10);
+
+    // Far plane center maps to z=+1 in NDC
+    Vector4DBase<double> vFar{0.0, 0.0, -100.0, 1.0};
+    auto rFar = m.mul(vFar);
+    EXPECT_NEAR(rFar.z / rFar.w, 1.0, 1e-10);
+}
+
+TEST(TransformTest, Orthographic){
+    Matrix4DBase<double> m = SGE::Math::orthographic(-1.0, 1.0, -1.0, 1.0, 0.1, 100.0);
+    Vector4DBase<double> v{0.5, -0.5, -50.0, 1.0};
+    auto result = m.mul(v);
+    EXPECT_NEAR(result.x, 0.5, 1e-10);
+    EXPECT_NEAR(result.y, -0.5, 1e-10);
+    // NDC z = (-2z - (f+n)) / (f-n); near->-1, far->+1
+    EXPECT_NEAR(result.z, (-2.0 * (-50.0) - (100.0 + 0.1)) / (100.0 - 0.1), 1e-6);
+    EXPECT_NEAR(result.w, 1.0, 1e-10);
+}
+
+TEST(TransformTest, MVPPipeline){
+    Matrix4DBase<double> model = SGE::Math::translation(0.0, 0.0, -5.0);
+    Matrix4DBase<double> view = SGE::Math::lookAt(
+        Vector3DBase<double>{0.0, 0.0, 0.0},
+        Vector3DBase<double>{0.0, 0.0, -1.0},
+        Vector3DBase<double>{0.0, 1.0, 0.0});
+    Matrix4DBase<double> proj = SGE::Math::perspective(M_PI / 4.0, 1.0, 0.1, 100.0);
+    auto mvp = proj.mul(view).mul(model);
+    // Point at world origin lands at (0,0,-5); projects to screen center
+    Vector4DBase<double> v{0.0, 0.0, 0.0, 1.0};
+    auto result = mvp.mul(v);
+    EXPECT_NEAR(result.x / result.w, 0.0, 1e-6);
+    EXPECT_NEAR(result.y / result.w, 0.0, 1e-6);
+    // z/w should be inside [-1, 1]
+    EXPECT_TRUE(result.z / result.w > -1.0 && result.z / result.w < 1.0);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

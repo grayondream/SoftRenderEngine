@@ -204,6 +204,36 @@ public:
     Matrix4DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
     }
+
+    template<class U>
+    Matrix4DBase<ValueType> mul(const Matrix4DBase<U> &mat) const{
+        assert(this->d1 == mat.d2);
+        Matrix4DBase<ValueType> ret(this->d4, this->d3, this->d2, mat.d1);
+        for(auto c = 0; c < this->d4; c++){
+            for(auto k = 0; k < this->d3; k++){
+                for(auto i = 0; i < this->d2; i++){
+                    for(auto j = 0; j < mat.d1; j++){
+                        ValueType sum{};
+                        for(auto s = 0; s < this->d1; s++){
+                            sum += (*this)[c][k][i][s] * mat[c][k][s][j];
+                        }
+                        ret[c][k][i][j] = sum;
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    template<class U>
+    Vector4DBase<ValueType> mul(const Vector4DBase<U> &vec) const{
+        return Vector4DBase<ValueType>({
+            (*this)[0][0][0][0]*vec.x + (*this)[0][0][0][1]*vec.y + (*this)[0][0][0][2]*vec.z + (*this)[0][0][0][3]*vec.w,
+            (*this)[0][0][1][0]*vec.x + (*this)[0][0][1][1]*vec.y + (*this)[0][0][1][2]*vec.z + (*this)[0][0][1][3]*vec.w,
+            (*this)[0][0][2][0]*vec.x + (*this)[0][0][2][1]*vec.y + (*this)[0][0][2][2]*vec.z + (*this)[0][0][2][3]*vec.w,
+            (*this)[0][0][3][0]*vec.x + (*this)[0][0][3][1]*vec.y + (*this)[0][0][3][2]*vec.z + (*this)[0][0][3][3]*vec.w
+        });
+    }
 };
 
 template<class T, class U>

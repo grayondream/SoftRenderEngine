@@ -1,6 +1,7 @@
 #include "Log.hpp"
 #include "MathConst.hpp"
 #include "Matrix/Matrix.hpp"
+#include "Vector/Vector.hpp"
 #include "Util/ToString.hpp"
 #include <cmath>
 #include <gtest/gtest.h>
@@ -167,6 +168,28 @@ TEST(Matrix2DOp, ComplexOperator){
         EXPECT_EQ( m1, Matrix1D({4,4,4,4}));
         EXPECT_EQ(m2, m3);
     }
+}
+
+TEST(Matrix4DOp, MulMatrix){
+    Matrix4D m1{{{{1,2},{3,4}},{{5,6},{7,8}}},{{{9,10},{11,12}},{{13,14},{15,16}}}};
+    Matrix4D m2{{{{1,0},{0,1}},{{1,0},{0,1}}},{{{1,0},{0,1}},{{1,0},{0,1}}}};
+    Matrix4D identity{{{{1,0},{0,1}},{{1,0},{0,1}}},{{{1,0},{0,1}},{{1,0},{0,1}}}};
+    EXPECT_EQ(m1.mul(m2), m1);
+    EXPECT_EQ(m2.mul(m1), m1);
+    EXPECT_EQ(m1.mul(identity), m1);
+}
+
+TEST(Matrix4DOp, MulVector){
+    Matrix4D m1{{{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}},
+                 {{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}}},
+                {{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}},
+                 {{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}}}};
+    Vector4D v1{1,1,1,1};
+    Vector4D v2{10,20,30,40};
+    Vector4D r1{10,26,42,58};
+    Vector4D r2{300,700,1100,1500};
+    EXPECT_EQ(m1.mul(v1), r1);
+    EXPECT_EQ(m1.mul(v2), r2);
 }
 
 int main(int argc, char **argv){

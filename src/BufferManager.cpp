@@ -32,7 +32,7 @@ uint8_t* BufferManager::getRawBuffer(){
 std::shared_ptr<BufferManager::BufferType> BufferManager::getBuffer(){
     return m_auxilaryBuffer;
 }
-void BufferManager::clear(const Color &color){
+void BufferManager::clear(const WindowColor &color){
     assert(!m_auxilaryBuffer->locked());
     m_auxilaryBuffer->clear(color);
     m_bNeedSwap = true;

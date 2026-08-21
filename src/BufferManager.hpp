@@ -20,7 +20,7 @@ public:
 
     std::error_code draw(const uint8_t *buffer);
 
-    void clear(const Color &color);
+    void clear(const WindowColor &color);
 
     void swap();
 

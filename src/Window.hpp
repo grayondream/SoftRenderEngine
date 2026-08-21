@@ -60,7 +60,7 @@ public:
 public:
     std::error_code init();
 
-    void setBackgroundColor(const Color &color){
+    void setBackgroundColor(const WindowColor &color){
         m_color = color;
     }
 
@@ -87,7 +87,7 @@ private:
 private:
     Position m_pos{};
     RenderFormat m_format{};
-    Color  m_color{128, 128, 128, 128};
+    WindowColor  m_color{128, 128, 128, 128};
     SDL_Renderer* m_pRender{};
     SDL_Window* m_pWindow{};
     SDL_Texture* m_pTexture{};

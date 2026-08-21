@@ -19,3 +19,4 @@
 | 2026-08-20 | 收尾清理 | 修复 | 补 DynamicMatrix4DIndex.hpp include guard；修复 StaticMatrixTest.CreateAndPrint 测试越界断言 | 全部 8 个测试套件 49 项测试通过 |
 | 2026-08-20 | 二次审查 | 审查 | 用子代理逐函数核对数学正确性，发现 3D/4D inverse() 悬垂引用桩、thetha NaN、normalize 零向量除零、Trigonometric 无角度归约、invert 非方阵越界、矩阵二元运算维度断言缺失、1D det 语义错、嵌套 init_list 越界等 15 项 | 大多未被既有测试覆盖 |
 | 2026-08-20 | 二次修复 | 修复 | 删除 3D/4D inverse() 悬垂桩；thetha 加 clamp+零向量保护；normalize 零向量保护；Sin/Cos/Tan 统一 double+角度归约；invert 运行时校验方阵；2D/3D/4D 静态/动态矩阵二元运算补维度断言；1D det 改元素值；eye() 空矩阵保护；嵌套 init_list 长度断言；dot 加 const；QuantNumber qo→q0 并补 return；BGRA8888 clear 字节序；WindowEventType 拼写；RenderList4D::reset 实现；fmodf64→std::fmod | 新增 6 项回归测试；全部 8 套件 56 项测试通过 |
+| 2026-08-20 | 三次修复 | 修复 | Point2D/Color 命名冲突：窗口层 Point2D→WindowPoint、Color→WindowColor；FastTan 奇点回退 std::tan；sum 用 double 累加避免精度损失；operator[] 加 assert 越界保护；Index 文件补 cassert | 全部 8 套件 56 项测试通过；主程序冒烟测试正常 |

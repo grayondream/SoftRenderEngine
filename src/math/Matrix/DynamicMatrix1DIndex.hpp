@@ -2,6 +2,7 @@
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix1D.hpp"
 #include <algorithm>
+#include <cassert>
 
 template<class T>
 class Matrix1DBase;
@@ -24,10 +25,12 @@ public:
         : MatrixIndexBase<ValueType>(data), MatrixIndex1Size(d1){}
 
     Reference operator[](ConstMatrixSizeType idx){
+        assert(idx < this->d1);
         return *(this->m_pstart + idx);
     }
     
     ValueType operator[](ConstMatrixSizeType idx) const{
+        assert(idx < this->d1);
         return *(this->m_pstart + idx);
     }
 

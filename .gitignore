@@ -2,4 +2,4 @@
 build/** 
 .cache/**
 tmp/**
-.VSCodeCounter/**
+.VSCodeCounter/**PROGRESS.md

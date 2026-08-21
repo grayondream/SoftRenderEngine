@@ -1,6 +1,7 @@
 #pragma once
 #include "DynamicMatrixBase.hpp"
 #include "DynamicMatrix1DIndex.hpp"
+#include <cassert>
 
 //d1 -> width
 template<class T>
@@ -21,10 +22,12 @@ public:
         : MatrixIndexBase<ValueType>(data), MatrixIndex2Size(d2, d1){ }
 
     MatrixIndex1<ValueType> operator[](ConstMatrixSizeType idx) const{
+        assert(idx < this->d2);
         return MatrixIndex1<ValueType>(this->m_pstart + idx * this->d1, this->d1);
     }
 
     MatrixIndex1<ValueType> operator[](ConstMatrixSizeType idx){
+        assert(idx < this->d2);
         return const_cast<const MatrixIndex2<ValueType>*>(this)->operator[](idx);
     }
 };

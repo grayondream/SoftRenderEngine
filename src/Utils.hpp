@@ -59,7 +59,7 @@ T GenerateRandomValue(const T minv, const T maxv){
     return distribution(rng);
 }
 
-inline static Color GenerateColor(){
+inline static WindowColor GenerateColor(){
     auto r = GenerateRandomValue<uint8_t>(0, 255);
     auto g = GenerateRandomValue<uint8_t>(0, 255);
     auto b = GenerateRandomValue<uint8_t>(0, 255);

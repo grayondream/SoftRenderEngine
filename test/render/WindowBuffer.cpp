@@ -14,7 +14,7 @@ TEST(WindowBufferTest, BufferHasFullSize){
 TEST(WindowBufferTest, ClearFillsAllPixels){
     const Size sz{4, 2};
     WindowBuffer<uint8_t> buf(sz, RenderFormat::RGBA8888);
-    Color c(1, 2, 3, 4);
+    WindowColor c(1, 2, 3, 4);
     EXPECT_TRUE(buf.clear(c));
     for(auto i = 0; i < sz.height; i++){
         for(auto j = 0; j < sz.width; j++){
@@ -40,7 +40,7 @@ TEST(WindowBufferTest, FillReplacesContent){
 TEST(WindowBufferTest, ClearBGRAOrder){
     const Size sz{2, 1};
     WindowBuffer<uint8_t> buf(sz, RenderFormat::BGRA8888);
-    Color c(1, 2, 3, 4);
+    WindowColor c(1, 2, 3, 4);
     EXPECT_TRUE(buf.clear(c));
     for(auto j = 0; j < sz.width; j++){
         const auto base = j * 4;
@@ -54,7 +54,7 @@ TEST(WindowBufferTest, ClearBGRAOrder){
 TEST(BufferManagerTest, SwapTogglesPrimary){
     const Size sz{2, 1};
     ASSERT_TRUE(!BufferManager::instance()->initialize(sz, RenderFormat::RGBA8888));
-    BufferManager::instance()->clear(Color(1, 2, 3, 4));
+    BufferManager::instance()->clear(WindowColor(1, 2, 3, 4));
     auto before = BufferManager::instance()->getBuffer();
     BufferManager::instance()->swap();
     auto after = BufferManager::instance()->getBuffer();

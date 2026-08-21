@@ -159,7 +159,11 @@ public:
 public:
     template<class U>
     U sum(){
-        return this->foreachFuncTotal<U>([](const ValueType v1, const ValueType v2){ return v1 + v2; });
+        double acc = 0;
+        acc += static_cast<double>(x);
+        acc += static_cast<double>(y);
+        acc += static_cast<double>(z);
+        return static_cast<U>(acc);
     }
 
     Vector3DBase<ValueType>& fill(const ValueType v = 1 + ValueType{}){

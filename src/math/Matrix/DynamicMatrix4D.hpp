@@ -174,7 +174,17 @@ public:
 public:
     template<class U>
     U sum(){
-        return this->foreachFuncTotal<U>([](const ValueType v1, const ValueType v2){ return v1 + v2; });
+        double acc = 0;
+        for(auto c = 0; c < this->d4; c++){
+            for(auto k = 0; k < this->d3; k++){
+                for(auto i = 0; i < this->d2; i++){
+                    for(auto j = 0; j < this->d1; j++){
+                        acc += static_cast<double>((*this)[c][k][i][j]);
+                    }
+                }
+            }
+        }
+        return static_cast<U>(acc);
     }
 
     Matrix4DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){

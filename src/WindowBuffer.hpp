@@ -35,7 +35,7 @@ public:
         return true;
     }
 
-    bool clear(const Color &color){
+    bool clear(const WindowColor &color){
         if(locked()){
             return false;
         }

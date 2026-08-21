@@ -3,7 +3,7 @@
 #include <cstdint>
 
 
-struct Point2D{
+struct WindowPoint{
     std::size_t x;
     std::size_t y;
 };
@@ -14,7 +14,7 @@ struct Size{
 };
 
 struct Position2d{
-    Point2D lf;
+    WindowPoint lf;
     Size size;
 };
 
@@ -32,7 +32,7 @@ enum class RenderFormat : int32_t{
 };
 
 using Position = Position2d;
-using Color = ColorBase<uint8_t>;
+using WindowColor = ColorBase<uint8_t>;
 
 using WindowIDType = long int;
 

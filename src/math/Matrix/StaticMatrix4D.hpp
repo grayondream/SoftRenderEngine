@@ -256,6 +256,38 @@ public:
         return this->foreachFuncSingleValue([&v](const ValueType&){ return v; });
     }
 
+    template<class U, StaticMatrixSizeType od4, StaticMatrixSizeType od3, StaticMatrixSizeType od2, StaticMatrixSizeType od1>
+    StaticMatrix4DBase<ValueType, d4, d3, d2, od1> mul(
+        const StaticMatrix4DBase<U, od4, od3, od2, od1> &mat) const{
+        static_assert(d1 == od2, "Matrix dimensions must match for multiplication");
+        StaticMatrix4DBase<ValueType, d4, d3, d2, od1> ret{};
+        for(auto c = 0; c < d4; c++){
+            for(auto k = 0; k < d3; k++){
+                for(auto i = 0; i < d2; i++){
+                    for(auto j = 0; j < od1; j++){
+                        ValueType sum{};
+                        for(auto s = 0; s < d1; s++){
+                            sum += (*this)[c][k][i][s] * mat[c][k][s][j];
+                        }
+                        ret[c][k][i][j] = sum;
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    template<class U>
+    Vector4DBase<ValueType> mul(const Vector4DBase<U> &vec) const{
+        static_assert(d2 == 4 && d1 == 4, "Matrix must be 4x4 for vector multiplication");
+        return Vector4DBase<ValueType>(
+            (*this)[0][0][0][0]*vec.x + (*this)[0][0][0][1]*vec.y + (*this)[0][0][0][2]*vec.z + (*this)[0][0][0][3]*vec.w,
+            (*this)[0][0][1][0]*vec.x + (*this)[0][0][1][1]*vec.y + (*this)[0][0][1][2]*vec.z + (*this)[0][0][1][3]*vec.w,
+            (*this)[0][0][2][0]*vec.x + (*this)[0][0][2][1]*vec.y + (*this)[0][0][2][2]*vec.z + (*this)[0][0][2][3]*vec.w,
+            (*this)[0][0][3][0]*vec.x + (*this)[0][0][3][1]*vec.y + (*this)[0][0][3][2]*vec.z + (*this)[0][0][3][3]*vec.w
+        );
+    }
+
 private:
     ValueType m_pdata[d4][d3][d2][d1]{};
 };

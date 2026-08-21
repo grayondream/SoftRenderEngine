@@ -189,7 +189,7 @@ public:
 
     Matrix4DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
         this->fill(ValueType{});
-        auto size = std::min(std::min(this->d1, this->d2), this->d3);
+        auto size = std::min(this->d1, this->d2);
         for(auto c = 0;c < this->d4; c++){
             for(auto j = 0;j < this->d3; j++){
                 for(auto i = 0; i < size ;i ++){

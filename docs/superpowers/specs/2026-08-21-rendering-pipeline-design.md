@@ -89,10 +89,8 @@ std::vector<ScreenVertex> clipNearPlane(const std::array<ScreenVertex,3> &tri);
 
 Conventions:
 - Right-handed world/view space, OpenGL-style projection (already built in Transform.hpp): camera looks down -Z, near maps to NDC -1, far to +1.
-- Backface culling: compute signed area of the screen-space triangle; skip if winding is clockwise (counter-clockwise = front). Decided on post-projection coordinates — simple and consistent.
-- Clipping happens BEFORE perspective divide (in clip space, using x,y,z,w), which is why clipNearPlane operates on vertices that carry both NDC-ish z and raw w.
-
-Implementation detail: projectObject transforms each polygon's 3 vertices through mvp producing clip-space vertices (x,y,z,w). Culling uses the sign of `(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)` in clip space (w uniform across the triangle for our use, so clip-space winding == screen winding up to y-flip; we cull consistently with the y-flip applied later).
+- Backface culling happens AFTER viewport mapping, on screen-space pixel coordinates: signed area = (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x); triangles with area <= 0 are skipped (counter-clockwise in y-down screen space = front face). Single source of truth; no clip-space winding reasoning needed.
+- Clipping happens BEFORE perspective divide (in clip space, using x,y,z,w), which is why clipNearPlane operates on vertices that carry both NDC z and raw w.
 
 ### 4. Rasterizer (`src/Render/Rasterizer.hpp/.cpp`)
 

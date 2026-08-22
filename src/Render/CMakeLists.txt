@@ -2,6 +2,7 @@ set(SGE_RENDER_GEOOBJECT_DIR ${SGE_RENDER_DIR}/GeoObject)
 set(SGE_RENDER_SRC_FILES
     ${SGE_RENDER_DIR}/Rasterizer.cpp
     ${SGE_RENDER_DIR}/Pipeline.cpp
+    ${SGE_RENDER_DIR}/Texture.cpp
 )
 
 aux_source_directory(${SGE_RENDER_GEOOBJECT_DIR} GEMO_SRC_FILES)

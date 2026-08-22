@@ -67,12 +67,28 @@ bool loadObjFromFile(const std::string &path, Object4D &out){
         return false;
     }
 
+    auto fail = [&out](){
+        out.numVertices = 0;
+        out.numPolys = 0;
+        return false;
+    };
+
     std::vector<Point4D> verts{};
     std::vector<UV2D> uvs{};
     std::vector<Vector3DBase<double>> normals{};
 
+    bool firstLine = true;
     std::string line;
     while(std::getline(file, line)){
+        if(firstLine){
+            firstLine = false;
+            if(line.size() >= 3 &&
+               static_cast<unsigned char>(line[0]) == 0xEF &&
+               static_cast<unsigned char>(line[1]) == 0xBB &&
+               static_cast<unsigned char>(line[2]) == 0xBF){
+                line.erase(0, 3);
+            }
+        }
         if(!line.empty() && line.back() == '\r') line.pop_back();
         std::istringstream ss(line);
         std::string tag;
@@ -80,51 +96,49 @@ bool loadObjFromFile(const std::string &path, Object4D &out){
 
         if(tag == "v"){
             double x = 0, y = 0, z = 0;
-            if(!(ss >> x >> y >> z)) return false;
-            if(verts.size() >= kObject4vListLen) return false;
+            if(!(ss >> x >> y >> z)) return fail();
+            if(verts.size() >= kObject4vListLen) return fail();
             verts.push_back(Point4D{x, y, z, 1});
         }else if(tag == "vt"){
             double u = 0, v = 0;
-            if(!(ss >> u >> v)) return false;
+            if(!(ss >> u >> v)) return fail();
             uvs.push_back(UV2D{u, v});
         }else if(tag == "vn"){
             double x = 0, y = 0, z = 0;
-            if(!(ss >> x >> y >> z)) return false;
+            if(!(ss >> x >> y >> z)) return fail();
             normals.push_back(Vector3DBase<double>{x, y, z});
         }else if(tag == "f"){
             std::vector<ObjVertexRef> refs{};
             std::string tok;
             while(ss >> tok){
                 ObjVertexRef ref{};
-                if(!ParseVertexRef(tok, ref)) return false;
+                if(!ParseVertexRef(tok, ref)) return fail();
                 refs.push_back(ref);
             }
-            if(refs.size() < 3) return false;
+            if(refs.size() < 3) return fail();
             for(std::size_t i = 1; i + 1 < refs.size(); i++){
-                if(out.numPolys >= kPolyListLen) return false;
+                if(out.numPolys >= kPolyListLen) return fail();
                 PolyF4D &poly = out.plist[out.numPolys++];
                 const ObjVertexRef tri[3] = {refs[0], refs[i], refs[i + 1]};
-                bool hasUv = true;
                 bool hasN = true;
                 Point4D p[3]{};
                 for(int k = 0; k < 3; k++){
                     int vi = -1;
-                    if(!ResolveIndex(tri[k].v, verts.size(), vi)) return false;
+                    if(!ResolveIndex(tri[k].v, verts.size(), vi)) return fail();
                     p[k] = verts[vi];
                     poly.vlist[k] = p[k];
 
                     int ui = -1;
                     if(tri[k].vt != 0){
-                        if(!ResolveIndex(tri[k].vt, uvs.size(), ui)) return false;
+                        if(!ResolveIndex(tri[k].vt, uvs.size(), ui)) return fail();
                         poly.uvlist[k] = uvs[ui];
                     }else{
                         poly.uvlist[k] = UV2D{};
-                        hasUv = false;
                     }
 
                     int ni = -1;
                     if(tri[k].vn != 0){
-                        if(!ResolveIndex(tri[k].vn, normals.size(), ni)) return false;
+                        if(!ResolveIndex(tri[k].vn, normals.size(), ni)) return fail();
                         poly.nlist[k] = normals[ni];
                     }else{
                         poly.nlist[k] = Vector3DBase<double>{};

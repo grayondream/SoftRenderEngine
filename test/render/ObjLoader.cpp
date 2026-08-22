@@ -118,6 +118,24 @@ TEST(ObjTest, MissingFileFails){
     EXPECT_FALSE(loadObjFromFile("/tmp/opencode/no_such_12345.obj", obj));
 }
 
+TEST(ObjTest, BomFileParsesCorrectly){
+    std::string content = "v 10 0 0\nv 0 0 0\nv 0 1 0\nf 1 2 3\n";
+    content.insert(content.begin(), {static_cast<char>(0xEF), static_cast<char>(0xBB), static_cast<char>(0xBF)});
+    ASSERT_TRUE(WriteFile(TmpPath("bom.obj"), content));
+    Object4D obj{};
+    ASSERT_TRUE(loadObjFromFile(TmpPath("bom.obj"), obj));
+    EXPECT_EQ(obj.numVertices, 3);
+    EXPECT_DOUBLE_EQ(obj.plist[0].vlist[0].x, 10.0);
+}
+
+TEST(ObjTest, HalfFilledClearedOnFailure){
+    ASSERT_TRUE(WriteFile(TmpPath("half.obj"),
+        "v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\nv garbage\n"));
+    Object4D obj{};
+    EXPECT_FALSE(loadObjFromFile(TmpPath("half.obj"), obj));
+    EXPECT_EQ(obj.numPolys, 0);
+}
+
 TEST(ObjTest, RealCubeAsset){
     Object4D obj{};
     ASSERT_TRUE(loadObjFromFile("assets/cube.obj", obj));

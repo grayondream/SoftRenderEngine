@@ -3,6 +3,9 @@
 #include <cmath>
 #include <cstdint>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 namespace{
 int WrapTexel(int t, int maxIdx, TextureWrap wrap){
     if(wrap == TextureWrap::Clamp){
@@ -68,4 +71,23 @@ uint32_t Texture::sample(double u, double v,
                 BlendChannel(c00,c10,c01,c11,ax,ay,16),
                 BlendChannel(c00,c10,c01,c11,ax,ay,8),
                 BlendChannel(c00,c10,c01,c11,ax,ay,0));
+}
+
+Texture Texture::loadFromFile(const std::string &path){
+    int w = 0, h = 0, n = 0;
+    stbi_uc *data = stbi_load(path.c_str(), &w, &h, &n, 4);
+    if(!data || w <= 0 || h <= 0){
+        if(data) stbi_image_free(data);
+        return Texture{};
+    }
+
+    std::vector<uint32_t> pixels(static_cast<std::size_t>(w) * h);
+    for(std::size_t i = 0; i < pixels.size(); i++){
+        pixels[i] = (static_cast<uint32_t>(data[i*4+3]) << 24) |
+                    (static_cast<uint32_t>(data[i*4+0]) << 16) |
+                    (static_cast<uint32_t>(data[i*4+1]) << 8)  |
+                     static_cast<uint32_t>(data[i*4+2]);
+    }
+    stbi_image_free(data);
+    return Texture(static_cast<std::size_t>(w), static_cast<std::size_t>(h), pixels.data());
 }

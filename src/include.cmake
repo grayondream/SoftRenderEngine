@@ -15,5 +15,8 @@ include_directories(${MATH_DIR}/Math)
 include_directories(${RENDER_DIR})
 include_directories(${RENDER_DIR}/GeoObject)
 
+include_directories(${CMAKE_SOURCE_DIR}/third_party)
+include_directories(${CMAKE_SOURCE_DIR}/third_party/stb)
+
 
 

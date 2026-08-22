@@ -68,6 +68,30 @@ TEST(TextureTest, BilinearBlendGrayLevels){
     EXPECT_EQ(t.sample(0.5,   0.5,  TextureFilter::Bilinear), kGray(125));
 }
 
+TEST(TextureTest, LoadFromFile){
+    Texture t = Texture::loadFromFile("test/assets/test_4x4.png");
+    ASSERT_EQ(t.width(), 4u);
+    ASSERT_EQ(t.height(), 4u);
+
+    for(int y = 0; y < 4; y++){
+        for(int x = 0; x < 4; x++){
+            const uint32_t expect = 0xFF000000u
+                                  | (static_cast<uint32_t>(x*60) << 16)
+                                  | (static_cast<uint32_t>(y*60) << 8)
+                                  | 128u;
+            const uint32_t got = t.sample((x + 0.5) / 4.0, (y + 0.5) / 4.0,
+                                          TextureFilter::Nearest, TextureWrap::Clamp);
+            EXPECT_EQ(got, expect) << "x=" << x << " y=" << y;
+        }
+    }
+}
+
+TEST(TextureTest, LoadFromFileMissingGivesEmpty){
+    Texture t = Texture::loadFromFile("no_such_file.png");
+    EXPECT_EQ(t.width(), 0u);
+    EXPECT_EQ(t.sample(0.5, 0.5), kBlack);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

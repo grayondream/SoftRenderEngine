@@ -67,6 +67,24 @@ TEST(PipelineClipTest, FrustumLeftPlaneClips){
     ASSERT_EQ(out.size(), 2u);
 }
 
+TEST(PipelineClipTest, FrustumBottomPlaneClips){
+    ScreenVertex tri[3]{};
+    tri[0].x = 0;    tri[0].y = -3;  tri[0].z = -0.5f; tri[0].w = 1;
+    tri[1].x = 1.5;  tri[1].y = 1;   tri[1].z = -0.5f; tri[1].w = 2;
+    tri[2].x = 1.5;  tri[2].y = 1.5; tri[2].z = -0.5f; tri[2].w = 2;
+    auto out = Pipeline::clipTriangle(tri);
+    ASSERT_EQ(out.size(), 2u);
+}
+
+TEST(PipelineClipTest, FrustumTopPlaneClips){
+    ScreenVertex tri[3]{};
+    tri[0].x = 0;    tri[0].y = 3;    tri[0].z = -0.5f; tri[0].w = 1;
+    tri[1].x = 1.5;  tri[1].y = -1;   tri[1].z = -0.5f; tri[1].w = 2;
+    tri[2].x = 1.5;  tri[2].y = -1.5; tri[2].z = -0.5f; tri[2].w = 2;
+    auto out = Pipeline::clipTriangle(tri);
+    ASSERT_EQ(out.size(), 2u);
+}
+
 TEST(PipelineClipTest, FrustumCrossCornerSplits){
     ScreenVertex tri[3]{};
     tri[0].x = -2;  tri[0].y = -0.5; tri[0].z = -2; tri[0].w = 1;

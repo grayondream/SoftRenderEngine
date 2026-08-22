@@ -76,7 +76,7 @@ TEST(CameraTest, UpdateTurnAndPitchClamp){
     SGE::Render::InputState in{};
     in.left = true;
     SGE::Render::update(c, in, 1.0);
-    EXPECT_NEAR(c.yaw, -1.5, 1e-12);
+    EXPECT_NEAR(c.yaw, 1.5, 1e-12);
 
     in.left = false; in.up = true;
     for(int i = 0; i < 10; i++){

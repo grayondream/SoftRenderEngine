@@ -32,7 +32,7 @@ Matrix4DBase<double> Camera::viewMatrix() const{
 }
 
 void update(Camera &cam, const InputState &in, double dt){
-    cam.yaw += ((in.right ? 1.0 : 0.0) - (in.left ? 1.0 : 0.0)) * kTurnSpeed * dt;
+    cam.yaw += ((in.left ? 1.0 : 0.0) - (in.right ? 1.0 : 0.0)) * kTurnSpeed * dt;
     cam.pitch += ((in.up ? 1.0 : 0.0) - (in.down ? 1.0 : 0.0)) * kTurnSpeed * dt;
     cam.pitch = std::clamp(cam.pitch, -kPitchLimit, kPitchLimit);
 

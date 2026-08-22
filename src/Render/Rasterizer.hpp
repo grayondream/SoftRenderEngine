@@ -1,6 +1,7 @@
 #pragma once
 #include "FrameBuffer.hpp"
 #include "Texture.hpp"
+#include "Light.hpp"
 #include "GeoObject/Color.hpp"
 
 struct ScreenVertex{
@@ -26,6 +27,11 @@ inline uint32_t PackBGRA(const Color32 &c){
             static_cast<uint32_t>(c.b);
 }
 
+struct ShadingContext{
+    const LightingRig *rig{};
+    Vector3DBase<double> viewPos{};
+};
+
 class Rasterizer{
 public:
     explicit Rasterizer(FrameBuffer &fb) : m_fb(fb){ }
@@ -35,6 +41,7 @@ public:
     void drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2);
     void drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex &v1,
                               const ScreenVertex &v2, const Texture &tex,
+                              const ShadingContext *shading = nullptr,
                               TextureFilter filter = TextureFilter::Bilinear,
                               TextureWrap wrap = TextureWrap::Repeat);
 

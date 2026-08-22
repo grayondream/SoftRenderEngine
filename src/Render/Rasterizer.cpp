@@ -90,6 +90,7 @@ void Rasterizer::drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v
 
 void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex &v1,
                                       const ScreenVertex &v2, const Texture &tex,
+                                      const ShadingContext *shading,
                                       TextureFilter filter, TextureWrap wrap){
     double area = EdgeFunction(v0.x,v0.y, v1.x,v1.y, v2.x,v2.y);
     if(area == 0) return;
@@ -131,8 +132,29 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
             float vPix = static_cast<float>(
                 (w0*v0.v/v0.w + w1*v1.v/v1.w + w2*v2.v/v2.w) / iw);
 
+            double nxc = 0, nyc = 0, nzc = 0;
+            double wxp = 0, wyp = 0, wzp = 0;
+            if(shading && shading->rig){
+                nxc = (w0*v0.nx/v0.w + w1*v1.nx/v1.w + w2*v2.nx/v2.w) / iw;
+                nyc = (w0*v0.ny/v0.w + w1*v1.ny/v1.w + w2*v2.ny/v2.w) / iw;
+                nzc = (w0*v0.nz/v0.w + w1*v1.nz/v1.w + w2*v2.nz/v2.w) / iw;
+                wxp = (w0*v0.wx/v0.w + w1*v1.wx/v1.w + w2*v2.wx/v2.w) / iw;
+                wyp = (w0*v0.wy/v0.w + w1*v1.wy/v1.w + w2*v2.wy/v2.w) / iw;
+                wzp = (w0*v0.wz/v0.w + w1*v1.wz/v1.w + w2*v2.wz/v2.w) / iw;
+            }
+
+            uint32_t shaded = tex.sample(uPix, vPix, filter, wrap);
+            if(shading && shading->rig){
+                const Color32 albedo{
+                    static_cast<int32_t>((shaded >> 16) & 0xFF),
+                    static_cast<int32_t>((shaded >> 8) & 0xFF),
+                    static_cast<int32_t>(shaded & 0xFF), 255};
+                const Vector3DBase<double> N{nxc, nyc, nzc};
+                const Vector3DBase<double> Pw{wxp, wyp, wzp};
+                shaded = shade(*shading->rig, albedo, N.normalize(), Pw, shading->viewPos);
+            }
             m_fb.setPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
-                          tex.sample(uPix, vPix, filter, wrap), zNdc);
+                          shaded, zNdc);
         }
     }
 }

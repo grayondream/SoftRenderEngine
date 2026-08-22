@@ -1,5 +1,6 @@
 #include "Rasterizer.hpp"
 #include "Texture.hpp"
+#include "Light.hpp"
 #include <cmath>
 #include <gtest/gtest.h>
 
@@ -143,7 +144,7 @@ TEST(RasterTexturedTest, PerspectiveCorrectNotAffine){
     b.x = 18; b.y = 2;  b.w = 2; b.u = 1; b.z = -2; b.color = white;
     c.x = 2;  c.y = 18; c.w = 1; c.u = 0; c.z = -1; c.color = white;
 
-    rz.drawTriangleTextured(a, b, c, tex, TextureFilter::Nearest, TextureWrap::Clamp);
+    rz.drawTriangleTextured(a, b, c, tex, nullptr, TextureFilter::Nearest, TextureWrap::Clamp);
 
     // 像素(6,6)采样点(6.5,6.5)：lambda=(0.4375, 0.28125, 0.28125)
     // 透视校正 u = (0.28125/2)/(0.4375/2 + 0.28125/2 + 0.28125/1) = 9/41 ≈ 0.2195 -> texel1 -> r=30
@@ -171,8 +172,8 @@ TEST(RasterTexturedTest, QuadDiagonalUvContinuity){
     C.x = 10; C.y = 10; C.w = 1; C.u = 1; C.v = 1; C.z = -1; C.color = white;
     D.x = 2;  D.y = 10; D.w = 1; D.u = 0; D.v = 1; D.z = -1; D.color = white;
 
-    rz.drawTriangleTextured(A, B, C, tex, TextureFilter::Nearest, TextureWrap::Clamp);
-    rz.drawTriangleTextured(A, C, D, tex, TextureFilter::Nearest, TextureWrap::Clamp);
+    rz.drawTriangleTextured(A, B, C, tex, nullptr, TextureFilter::Nearest, TextureWrap::Clamp);
+    rz.drawTriangleTextured(A, C, D, tex, nullptr, TextureFilter::Nearest, TextureWrap::Clamp);
 
     // w=1 时透视校正退化为仿射：u(px) = ((px+0.5)-2)/8，r = floor(u*200)
     // 探针取 u*200=x.5 形式避开 floor 边界；三个探针分居对角线 AC 两侧
@@ -186,6 +187,51 @@ TEST(RasterTexturedTest, QuadDiagonalUvContinuity){
         EXPECT_EQ(static_cast<int>((got >> 16) & 0xFF), expectR(pr[0]))
             << "px=" << pr[0] << " py=" << pr[1];
     }
+}
+
+TEST(RasterLitTest, LitVsUnlitGradient){
+    uint32_t gray[1] = {0xFF808080u};
+    Texture tex(1, 1, gray);
+
+    Color32 white{255, 255, 255, 255};
+    ScreenVertex a{}, b{}, c{};
+    a.x = 2;  a.y = 2;  a.z = -1; a.w = 1; a.color = white;
+    a.nx = 0; a.ny = 0; a.nz = -1; a.wx = 2; a.wy = 2; a.wz = -1;
+    b.x = 18; b.y = 2;  b.z = -1; b.w = 1; b.color = white;
+    b.nx = 0; b.ny = 0; b.nz = -1; b.wx = 18; b.wy = 2; b.wz = -1;
+    c.x = 2;  c.y = 18; c.z = -1; c.w = 1; c.color = white;
+    c.nx = 0; c.ny = 0; c.nz = -1; c.wx = 2; c.wy = 18; c.wz = -1;
+
+    FrameBuffer fbUnlit(24, 24);
+    FrameBuffer fbAway(24, 24);
+    FrameBuffer fbToward(24, 24);
+    Rasterizer rzU{fbUnlit}, rzA{fbAway}, rzT{fbToward};
+
+    rzU.drawTriangleTextured(a, b, c, tex);
+
+    LightingRig rigAway{};
+    rigAway.ambient = 0.15f;
+    rigAway.specularStrength = 0.0f;
+    DirectionalLight dlA{};
+    dlA.direction = Vector3DBase<double>{0, 0, 1};
+    dlA.color = ColorFlt{1.0f, 1.0f, 1.0f};
+    rigAway.directional.push_back(dlA);
+    ShadingContext ctxA{&rigAway, Vector3DBase<double>{0, 0, -5}};
+    rzA.drawTriangleTextured(a, b, c, tex, &ctxA);
+
+    LightingRig rigToward = rigAway;
+    rigToward.directional.clear();
+    DirectionalLight dlT{};
+    dlT.direction = Vector3DBase<double>{0, 0, -1};
+    dlT.color = ColorFlt{1.0f, 1.0f, 1.0f};
+    rigToward.directional.push_back(dlT);
+    ShadingContext ctxT{&rigToward, Vector3DBase<double>{0, 0, -5}};
+    rzT.drawTriangleTextured(a, b, c, tex, &ctxT);
+
+    const std::size_t probe = 6 * 24 + 6;
+    EXPECT_EQ(fbUnlit.colorData()[probe], 0xFF808080u);
+    EXPECT_EQ(fbAway.colorData()[probe], 0xFF131313u);
+    EXPECT_EQ(fbToward.colorData()[probe], 0xFF939393u);
 }
 
 int main(int argc, char **argv){

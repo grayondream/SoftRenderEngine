@@ -6,6 +6,7 @@
 #include <system_error>
 #include <thread>
 #include <vector>
+#include <SDL2/SDL.h>
 #include "Application.hpp"
 #include "BufferManager.hpp"
 #include "Environment.hpp"
@@ -109,9 +110,7 @@ void Application::RenderCube(){
     auto model = SGE::Math::translation(m_cube.worldPos.x, m_cube.worldPos.y, m_cube.worldPos.z)
         .mul(SGE::Math::rotationY(m_angle))
         .mul(SGE::Math::rotationX(0.4));
-    auto view = SGE::Math::lookAt(Vector3DBase<double>{0, 2, -6},
-                                  Vector3DBase<double>{0, 0, 0},
-                                  Vector3DBase<double>{0, 1, 0});
+    auto view = m_camera.viewMatrix();
     auto proj = SGE::Math::perspective(M_PI/3, 800.0/600.0, 0.1, 100.0);
     auto viewProj = proj.mul(view);
     auto nrm = SGE::Math::normalMatrix(model);
@@ -127,7 +126,7 @@ void Application::RenderCube(){
     warm.color = ColorFlt{1.0f, 0.95f, 0.85f};
     warm.range = 12.0;
     rig.point.push_back(warm);
-    ShadingContext shading{&rig, Vector3DBase<double>{0, 2, -6}};
+    ShadingContext shading{&rig, m_camera.position};
 
     m_framebuffer.clear(0xFF000000u);
     Rasterizer rz{m_framebuffer};
@@ -149,6 +148,7 @@ std::error_code Application::run(){
 
     m_pwindow->setListener(this);
     const std::chrono::high_resolution_clock::time_point pt = std::chrono::high_resolution_clock::now();
+    auto lastFrameTime = pt;
     int64_t delaTime = 1000;    //ms
     int64_t cycleCount = 0;
     BufferManager::instance()->clear(GenerateColor());
@@ -161,6 +161,23 @@ std::error_code Application::run(){
         }
 
         m_pwindow->processEvent();
+
+        auto frameNow = std::chrono::high_resolution_clock::now();
+        const double frameDt = std::chrono::duration<double>(frameNow - lastFrameTime).count();
+        lastFrameTime = frameNow;
+
+        int kbCount = 0;
+        const Uint8 *kb = SDL_GetKeyboardState(&kbCount);
+        SGE::Render::InputState in{};
+        if(kb && kbCount > 0){
+            in.w = kb[SDL_SCANCODE_W] != 0;      in.s = kb[SDL_SCANCODE_S] != 0;
+            in.a = kb[SDL_SCANCODE_A] != 0;      in.d = kb[SDL_SCANCODE_D] != 0;
+            in.r = kb[SDL_SCANCODE_R] != 0;      in.f = kb[SDL_SCANCODE_F] != 0;
+            in.left = kb[SDL_SCANCODE_LEFT] != 0;   in.right = kb[SDL_SCANCODE_RIGHT] != 0;
+            in.up = kb[SDL_SCANCODE_UP] != 0;       in.down = kb[SDL_SCANCODE_DOWN] != 0;
+        }
+        SGE::Render::update(m_camera, in, frameDt);
+
         RenderCube();
         m_pwindow->show();
         //std::this_thread::sleep_for(std::chrono::milliseconds(500));

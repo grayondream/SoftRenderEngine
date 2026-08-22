@@ -7,6 +7,7 @@
 #include "Render/FrameBuffer.hpp"
 #include "Render/GeoObject/Object4D.hpp"
 #include "Render/Texture.hpp"
+#include "Render/Camera.hpp"
 
 struct ApplicationParam{
     EnvironmentParam env{};
@@ -29,4 +30,5 @@ private:
     Object4D m_cube{};
     Texture m_checker{};
     double m_angle{0.0};
+    SGE::Render::Camera m_camera{};
 };

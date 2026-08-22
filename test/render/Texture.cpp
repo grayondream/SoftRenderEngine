@@ -52,6 +52,14 @@ TEST(TextureTest, WrapClamp){
     EXPECT_EQ(t.sample( 1.25, 1.25, TextureFilter::Nearest, TextureWrap::Clamp), kWhite);
 }
 
+TEST(TextureTest, BilinearRepeatAcrossSeam){
+    const uint32_t px[4] = {kRed, kGreen, kBlue, kWhite};
+    Texture t(2, 2, px);
+
+    EXPECT_EQ(t.sample(-0.125, 0.25, TextureFilter::Bilinear, TextureWrap::Repeat), 0xFF40BF00u);
+    EXPECT_EQ(t.sample( 1.125, 0.25, TextureFilter::Bilinear, TextureWrap::Repeat), 0xFFBF4000u);
+}
+
 TEST(TextureTest, BilinearExactAtTexelCenter){
     const uint32_t px[4] = {kRed, kGreen, kBlue, kWhite};
     Texture t(2, 2, px);

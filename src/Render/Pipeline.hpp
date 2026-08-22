@@ -3,6 +3,7 @@
 #include "Rasterizer.hpp"
 #include "GeoObject/Object4D.hpp"
 #include "../math/Matrix/DynamicMatrix4D.hpp"
+#include "../math/Matrix/DynamicMatrix3D.hpp"
 
 namespace Pipeline{
 
@@ -13,7 +14,9 @@ struct ScreenTriangle{
 bool isBackFacing(const ScreenVertex &a, const ScreenVertex &b, const ScreenVertex &c);
 std::vector<ScreenTriangle> clipNearPlane(const ScreenVertex (&tri)[3]);
 std::vector<ScreenTriangle> projectObject(const Object4D &obj,
-                                          const Matrix4DBase<double> &mvp,
+                                          const Matrix4DBase<double> &model,
+                                          const Matrix4DBase<double> &viewProj,
+                                          const Matrix3DBase<double> &normalMat,
                                           std::size_t screenW, std::size_t screenH);
 
 }

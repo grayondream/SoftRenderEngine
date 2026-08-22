@@ -109,7 +109,7 @@ void Application::RenderCube(){
 
     m_framebuffer.clear(0xFF000000u);
     Rasterizer rz{m_framebuffer};
-    for(auto &t : Pipeline::projectObject(m_cube, mvp, 800, 600)){
+    for(auto &t : Pipeline::projectObject(m_cube, model, mvp, SGE::Math::normalMatrix(model), 800, 600)){
         rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], m_checker);
     }
 

@@ -23,6 +23,12 @@ ScreenVertex LerpClip(const ScreenVertex &a, const ScreenVertex &b, double t){
     r.w = static_cast<float>(a.w + (b.w - a.w) * t);
     r.u = static_cast<float>(a.u + (b.u - a.u) * t);
     r.v = static_cast<float>(a.v + (b.v - a.v) * t);
+    r.nx = a.nx + (b.nx - a.nx) * t;
+    r.ny = a.ny + (b.ny - a.ny) * t;
+    r.nz = a.nz + (b.nz - a.nz) * t;
+    r.wx = a.wx + (b.wx - a.wx) * t;
+    r.wy = a.wy + (b.wy - a.wy) * t;
+    r.wz = a.wz + (b.wz - a.wz) * t;
     r.color = a.color;
     return r;
 }
@@ -65,7 +71,9 @@ std::vector<ScreenTriangle> clipNearPlane(const ScreenVertex (&tri)[3]){
 }
 
 std::vector<ScreenTriangle> projectObject(const Object4D &obj,
-                                          const Matrix4DBase<double> &mvp,
+                                          const Matrix4DBase<double> &model,
+                                          const Matrix4DBase<double> &viewProj,
+                                          const Matrix3DBase<double> &normalMat,
                                           std::size_t screenW, std::size_t screenH){
     std::vector<ScreenTriangle> result{};
     result.reserve(obj.numPolys * 2);
@@ -75,16 +83,34 @@ std::vector<ScreenTriangle> projectObject(const Object4D &obj,
         ScreenVertex sv[3]{};
         bool skip = false;
         for(int i = 0; i < 3; i++){
-            auto clip = mvp.mul(poly.vlist[i]);   // w=1 points expected
+            auto world = model.mul(poly.vlist[i]);
+            auto clip = viewProj.mul(world);
             sv[i].x = clip.x;
             sv[i].y = clip.y;
             sv[i].z = static_cast<float>(clip.z);
             sv[i].w = static_cast<float>(clip.w);
-            sv[i].color = poly.color;
             sv[i].u = static_cast<float>(poly.uvlist[i].u);
             sv[i].v = static_cast<float>(poly.uvlist[i].v);
-            if(clip.w < 1e-6 && clip.z >= -clip.w){   // behind eye without valid w
+            sv[i].color = poly.color;
+            if(clip.w < 1e-6 && clip.z >= -clip.w){
                 skip = true;
+            }
+
+            sv[i].wx = world.x;
+            sv[i].wy = world.y;
+            sv[i].wz = world.z;
+
+            const auto &nl = poly.nlist[i];
+            const double nxRaw = normalMat[0][0][0]*nl.x + normalMat[0][0][1]*nl.y + normalMat[0][0][2]*nl.z;
+            const double nyRaw = normalMat[0][1][0]*nl.x + normalMat[0][1][1]*nl.y + normalMat[0][1][2]*nl.z;
+            const double nzRaw = normalMat[0][2][0]*nl.x + normalMat[0][2][1]*nl.y + normalMat[0][2][2]*nl.z;
+            const double len = std::sqrt(nxRaw*nxRaw + nyRaw*nyRaw + nzRaw*nzRaw);
+            if(len > 1e-12){
+                sv[i].nx = nxRaw / len;
+                sv[i].ny = nyRaw / len;
+                sv[i].nz = nzRaw / len;
+            } else {
+                sv[i].nx = 0; sv[i].ny = 0; sv[i].nz = 0;
             }
         }
         if(skip) continue;

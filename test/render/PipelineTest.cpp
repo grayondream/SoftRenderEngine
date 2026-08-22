@@ -3,6 +3,19 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+namespace{
+Matrix4DBase<double> IdentityModel(){
+    return SGE::Math::translation(0.0, 0.0, 0.0);
+}
+Matrix3DBase<double> IdentityNormal(){
+    Matrix3DBase<double> m(1,3,3);
+    for(int r = 0; r < 3; r++)
+        for(int c = 0; c < 3; c++)
+            m[0][r][c] = (r == c) ? 1.0 : 0.0;
+    return m;
+}
+}
+
 TEST(PipelineBackfaceTest, SignConvention){
     // Derived numerically end-to-end (lookAt + perspective + y-flip viewport):
     // an OUTWARD-facing (visible) triangle yields NEGATIVE screen-space area,
@@ -90,7 +103,7 @@ TEST(PipelineProjectTest, CubeFrontFaceProjectsCentered){
     Matrix4DBase<double> model = SGE::Math::translation(0.0, 0.0, 0.0);
     auto mvp = proj.mul(view).mul(model);
 
-    auto tris = Pipeline::projectObject(cube, mvp, 800, 600);
+    auto tris = Pipeline::projectObject(cube, IdentityModel(), mvp, IdentityNormal(), 800, 600);
     ASSERT_GE(tris.size(), 0u);
     if(!tris.empty()){
         auto cx = (tris[0].v[0].x + tris[0].v[1].x + tris[0].v[2].x)/3.0;
@@ -119,7 +132,7 @@ TEST(PipelineProjectTest, BehindCameraProducesNothing){
         Vector3DBase<double>{0, 0, 0}, Vector3DBase<double>{0, 0, -1}, Vector3DBase<double>{0, 1, 0});
     Matrix4DBase<double> proj = SGE::Math::perspective(M_PI/3, 1.0, 0.1, 100.0);
     auto mvp = proj.mul(view);
-    auto tris = Pipeline::projectObject(obj, mvp, 800, 600);
+    auto tris = Pipeline::projectObject(obj, IdentityModel(), mvp, IdentityNormal(), 800, 600);
     EXPECT_EQ(tris.size(), 0u);
 }
 
@@ -142,7 +155,7 @@ TEST(PipelineProjectTest, UvPassthrough){
     Matrix4DBase<double> proj = SGE::Math::perspective(M_PI/3, 800.0/600.0, 0.1, 100.0);
     auto mvp = proj.mul(view);
 
-    auto tris = Pipeline::projectObject(obj, mvp, 800, 600);
+    auto tris = Pipeline::projectObject(obj, IdentityModel(), mvp, IdentityNormal(), 800, 600);
     ASSERT_EQ(tris.size(), 1u);
     EXPECT_FLOAT_EQ(tris[0].v[0].u, 0.0f);
     EXPECT_FLOAT_EQ(tris[0].v[0].v, 0.0f);
@@ -150,6 +163,69 @@ TEST(PipelineProjectTest, UvPassthrough){
     EXPECT_FLOAT_EQ(tris[0].v[1].v, 0.5f);
     EXPECT_FLOAT_EQ(tris[0].v[2].u, 1.0f);
     EXPECT_FLOAT_EQ(tris[0].v[2].v, 1.0f);
+}
+
+TEST(PipelineProjectTest, NormalWorldPassthrough){
+    Object4D cube{};
+    cube.numVertices = 4;
+    Point4D v[4] = {{-1,-1,-1,1},{1,-1,-1,1},{1,1,-1,1},{-1,1,-1,1}};
+    for(int i = 0; i < 4; i++) cube.vlistLocal[i] = v[i];
+    cube.numPolys = 1;
+    cube.plist[0].vlist[0] = v[0];
+    cube.plist[0].vlist[1] = v[3];
+    cube.plist[0].vlist[2] = v[2];
+    cube.plist[0].nlist[0] = Vector3DBase<double>{0, 0, -1};
+    cube.plist[0].nlist[1] = Vector3DBase<double>{0, 0, -1};
+    cube.plist[0].nlist[2] = Vector3DBase<double>{0, 0, -1};
+
+    Matrix4DBase<double> view = SGE::Math::lookAt(
+        Vector3DBase<double>{0, 0, -5}, Vector3DBase<double>{0, 0, 0},
+        Vector3DBase<double>{0, 1, 0});
+    Matrix4DBase<double> proj = SGE::Math::perspective(M_PI/3, 800.0/600.0, 0.1, 100.0);
+    auto mvp = proj.mul(view);
+
+    auto tris = Pipeline::projectObject(cube, IdentityModel(), mvp, IdentityNormal(), 800, 600);
+    ASSERT_EQ(tris.size(), 1u);
+    for(int i = 0; i < 3; i++){
+        EXPECT_DOUBLE_EQ(tris[0].v[i].nx, 0.0);
+        EXPECT_DOUBLE_EQ(tris[0].v[i].ny, 0.0);
+        EXPECT_DOUBLE_EQ(tris[0].v[i].nz, -1.0);
+    }
+    EXPECT_DOUBLE_EQ(tris[0].v[0].wx, -1.0);
+    EXPECT_DOUBLE_EQ(tris[0].v[0].wy, -1.0);
+    EXPECT_DOUBLE_EQ(tris[0].v[0].wz, -1.0);
+    EXPECT_DOUBLE_EQ(tris[0].v[2].wx, 1.0);
+    EXPECT_DOUBLE_EQ(tris[0].v[2].wy, 1.0);
+}
+
+TEST(PipelineClipTest, ClipInterpolatesNormalAndWorld){
+    ScreenVertex tri[3]{};
+    tri[0].x = 0; tri[0].y = -4; tri[0].z = -0.5f; tri[0].w = 2;
+    tri[0].nx = 0; tri[0].ny = 0; tri[0].nz = -1;
+    tri[0].wx = 1; tri[0].wy = 2; tri[0].wz = 3;
+    tri[1].x = 4; tri[1].y = -4; tri[1].z = -0.5f; tri[1].w = 2;
+    tri[1].nx = 1; tri[1].ny = 1; tri[1].nz = 1;
+    tri[1].wx = 5; tri[1].wy = 6; tri[1].wz = 7;
+    tri[2].x = 2; tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = -2;
+    tri[2].nx = 0; tri[2].ny = 1; tri[2].nz = 0;
+    tri[2].wx = 9; tri[2].wy = 10; tri[2].wz = 11;
+
+    auto out = Pipeline::clipNearPlane(tri);
+    ASSERT_EQ(out.size(), 2u);
+
+    int foundN = 0, foundW = 0;
+    for(auto &t : out){
+        for(int i = 0; i < 3; i++){
+            if(std::fabs(t.v[i].nx - 0.0) < 1e-9 &&
+               std::fabs(t.v[i].ny - 0.375) < 1e-9 &&
+               std::fabs(t.v[i].nz + 0.625) < 1e-9) foundN++;
+            if(std::fabs(t.v[i].wx - 4.0) < 1e-9 &&
+               std::fabs(t.v[i].wy - 5.0) < 1e-9 &&
+               std::fabs(t.v[i].wz - 6.0) < 1e-9) foundW++;
+        }
+    }
+    EXPECT_EQ(foundN, 1);
+    EXPECT_EQ(foundW, 1);
 }
 
 int main(int argc, char **argv){

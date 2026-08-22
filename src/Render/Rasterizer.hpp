@@ -10,6 +10,12 @@ struct ScreenVertex{
     float w = 1;
     float u = 0;
     float v = 0;
+    double nx = 0;
+    double ny = 0;
+    double nz = 0;
+    double wx = 0;
+    double wy = 0;
+    double wz = 0;
     Color32 color{};
 };
 

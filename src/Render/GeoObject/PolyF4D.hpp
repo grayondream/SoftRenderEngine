@@ -25,6 +25,7 @@ public:
     Point4D vlist[kTriangleVerticesNumber];
     Point4D tvlist[kTriangleVerticesNumber];
     UV2D uvlist[kTriangleVerticesNumber]{};
+    Vector3DBase<double> nlist[kTriangleVerticesNumber]{};
     PolyF4D *next{};
     PolyF4D *prev{};
 };

@@ -82,8 +82,8 @@ void Rasterizer::drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v
             float zNdc = static_cast<float>(
                 (w0*v0.z/v0.w + w1*v1.z/v1.w + w2*v2.z/v2.w) / iw);
 
-            m_fb.setPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
-                          packed, zNdc);
+            m_fb.blendPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
+                            packed, zNdc);
         }
     }
 }
@@ -153,8 +153,8 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 const Vector3DBase<double> Pw{wxp, wyp, wzp};
                 shaded = shade(*shading->rig, albedo, N.normalize(), Pw, shading->viewPos);
             }
-            m_fb.setPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
-                          shaded, zNdc);
+            m_fb.blendPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
+                            shaded, zNdc);
         }
     }
 }

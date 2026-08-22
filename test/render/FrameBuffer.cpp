@@ -48,6 +48,41 @@ TEST(FrameBufferTest, ClearResets){
     }
 }
 
+TEST(FrameBufferBlendTest, OpaqueMatchesSetPixel){
+    FrameBuffer fb(2, 1);
+    fb.setPixel(0, 0, 0xFF00FF00u, -1.0f);
+    fb.blendPixel(1, 0, 0xFF00FF00u, -1.0f);
+    EXPECT_EQ(fb.colorData()[0], fb.colorData()[1]);
+}
+
+TEST(FrameBufferBlendTest, SrcOverHalfAlpha){
+    FrameBuffer fb(1, 1);
+    // 偏差修正：简报原数据 setPixel(-1.0f)+blend(-0.5f) 中 src 比 dst 更远，
+    // 按 setPixel 同款深度规则必被拒（与测试4语义冲突）；黑底改存 +0.5f 使 -0.5f 合法混合
+    fb.setPixel(0, 0, 0xFF000000u, 0.5f);           // 黑底（较远）
+    const uint32_t a = (128u << 24) | 0x808080u;    // α=128 灰128
+    fb.blendPixel(0, 0, a, -0.5f);
+    const uint32_t got = fb.colorData()[0];
+    EXPECT_EQ((got >> 16) & 0xFF, ((128 * 128 + 0 * 127) + 127) / 255);
+    EXPECT_EQ(got >> 24, 0xFFu);
+}
+
+TEST(FrameBufferBlendTest, AlphaZeroSkipsBoth){
+    FrameBuffer fb(1, 1);
+    fb.setPixel(0, 0, 0xFF0000FFu, -1.0f);
+    fb.blendPixel(0, 0, 0u, -0.5f);                 // α=0 且深度更近
+    EXPECT_EQ(fb.colorData()[0], 0xFF0000FFu);
+    EXPECT_FLOAT_EQ(fb.depthData()[0], -1.0f);
+}
+
+TEST(FrameBufferBlendTest, DepthStillGuardsMidAlpha){
+    FrameBuffer fb(1, 1);
+    fb.setPixel(0, 0, 0xFF0000FFu, -1.0f);
+    const uint32_t a = (128u << 24) | 0x808080u;
+    fb.blendPixel(0, 0, a, 0.5f);                   // 更远被拒
+    EXPECT_EQ(fb.colorData()[0], 0xFF0000FFu);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

@@ -6,6 +6,7 @@
 #include "WindowDefine.hpp"
 #include "Render/FrameBuffer.hpp"
 #include "Render/GeoObject/Object4D.hpp"
+#include "Render/Texture.hpp"
 
 struct ApplicationParam{
     EnvironmentParam env{};
@@ -26,5 +27,6 @@ private:
     bool m_bQuit{false};
     FrameBuffer m_framebuffer{800, 600};
     Object4D m_cube{};
+    Texture m_checker{};
     double m_angle{0.0};
 };

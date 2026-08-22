@@ -5,6 +5,7 @@
 #include <ratio>
 #include <system_error>
 #include <thread>
+#include <vector>
 #include "Application.hpp"
 #include "BufferManager.hpp"
 #include "Environment.hpp"
@@ -14,6 +15,7 @@
 #include "WindowBuffer.hpp"
 #include "Render/Rasterizer.hpp"
 #include "Render/Pipeline.hpp"
+#include "Render/Texture.hpp"
 #include "Transform.hpp"
 
 namespace{
@@ -43,7 +45,27 @@ Object4D MakeCube(){
         cube.plist[i].vlist[2] = v[faces[i].c];
         cube.plist[i].color = faces[i].col;
     }
+    for(int i = 0;i < 12;i += 2){
+        cube.plist[i].uvlist[0]   = {0, 0};
+        cube.plist[i].uvlist[1]   = {1, 0};
+        cube.plist[i].uvlist[2]   = {1, 1};
+        cube.plist[i+1].uvlist[0] = {0, 0};
+        cube.plist[i+1].uvlist[1] = {1, 1};
+        cube.plist[i+1].uvlist[2] = {0, 1};
+    }
     return cube;
+}
+
+Texture MakeCheckerTexture(){
+    constexpr std::size_t kSide = 8;
+    std::vector<uint32_t> px(kSide * kSide);
+    for(std::size_t y = 0; y < kSide; y++){
+        for(std::size_t x = 0; x < kSide; x++){
+            px[y * kSide + x] = (((x >> 1) + (y >> 1)) % 2 == 0)
+                              ? 0xFFFFFFFFu : 0xFF202020u;
+        }
+    }
+    return Texture(kSide, kSide, px.data());
 }
 
 }
@@ -59,6 +81,7 @@ std::error_code Application::initalize(const ApplicationParam &param){
     }
 
     m_cube = MakeCube();
+    m_checker = MakeCheckerTexture();
     return {};
 }
 
@@ -87,7 +110,7 @@ void Application::RenderCube(){
     m_framebuffer.clear(0xFF000000u);
     Rasterizer rz{m_framebuffer};
     for(auto &t : Pipeline::projectObject(m_cube, mvp, 800, 600)){
-        rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+        rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], m_checker);
     }
 
     if(auto buf = BufferManager::instance()->getBuffer()){

@@ -189,6 +189,32 @@ TEST(RasterTexturedTest, QuadDiagonalUvContinuity){
     }
 }
 
+TEST(RasterTexturedTest, SemiTransparentOverlay){
+    FrameBuffer fb(4, 1);
+    Rasterizer rz{fb};
+
+    // 底层红：plot 是 Rasterizer 私有成员（简报草图不可编译），
+    // 改用 FrameBuffer::setPixel 直接覆写；存深度 0.0f 使 z=-1 的贴图片段通过深度守卫
+    fb.setPixel(1, 0, 0xFFFF0000u, 0.0f);
+
+    uint32_t px[1] = {(100u << 24) | (0u << 16) | (255u << 8) | 0u};   // 绿 α=100
+    Texture tex(1, 1, px);
+
+    ScreenVertex v{}, w{};
+    v.x = 0; v.y = 0; v.z = -1; v.w = 1; v.u = 0; v.v = 0;
+    w.x = 4; w.y = 1; w.z = -1; w.w = 1; w.u = 1; w.v = 0;
+    ScreenVertex u{}; u.x = 0; u.y = 1; u.z = -1; u.w = 1; u.u = 0; u.v = 1;
+    rz.drawTriangleTextured(v, w, u, tex, nullptr,
+                            TextureFilter::Nearest, TextureWrap::Clamp);
+
+    const uint32_t got = fb.colorData()[1];
+    // 绿通道：(255*100+0*155+127)/255 = 100（整数截断）
+    EXPECT_EQ((got >> 8) & 0xFF, (255u * 100u + 0u * 155u + 127u) / 255u);
+    // 红通道偏差修正：src-over 为 (0*100+255*155+127)/255 = 155，并非简报所写 0
+    // （α=100 不触发 α==255 覆写分支，探针实测 got=0xFF9B6400 与本推导逐位一致）
+    EXPECT_EQ((got >> 16) & 0xFF, (0u * 100u + 255u * 155u + 127u) / 255u);
+}
+
 TEST(RasterLitTest, LitVsUnlitGradient){
     uint32_t gray[1] = {0xFF808080u};
     Texture tex(1, 1, gray);

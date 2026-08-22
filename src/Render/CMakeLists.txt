@@ -5,6 +5,7 @@ set(SGE_RENDER_SRC_FILES
     ${SGE_RENDER_DIR}/Texture.cpp
     ${SGE_RENDER_DIR}/Light.cpp
     ${SGE_RENDER_DIR}/Camera.cpp
+    ${SGE_RENDER_DIR}/ObjLoader.cpp
 )
 
 aux_source_directory(${SGE_RENDER_GEOOBJECT_DIR} GEMO_SRC_FILES)

@@ -79,6 +79,8 @@ std::vector<ScreenTriangle> projectObject(const Object4D &obj,
             sv[i].z = static_cast<float>(clip.z);
             sv[i].w = static_cast<float>(clip.w);
             sv[i].color = poly.color;
+            sv[i].u = static_cast<float>(poly.uvlist[i].u);
+            sv[i].v = static_cast<float>(poly.uvlist[i].v);
             if(clip.w < 1e-6 && clip.z >= -clip.w){   // behind eye without valid w
                 skip = true;
             }

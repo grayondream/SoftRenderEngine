@@ -97,6 +97,35 @@ TEST(PipelineProjectTest, BehindCameraProducesNothing){
     EXPECT_EQ(tris.size(), 0u);
 }
 
+TEST(PipelineProjectTest, UvPassthrough){
+    Object4D obj{};
+    obj.numVertices = 4;
+    Point4D v[4] = {{-1,-1,-1,1},{1,-1,-1,1},{1,1,-1,1},{-1,1,-1,1}};
+    for(int i = 0; i < 4; i++) obj.vlistLocal[i] = v[i];
+    obj.numPolys = 1;
+    obj.plist[0].vlist[0] = v[0];
+    obj.plist[0].vlist[1] = v[3];
+    obj.plist[0].vlist[2] = v[2];
+    obj.plist[0].uvlist[0] = {0.0, 0.0};
+    obj.plist[0].uvlist[1] = {0.25, 0.5};
+    obj.plist[0].uvlist[2] = {1.0, 1.0};
+
+    Matrix4DBase<double> view = SGE::Math::lookAt(
+        Vector3DBase<double>{0, 0, -5}, Vector3DBase<double>{0, 0, 0},
+        Vector3DBase<double>{0, 1, 0});
+    Matrix4DBase<double> proj = SGE::Math::perspective(M_PI/3, 800.0/600.0, 0.1, 100.0);
+    auto mvp = proj.mul(view);
+
+    auto tris = Pipeline::projectObject(obj, mvp, 800, 600);
+    ASSERT_EQ(tris.size(), 1u);
+    EXPECT_FLOAT_EQ(tris[0].v[0].u, 0.0f);
+    EXPECT_FLOAT_EQ(tris[0].v[0].v, 0.0f);
+    EXPECT_FLOAT_EQ(tris[0].v[1].u, 0.25f);
+    EXPECT_FLOAT_EQ(tris[0].v[1].v, 0.5f);
+    EXPECT_FLOAT_EQ(tris[0].v[2].u, 1.0f);
+    EXPECT_FLOAT_EQ(tris[0].v[2].v, 1.0f);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

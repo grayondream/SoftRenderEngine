@@ -7,6 +7,8 @@ struct ScreenVertex{
     double y = 0;
     float z = 0;
     float w = 1;
+    float u = 0;
+    float v = 0;
     Color32 color{};
 };
 

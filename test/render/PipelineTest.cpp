@@ -31,9 +31,35 @@ TEST(PipelineClipTest, OneVertexBehindSplitsIntoTwo){
     ScreenVertex tri[3]{};
     tri[0].x = 0; tri[0].y = -4; tri[0].z = -0.5f; tri[0].w = 2;
     tri[1].x = 4; tri[1].y = -4; tri[1].z = -0.5f; tri[1].w = 2;
-    tri[2].x = 2; tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = -2;  // z + w < 0: behind near plane
+    tri[2].x = 2;   tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = -2;  // z + w < 0: behind near plane
     auto out = Pipeline::clipNearPlane(tri);
     ASSERT_EQ(out.size(), 2u);
+}
+
+TEST(PipelineClipTest, ClipInterpolatesUv){
+    ScreenVertex tri[3]{};
+    tri[0].x = 0; tri[0].y = -4; tri[0].z = -0.5f; tri[0].w = 2;
+    tri[0].u = 0.0f; tri[0].v = 0.0f;
+    tri[1].x = 4; tri[1].y = -4; tri[1].z = -0.5f; tri[1].w = 2;
+    tri[1].u = 1.0f; tri[1].v = 0.0f;
+    tri[2].x = 2; tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = -2;
+    tri[2].u = 0.0f; tri[2].v = 1.0f;
+
+    auto out = Pipeline::clipNearPlane(tri);
+    ASSERT_EQ(out.size(), 2u);
+
+    // 边(1->2)交点：t = 1.5/(1.5+2.5) = 0.375 -> uv=(0.625, 0.375)
+    // 边(2->0)交点：t = 2.5/(2.5+1.5) = 0.625 -> uv=(0.0, 0.375)
+    int foundA = 0, foundB = 0;
+    for(auto &t : out){
+        for(int i = 0; i < 3; i++){
+            if(std::fabs(t.v[i].u - 0.625f) < 1e-6f && std::fabs(t.v[i].v - 0.375f) < 1e-6f) foundA++;
+            if(std::fabs(t.v[i].u) < 1e-6f && std::fabs(t.v[i].v - 0.375f) < 1e-6f) foundB++;
+        }
+    }
+    // I12 是扇形三角化中两输出三角形共享的顶点，故计 2 次
+    EXPECT_EQ(foundA, 2);
+    EXPECT_EQ(foundB, 1);
 }
 
 TEST(PipelineClipTest, FullyBehindDropped){

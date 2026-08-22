@@ -21,6 +21,8 @@ ScreenVertex LerpClip(const ScreenVertex &a, const ScreenVertex &b, double t){
     r.y = a.y + (b.y - a.y) * t;
     r.z = static_cast<float>(a.z + (b.z - a.z) * t);
     r.w = static_cast<float>(a.w + (b.w - a.w) * t);
+    r.u = static_cast<float>(a.u + (b.u - a.u) * t);
+    r.v = static_cast<float>(a.v + (b.v - a.v) * t);
     r.color = a.color;
     return r;
 }

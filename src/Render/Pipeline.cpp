@@ -11,10 +11,6 @@ bool isBackFacing(const ScreenVertex &a, const ScreenVertex &b, const ScreenVert
 }
 
 namespace{
-double NearDistance(const ScreenVertex &v){
-    return v.z + v.w;   // clip-space near plane: z + w = 0
-}
-
 ScreenVertex LerpClip(const ScreenVertex &a, const ScreenVertex &b, double t){
     ScreenVertex r{};
     r.x = a.x + (b.x - a.x) * t;
@@ -34,33 +30,40 @@ ScreenVertex LerpClip(const ScreenVertex &a, const ScreenVertex &b, double t){
 }
 }
 
-std::vector<ScreenTriangle> clipNearPlane(const ScreenVertex (&tri)[3]){
-    int inCount = 0;
-    for(int i = 0; i < 3; i++){
-        if(NearDistance(tri[i]) >= 0) inCount++;
-    }
+namespace{
+struct FrustumPlane{ double a, b, c, d; };
 
-    if(inCount == 3){
-        return { ScreenTriangle{tri[0], tri[1], tri[2]} };
-    }
-    if(inCount == 0){
-        return {};
-    }
+double PlaneDist(const FrustumPlane &pl, const ScreenVertex &v){
+    return pl.a*v.x + pl.b*v.y + pl.c*v.z + pl.d*v.w;
+}
 
-    // Sutherland-Hodgman against the single plane z+w=0
-    std::vector<ScreenVertex> poly{};
-    for(int i = 0; i < 3; i++){
-        const ScreenVertex &cur = tri[i];
-        const ScreenVertex &nxt = tri[(i+1)%3];
-        double dCur = NearDistance(cur);
-        double dNxt = NearDistance(nxt);
-        bool curIn = dCur >= 0;
-        bool nxtIn = dNxt >= 0;
-        if(curIn) poly.push_back(cur);
+std::vector<ScreenVertex> ClipPolygon(const std::vector<ScreenVertex> &poly,
+                                      const FrustumPlane &pl){
+    std::vector<ScreenVertex> out{};
+    for(std::size_t i = 0; i < poly.size(); i++){
+        const ScreenVertex &cur = poly[i];
+        const ScreenVertex &nxt = poly[(i+1)%poly.size()];
+        const double dCur = PlaneDist(pl, cur);
+        const double dNxt = PlaneDist(pl, nxt);
+        const bool curIn = dCur >= 0;
+        const bool nxtIn = dNxt >= 0;
+        if(curIn) out.push_back(cur);
         if(curIn != nxtIn){
-            double t = dCur / (dCur - dNxt);
-            poly.push_back(LerpClip(cur, nxt, t));
+            const double t = dCur / (dCur - dNxt);
+            out.push_back(LerpClip(cur, nxt, t));
         }
+    }
+    return out;
+}
+}
+
+std::vector<ScreenTriangle> clipTriangle(const ScreenVertex (&tri)[3]){
+    static const FrustumPlane kPlanes[6] = {
+        {0,0,1,1}, {0,0,-1,1}, {1,0,0,1}, {-1,0,0,1}, {0,1,0,1}, {0,-1,0,1}};
+    std::vector<ScreenVertex> poly{tri[0], tri[1], tri[2]};
+    for(const auto &pl : kPlanes){
+        if(poly.empty()) break;
+        poly = ClipPolygon(poly, pl);
     }
 
     std::vector<ScreenTriangle> res{};
@@ -115,7 +118,7 @@ std::vector<ScreenTriangle> projectObject(const Object4D &obj,
         }
         if(skip) continue;
 
-        auto clipped = clipNearPlane(sv);
+        auto clipped = clipTriangle(sv);
         for(auto &t : clipped){
             bool ok = true;
             for(int i = 0; i < 3; i++){

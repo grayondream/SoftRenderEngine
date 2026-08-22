@@ -31,56 +31,74 @@ TEST(PipelineBackfaceTest, SignConvention){
     EXPECT_FALSE(Pipeline::isBackFacing(a, c, b));
 }
 
-TEST(PipelineClipTest, FullyInsideUnchanged){
+TEST(PipelineClipTest, FrustumFullyInsideKeepsOne){
     ScreenVertex tri[3]{};
-    tri[0].x = 0;   tri[0].y = -4; tri[0].z = -0.5f; tri[0].w = 2;
-    tri[1].x = 4;   tri[1].y = -4; tri[1].z = -0.5f; tri[1].w = 2;
-    tri[2].x = 2;   tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = 2;
-    auto out = Pipeline::clipNearPlane(tri);
+    tri[0].x = -1;  tri[0].y = -1;   tri[0].z = -0.5f; tri[0].w = 2;
+    tri[1].x = 1;   tri[1].y = -1;   tri[1].z = -0.5f; tri[1].w = 2;
+    tri[2].x = 0;   tri[2].y = 1.5;  tri[2].z = -0.5f; tri[2].w = 2;
+    auto out = Pipeline::clipTriangle(tri);
     ASSERT_EQ(out.size(), 1u);
 }
 
-TEST(PipelineClipTest, OneVertexBehindSplitsIntoTwo){
-    ScreenVertex tri[3]{};
-    tri[0].x = 0; tri[0].y = -4; tri[0].z = -0.5f; tri[0].w = 2;
-    tri[1].x = 4; tri[1].y = -4; tri[1].z = -0.5f; tri[1].w = 2;
-    tri[2].x = 2;   tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = -2;  // z + w < 0: behind near plane
-    auto out = Pipeline::clipNearPlane(tri);
-    ASSERT_EQ(out.size(), 2u);
-}
-
-TEST(PipelineClipTest, ClipInterpolatesUv){
-    ScreenVertex tri[3]{};
-    tri[0].x = 0; tri[0].y = -4; tri[0].z = -0.5f; tri[0].w = 2;
-    tri[0].u = 0.0f; tri[0].v = 0.0f;
-    tri[1].x = 4; tri[1].y = -4; tri[1].z = -0.5f; tri[1].w = 2;
-    tri[1].u = 1.0f; tri[1].v = 0.0f;
-    tri[2].x = 2; tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = -2;
-    tri[2].u = 0.0f; tri[2].v = 1.0f;
-
-    auto out = Pipeline::clipNearPlane(tri);
-    ASSERT_EQ(out.size(), 2u);
-
-    // 边(1->2)交点：t = 1.5/(1.5+2.5) = 0.375 -> uv=(0.625, 0.375)
-    // 边(2->0)交点：t = 2.5/(2.5+1.5) = 0.625 -> uv=(0.0, 0.375)
-    int foundA = 0, foundB = 0;
-    for(auto &t : out){
-        for(int i = 0; i < 3; i++){
-            if(std::fabs(t.v[i].u - 0.625f) < 1e-6f && std::fabs(t.v[i].v - 0.375f) < 1e-6f) foundA++;
-            if(std::fabs(t.v[i].u) < 1e-6f && std::fabs(t.v[i].v - 0.375f) < 1e-6f) foundB++;
-        }
-    }
-    // I12 是扇形三角化中两输出三角形共享的顶点，故计 2 次
-    EXPECT_EQ(foundA, 2);
-    EXPECT_EQ(foundB, 1);
-}
-
-TEST(PipelineClipTest, FullyBehindDropped){
+TEST(PipelineClipTest, FrustumNearBehindDropped){
     ScreenVertex tri[3]{};
     for(int i = 0; i < 3; i++){
-        tri[i].z = -2.0f; tri[i].w = 0.5f;   // z + w = -1.5 < 0: behind near plane
+        tri[i].z = -2.0f; tri[i].w = 0.5f;
     }
-    auto out = Pipeline::clipNearPlane(tri);
+    auto out = Pipeline::clipTriangle(tri);
+    EXPECT_EQ(out.size(), 0u);
+}
+
+TEST(PipelineClipTest, FrustumOneVertexNearSplits){
+    ScreenVertex tri[3]{};
+    tri[0].x = -0.7; tri[0].y = -1;  tri[0].z = -0.5f; tri[0].w = 2;
+    tri[1].x = 0.7;  tri[1].y = -1;  tri[1].z = -0.5f; tri[1].w = 2;
+    tri[2].x = 0;    tri[2].y = 2;   tri[2].z = -0.5f; tri[2].w = -2;
+    auto out = Pipeline::clipTriangle(tri);
+    ASSERT_EQ(out.size(), 2u);
+}
+
+TEST(PipelineClipTest, FrustumLeftPlaneClips){
+    ScreenVertex tri[3]{};
+    tri[0].x = -3;  tri[0].y = 0;    tri[0].z = -0.5f; tri[0].w = 1;
+    tri[1].x = 1;   tri[1].y = -1.5; tri[1].z = -0.5f; tri[1].w = 2;
+    tri[2].x = 1;   tri[2].y = 1.5;  tri[2].z = -0.5f; tri[2].w = 2;
+    auto out = Pipeline::clipTriangle(tri);
+    ASSERT_EQ(out.size(), 2u);
+}
+
+TEST(PipelineClipTest, FrustumCrossCornerSplits){
+    ScreenVertex tri[3]{};
+    tri[0].x = -2;  tri[0].y = -0.5; tri[0].z = -2; tri[0].w = 1;
+    tri[1].x = 1;   tri[1].y = -1.5; tri[1].z = 1;  tri[1].w = 2;
+    tri[2].x = 1;   tri[2].y = 1.5;  tri[2].z = 1;  tri[2].w = 2;
+
+    auto out = Pipeline::clipTriangle(tri);
+    ASSERT_FALSE(out.empty());
+
+    auto inAll = [](const ScreenVertex &v){
+        const double d[6] = {v.z+v.w, v.w-v.z, v.x+v.w, v.w-v.x, v.y+v.w, v.w-v.y};
+        for(int i = 0; i < 6; i++){
+            if(d[i] < -1e-9) return false;
+        }
+        return true;
+    };
+    std::size_t count = 0;
+    for(auto &t : out){
+        for(int i = 0; i < 3; i++){
+            EXPECT_TRUE(inAll(t.v[i]));
+            count++;
+        }
+    }
+    EXPECT_LE(count, 9u);
+}
+
+TEST(PipelineClipTest, FrustumFarPlaneCulls){
+    ScreenVertex tri[3]{};
+    for(int i = 0; i < 3; i++){
+        tri[i].z = 3.0f; tri[i].w = 1.0f;
+    }
+    auto out = Pipeline::clipTriangle(tri);
     EXPECT_EQ(out.size(), 0u);
 }
 
@@ -198,34 +216,42 @@ TEST(PipelineProjectTest, NormalWorldPassthrough){
     EXPECT_DOUBLE_EQ(tris[0].v[2].wy, 1.0);
 }
 
-TEST(PipelineClipTest, ClipInterpolatesNormalAndWorld){
+TEST(PipelineClipTest, FrustumClipInterpolatesAttributes){
     ScreenVertex tri[3]{};
-    tri[0].x = 0; tri[0].y = -4; tri[0].z = -0.5f; tri[0].w = 2;
+    tri[0].x = -0.7; tri[0].y = -1; tri[0].z = -0.5f; tri[0].w = 2;
+    tri[0].u = 0; tri[0].v = 0;
     tri[0].nx = 0; tri[0].ny = 0; tri[0].nz = -1;
     tri[0].wx = 1; tri[0].wy = 2; tri[0].wz = 3;
-    tri[1].x = 4; tri[1].y = -4; tri[1].z = -0.5f; tri[1].w = 2;
+    tri[1].x = 0.7; tri[1].y = -1; tri[1].z = -0.5f; tri[1].w = 2;
+    tri[1].u = 1; tri[1].v = 0;
     tri[1].nx = 1; tri[1].ny = 1; tri[1].nz = 1;
     tri[1].wx = 5; tri[1].wy = 6; tri[1].wz = 7;
-    tri[2].x = 2; tri[2].y = 4;  tri[2].z = -0.5f; tri[2].w = -2;
+    tri[2].x = 0; tri[2].y = 2; tri[2].z = -0.5f; tri[2].w = -2;
+    tri[2].u = 0; tri[2].v = 1;
     tri[2].nx = 0; tri[2].ny = 1; tri[2].nz = 0;
     tri[2].wx = 9; tri[2].wy = 10; tri[2].wz = 11;
 
-    auto out = Pipeline::clipNearPlane(tri);
+    auto out = Pipeline::clipTriangle(tri);
     ASSERT_EQ(out.size(), 2u);
 
-    int foundN = 0, foundW = 0;
+    int foundA = 0, foundB = 0;
     for(auto &t : out){
         for(int i = 0; i < 3; i++){
-            if(std::fabs(t.v[i].nx - 0.0) < 1e-9 &&
-               std::fabs(t.v[i].ny - 0.375) < 1e-9 &&
-               std::fabs(t.v[i].nz + 0.625) < 1e-9) foundN++;
-            if(std::fabs(t.v[i].wx - 4.0) < 1e-9 &&
-               std::fabs(t.v[i].wy - 5.0) < 1e-9 &&
-               std::fabs(t.v[i].wz - 6.0) < 1e-9) foundW++;
+            const ScreenVertex &v = t.v[i];
+            if(std::fabs(v.u - 0.625) < 1e-9 && std::fabs(v.v - 0.375) < 1e-9 &&
+               std::fabs(v.nx - 0.625) < 1e-9 && std::fabs(v.ny - 1.0) < 1e-9 &&
+               std::fabs(v.nz - 0.625) < 1e-9 &&
+               std::fabs(v.wx - 6.5) < 1e-9 && std::fabs(v.wy - 7.5) < 1e-9 &&
+               std::fabs(v.wz - 8.5) < 1e-9) foundA++;
+            if(std::fabs(v.u) < 1e-9 && std::fabs(v.v - 0.375) < 1e-9 &&
+               std::fabs(v.nx) < 1e-9 && std::fabs(v.ny - 0.375) < 1e-9 &&
+               std::fabs(v.nz + 0.625) < 1e-9 &&
+               std::fabs(v.wx - 4.0) < 1e-9 && std::fabs(v.wy - 5.0) < 1e-9 &&
+               std::fabs(v.wz - 6.0) < 1e-9) foundB++;
         }
     }
-    EXPECT_EQ(foundN, 1);
-    EXPECT_EQ(foundW, 1);
+    EXPECT_EQ(foundA, 2);
+    EXPECT_EQ(foundB, 1);
 }
 
 int main(int argc, char **argv){

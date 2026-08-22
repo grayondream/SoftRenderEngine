@@ -12,7 +12,7 @@ struct ScreenTriangle{
 };
 
 bool isBackFacing(const ScreenVertex &a, const ScreenVertex &b, const ScreenVertex &c);
-std::vector<ScreenTriangle> clipNearPlane(const ScreenVertex (&tri)[3]);
+std::vector<ScreenTriangle> clipTriangle(const ScreenVertex (&tri)[3]);
 std::vector<ScreenTriangle> projectObject(const Object4D &obj,
                                           const Matrix4DBase<double> &model,
                                           const Matrix4DBase<double> &viewProj,

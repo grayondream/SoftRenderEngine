@@ -16,6 +16,7 @@
 #include "Render/Rasterizer.hpp"
 #include "Render/Pipeline.hpp"
 #include "Render/Texture.hpp"
+#include "Render/Light.hpp"
 #include "Transform.hpp"
 
 namespace{
@@ -52,6 +53,13 @@ Object4D MakeCube(){
         cube.plist[i+1].uvlist[0] = {0, 0};
         cube.plist[i+1].uvlist[1] = {1, 1};
         cube.plist[i+1].uvlist[2] = {0, 1};
+    }
+    const Vector3DBase<double> faceNormals[6] = {
+        {0, 0, -1}, {0, 0, 1}, {0, -1, 0}, {0, 1, 0}, {1, 0, 0}, {-1, 0, 0}};
+    for(int i = 0;i < 12;i++){
+        for(int k = 0;k < 3;k++){
+            cube.plist[i].nlist[k] = faceNormals[i / 2];
+        }
     }
     return cube;
 }
@@ -105,12 +113,26 @@ void Application::RenderCube(){
                                   Vector3DBase<double>{0, 0, 0},
                                   Vector3DBase<double>{0, 1, 0});
     auto proj = SGE::Math::perspective(M_PI/3, 800.0/600.0, 0.1, 100.0);
-    auto vp = proj.mul(view);
+    auto viewProj = proj.mul(view);
+    auto nrm = SGE::Math::normalMatrix(model);
+
+    LightingRig rig{};
+    rig.ambient = 0.15f;
+    DirectionalLight key{};
+    key.direction = Vector3DBase<double>{-0.5, 0.8, -1.0};
+    key.color = ColorFlt{1.0f, 1.0f, 1.0f};
+    rig.directional.push_back(key);
+    PointLight warm{};
+    warm.position = Vector3DBase<double>{2.5, 2.5, -4.0};
+    warm.color = ColorFlt{1.0f, 0.95f, 0.85f};
+    warm.range = 12.0;
+    rig.point.push_back(warm);
+    ShadingContext shading{&rig, Vector3DBase<double>{0, 2, -6}};
 
     m_framebuffer.clear(0xFF000000u);
     Rasterizer rz{m_framebuffer};
-    for(auto &t : Pipeline::projectObject(m_cube, model, vp, SGE::Math::normalMatrix(model), 800, 600)){
-        rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], m_checker);
+    for(auto &t : Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600)){
+        rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], m_checker, &shading);
     }
 
     if(auto buf = BufferManager::instance()->getBuffer()){

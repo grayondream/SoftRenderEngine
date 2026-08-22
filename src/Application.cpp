@@ -105,11 +105,11 @@ void Application::RenderCube(){
                                   Vector3DBase<double>{0, 0, 0},
                                   Vector3DBase<double>{0, 1, 0});
     auto proj = SGE::Math::perspective(M_PI/3, 800.0/600.0, 0.1, 100.0);
-    auto mvp = proj.mul(view).mul(model);
+    auto vp = proj.mul(view);
 
     m_framebuffer.clear(0xFF000000u);
     Rasterizer rz{m_framebuffer};
-    for(auto &t : Pipeline::projectObject(m_cube, model, mvp, SGE::Math::normalMatrix(model), 800, 600)){
+    for(auto &t : Pipeline::projectObject(m_cube, model, vp, SGE::Math::normalMatrix(model), 800, 600)){
         rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], m_checker);
     }
 

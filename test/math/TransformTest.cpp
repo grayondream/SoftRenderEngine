@@ -133,6 +133,39 @@ TEST(TransformTest, MVPPipeline){
     EXPECT_TRUE(result.z / result.w > -1.0 && result.z / result.w < 1.0);
 }
 
+TEST(TransformNormalMatrixTest, PureRotationStaysSame){
+    auto model = SGE::Math::translation(0.0, 0.0, 0.0)
+        .mul(SGE::Math::rotationY(0.7))
+        .mul(SGE::Math::rotationX(0.4));
+    auto nm = SGE::Math::normalMatrix(model);
+    for(int r = 0; r < 3; r++){
+        for(int c = 0; c < 3; c++){
+            EXPECT_NEAR(nm[0][r][c], model[0][0][r][c], 1e-9) << r << "," << c;
+        }
+    }
+}
+
+TEST(TransformNormalMatrixTest, NonUniformScale){
+    auto model = SGE::Math::translation(1.0, 2.0, 3.0)
+        .mul(SGE::Math::scale(2.0, 1.0, 1.0));
+    auto nm = SGE::Math::normalMatrix(model);
+    EXPECT_NEAR(nm[0][0][0], 0.5, 1e-9);
+    EXPECT_NEAR(nm[0][1][1], 1.0, 1e-9);
+    EXPECT_NEAR(nm[0][2][2], 1.0, 1e-9);
+    EXPECT_NEAR(nm[0][0][1], 0.0, 1e-9);
+    EXPECT_NEAR(nm[0][1][0], 0.0, 1e-9);
+}
+
+TEST(TransformNormalMatrixTest, SingularFallsBackToIdentity){
+    Matrix4DBase<double> zero(1,1,4,4);
+    zero.fill(0.0);
+    auto nm = SGE::Math::normalMatrix(zero);
+    EXPECT_NEAR(nm[0][0][0], 1.0, 1e-9);
+    EXPECT_NEAR(nm[0][1][1], 1.0, 1e-9);
+    EXPECT_NEAR(nm[0][2][2], 1.0, 1e-9);
+    EXPECT_NEAR(nm[0][0][1], 0.0, 1e-9);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

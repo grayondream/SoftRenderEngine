@@ -123,4 +123,36 @@ Matrix4DBase<T> orthographic(T left, T right, T bottom, T top, T nearVal, T farV
     return m;
 }
 
+template<class T>
+Matrix3DBase<T> normalMatrix(const Matrix4DBase<T> &model){
+    Matrix3DBase<T> m(1,3,3);
+    for(int r = 0; r < 3; r++)
+        for(int c = 0; c < 3; c++)
+            m[0][r][c] = model[0][0][r][c];
+
+    const T c00 =  m[0][1][1]*m[0][2][2] - m[0][1][2]*m[0][2][1];
+    const T c01 = -(m[0][1][0]*m[0][2][2] - m[0][1][2]*m[0][2][0]);
+    const T c02 =  m[0][1][0]*m[0][2][1] - m[0][1][1]*m[0][2][0];
+    const T c10 = -(m[0][0][1]*m[0][2][2] - m[0][0][2]*m[0][2][1]);
+    const T c11 =  m[0][0][0]*m[0][2][2] - m[0][0][2]*m[0][2][0];
+    const T c12 = -(m[0][0][0]*m[0][2][1] - m[0][0][1]*m[0][2][0]);
+    const T c20 =  m[0][0][1]*m[0][1][2] - m[0][0][2]*m[0][1][1];
+    const T c21 = -(m[0][0][0]*m[0][1][2] - m[0][0][2]*m[0][1][0]);
+    const T c22 =  m[0][0][0]*m[0][1][1] - m[0][0][1]*m[0][1][0];
+
+    const T det = m[0][0][0]*c00 + m[0][0][1]*c01 + m[0][0][2]*c02;
+    if(std::fabs(static_cast<double>(det)) < 1e-12){
+        for(int r = 0; r < 3; r++)
+            for(int c = 0; c < 3; c++)
+                m[0][r][c] = (r == c) ? T{1} : T{};
+        return m;
+    }
+
+    Matrix3DBase<T> out(1,3,3);
+    out[0][0][0] = c00 / det; out[0][0][1] = c01 / det; out[0][0][2] = c02 / det;
+    out[0][1][0] = c10 / det; out[0][1][1] = c11 / det; out[0][1][2] = c12 / det;
+    out[0][2][0] = c20 / det; out[0][2][1] = c21 / det; out[0][2][2] = c22 / det;
+    return out;
+}
+
 } // namespace SGE::Math

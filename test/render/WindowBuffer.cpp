@@ -61,6 +61,36 @@ TEST(BufferManagerTest, SwapTogglesPrimary){
     EXPECT_NE(before.get(), after.get());
 }
 
+TEST(WindowBufferTest, BlitFrameRGBAOrder){
+    const Size sz{2, 2};
+    WindowBuffer<uint8_t> buf(sz, RenderFormat::RGBA8888);
+    std::vector<uint32_t> frame(4, 0);
+    const uint32_t px = (4u << 24) | (1u << 16) | (2u << 8) | 3u;
+    std::fill(frame.begin(), frame.end(), px);
+    EXPECT_TRUE(buf.blitFrame(frame.data(), sz.width, sz.height));
+    for(auto i = 0; i < sz.height * sz.width; i++){
+        EXPECT_EQ(buf.buffer()[i*4 + 0], 4) << "px=" << i;
+        EXPECT_EQ(buf.buffer()[i*4 + 1], 3) << "px=" << i;
+        EXPECT_EQ(buf.buffer()[i*4 + 2], 2) << "px=" << i;
+        EXPECT_EQ(buf.buffer()[i*4 + 3], 1) << "px=" << i;
+    }
+}
+
+TEST(WindowBufferTest, BlitFrameBGRAOrder){
+    const Size sz{2, 2};
+    WindowBuffer<uint8_t> buf(sz, RenderFormat::BGRA8888);
+    std::vector<uint32_t> frame(4, 0);
+    const uint32_t px = (4u << 24) | (1u << 16) | (2u << 8) | 3u;
+    std::fill(frame.begin(), frame.end(), px);
+    EXPECT_TRUE(buf.blitFrame(frame.data(), sz.width, sz.height));
+    for(auto i = 0; i < sz.height * sz.width; i++){
+        EXPECT_EQ(buf.buffer()[i*4 + 0], 4) << "px=" << i;
+        EXPECT_EQ(buf.buffer()[i*4 + 1], 1) << "px=" << i;
+        EXPECT_EQ(buf.buffer()[i*4 + 2], 2) << "px=" << i;
+        EXPECT_EQ(buf.buffer()[i*4 + 3], 3) << "px=" << i;
+    }
+}
+
 int main(int argc, char **argv){
     LOGI("Start window buffer test");
     testing::InitGoogleTest(&argc, argv);

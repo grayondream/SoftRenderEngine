@@ -1,4 +1,6 @@
 #include <chrono>
+#include <cmath>
+#include <cstdio>
 #include <memory>
 #include <ratio>
 #include <system_error>
@@ -10,6 +12,41 @@
 #include "Window.hpp"
 #include "Log.hpp"
 #include "WindowBuffer.hpp"
+#include "Render/Rasterizer.hpp"
+#include "Render/Pipeline.hpp"
+#include "Transform.hpp"
+
+namespace{
+
+Object4D MakeCube(){
+    Object4D cube{};
+    std::snprintf(cube.name, sizeof(cube.name), "%s", "cube");
+    double s = 1.0;
+    Point4D v[8] = {{-s,-s,-s,1},{s,-s,-s,1},{s,s,-s,1},{-s,s,-s,1},
+                    {-s,-s, s,1},{s,-s, s,1},{s,s, s,1},{-s,s, s,1}};
+    for(int i = 0;i < 8;i++){ cube.vlistLocal[i] = v[i]; }
+    cube.numVertices = 8;
+
+    struct Face{ int a,b,c; Color32 col; };
+    const Face faces[12] = {
+        {0,3,2, {0,255,0,255}}, {0,2,1, {0,255,0,255}},
+        {4,5,6, {255,0,0,255}}, {4,6,7, {255,0,0,255}},
+        {0,1,5, {0,0,255,255}}, {0,5,4, {0,0,255,255}},
+        {3,7,6, {255,255,0,255}},{3,6,2, {255,255,0,255}},
+        {1,2,6, {255,0,255,255}},{1,6,5, {255,0,255,255}},
+        {0,4,7, {0,255,255,255}},{0,7,3, {0,255,255,255}},
+    };
+    cube.numPolys = 12;
+    for(int i = 0;i < 12;i++){
+        cube.plist[i].vlist[0] = v[faces[i].a];
+        cube.plist[i].vlist[1] = v[faces[i].b];
+        cube.plist[i].vlist[2] = v[faces[i].c];
+        cube.plist[i].color = faces[i].col;
+    }
+    return cube;
+}
+
+}
 
 std::error_code Application::initalize(const ApplicationParam &param){
     if(auto err = Environment::instance()->initalize(param.env); err){
@@ -17,7 +54,12 @@ std::error_code Application::initalize(const ApplicationParam &param){
     }
 
     m_pwindow = std::make_shared<Window>(param.env.pos, param.env.format);
-    return m_pwindow->init();
+    if(auto err = m_pwindow->init(); err){
+        return err;
+    }
+
+    m_cube = MakeCube();
+    return {};
 }
 
  void Application::operator()(const WindowEventType t){
@@ -28,6 +70,29 @@ std::error_code Application::initalize(const ApplicationParam &param){
         default:
             //LOGI("Not handle {}", static_cast<int>(t));
             break;
+    }
+}
+
+void Application::RenderCube(){
+    m_angle += 0.02;
+    auto model = SGE::Math::translation(m_cube.worldPos.x, m_cube.worldPos.y, m_cube.worldPos.z)
+        .mul(SGE::Math::rotationY(m_angle))
+        .mul(SGE::Math::rotationX(0.4));
+    auto view = SGE::Math::lookAt(Vector3DBase<double>{0, 2, -6},
+                                  Vector3DBase<double>{0, 0, 0},
+                                  Vector3DBase<double>{0, 1, 0});
+    auto proj = SGE::Math::perspective(M_PI/3, 800.0/600.0, 0.1, 100.0);
+    auto mvp = proj.mul(view).mul(model);
+
+    m_framebuffer.clear(0xFF000000u);
+    Rasterizer rz{m_framebuffer};
+    for(auto &t : Pipeline::projectObject(m_cube, mvp, 800, 600)){
+        rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+    }
+
+    if(auto buf = BufferManager::instance()->getBuffer()){
+        buf->clear({0,0,0,255});
+        buf->blitFrame(m_framebuffer.colorData(), m_framebuffer.width(), m_framebuffer.height());
     }
 }
 
@@ -51,6 +116,7 @@ std::error_code Application::run(){
         }
 
         m_pwindow->processEvent();
+        RenderCube();
         m_pwindow->show();
         //std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }

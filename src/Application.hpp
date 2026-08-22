@@ -4,6 +4,8 @@
 #include "Environment.hpp"
 #include "Window.hpp"
 #include "WindowDefine.hpp"
+#include "Render/FrameBuffer.hpp"
+#include "Render/GeoObject/Object4D.hpp"
 
 struct ApplicationParam{
     EnvironmentParam env{};
@@ -18,6 +20,11 @@ public:
     virtual void operator()(const WindowEventType t) override final;
 
 private:
+    void RenderCube();
+
     std::shared_ptr<Window> m_pwindow{};
     bool m_bQuit{false};
+    FrameBuffer m_framebuffer{800, 600};
+    Object4D m_cube{};
+    double m_angle{0.0};
 };

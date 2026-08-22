@@ -103,6 +103,38 @@ public:
     T* buffer(){
         return this->m_buffer.data();
     }
+
+    bool blitFrame(const uint32_t *src, const std::size_t w, const std::size_t h){
+        if(locked()){
+            return false;
+        }
+
+        lock();
+        uint8_t *dst = this->m_buffer.data();
+        const auto bytes = FetchPackBytesAccordingFormat(this->m_format);
+        const bool bgra = (this->m_format == RenderFormat::BGRA8888);
+        const auto cw = std::min(w, this->m_size.width);
+        const auto ch = std::min(h, this->m_size.height);
+        for(std::size_t i = 0;i < ch;i ++){
+            for(std::size_t j = 0;j < cw;j ++){
+                uint32_t v = src[i * w + j];
+                auto base = i * this->m_pitch + j * bytes;
+                dst[base + 0] = static_cast<uint8_t>((v >> 24) & 0xFF);
+                if(bgra){
+                    dst[base + 1] = static_cast<uint8_t>((v >> 16) & 0xFF);
+                    dst[base + 2] = static_cast<uint8_t>((v >> 8) & 0xFF);
+                    dst[base + 3] = static_cast<uint8_t>(v & 0xFF);
+                }else{
+                    dst[base + 1] = static_cast<uint8_t>(v & 0xFF);
+                    dst[base + 2] = static_cast<uint8_t>((v >> 8) & 0xFF);
+                    dst[base + 3] = static_cast<uint8_t>((v >> 16) & 0xFF);
+                }
+            }
+        }
+
+        unlock();
+        return true;
+    }
 public:
     bool m_locked{};
     RenderFormat m_format{};

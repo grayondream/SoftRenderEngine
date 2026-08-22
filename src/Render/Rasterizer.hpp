@@ -1,5 +1,6 @@
 #pragma once
 #include "FrameBuffer.hpp"
+#include "Texture.hpp"
 #include "GeoObject/Color.hpp"
 
 struct ScreenVertex{
@@ -26,6 +27,10 @@ public:
     void drawLine(const ScreenVertex &a, const ScreenVertex &b);
     void drawTriangleWireframe(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2);
     void drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2);
+    void drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex &v1,
+                              const ScreenVertex &v2, const Texture &tex,
+                              TextureFilter filter = TextureFilter::Bilinear,
+                              TextureWrap wrap = TextureWrap::Repeat);
 
 private:
     void plot(int x, int y, const Color32 &c);

@@ -1,4 +1,6 @@
 #include "Rasterizer.hpp"
+#include "Texture.hpp"
+#include <cmath>
 #include <gtest/gtest.h>
 
 namespace{
@@ -123,6 +125,67 @@ TEST(RasterSolidTest, FartherTriangleFullyRejected){
     magenta = PackBGRA(Color32{255,0,255,255});
     EXPECT_EQ(countPixels(fb, magenta), 0);
     EXPECT_TRUE(hasPixel(fb, 3, 3, packRed()));
+}
+
+TEST(RasterTexturedTest, PerspectiveCorrectNotAffine){
+    FrameBuffer fb(24, 24);
+    Rasterizer rz{fb};
+
+    uint32_t px[8];
+    for(int j = 0; j < 8; j++){
+        px[j] = 0xFF000000u | (static_cast<uint32_t>(j * 30) << 16);
+    }
+    Texture tex(8, 1, px);
+
+    Color32 white{255, 255, 255, 255};
+    ScreenVertex a{}, b{}, c{};
+    a.x = 2;  a.y = 2;  a.w = 2; a.u = 0; a.z = -2; a.color = white;
+    b.x = 18; b.y = 2;  b.w = 2; b.u = 1; b.z = -2; b.color = white;
+    c.x = 2;  c.y = 18; c.w = 1; c.u = 0; c.z = -1; c.color = white;
+
+    rz.drawTriangleTextured(a, b, c, tex, TextureFilter::Nearest, TextureWrap::Clamp);
+
+    // 像素(6,6)采样点(6.5,6.5)：lambda=(0.4375, 0.28125, 0.28125)
+    // 透视校正 u = (0.28125/2)/(0.4375/2 + 0.28125/2 + 0.28125/1) = 9/41 ≈ 0.2195 -> texel1 -> r=30
+    // 仿射插值 u = 0.28125 -> texel2 -> r=60（错误实现会得此值）
+    // 简报原常数 0xFF001E00 把 0x1E 写在绿色字节，与其构造行 (j*30)<<16 及注释 r=30 矛盾，
+    // 按 texel1 原始存储值修正为 0xFF1E0000
+    const uint32_t got = fb.colorData()[6 * 24 + 6];
+    EXPECT_EQ(got, 0xFF1E0000u);
+}
+
+TEST(RasterTexturedTest, QuadDiagonalUvContinuity){
+    FrameBuffer fb(14, 14);
+    Rasterizer rz{fb};
+
+    std::vector<uint32_t> px(200);
+    for(int j = 0; j < 200; j++){
+        px[j] = 0xFF000000u | (static_cast<uint32_t>(j) << 16);
+    }
+    Texture tex(200, 1, px.data());
+
+    Color32 white{255, 255, 255, 255};
+    ScreenVertex A{}, B{}, C{}, D{};
+    A.x = 2;  A.y = 2;  A.w = 1; A.u = 0; A.v = 0; A.z = -1; A.color = white;
+    B.x = 10; B.y = 2;  B.w = 1; B.u = 1; B.v = 0; B.z = -1; B.color = white;
+    C.x = 10; C.y = 10; C.w = 1; C.u = 1; C.v = 1; C.z = -1; C.color = white;
+    D.x = 2;  D.y = 10; D.w = 1; D.u = 0; D.v = 1; D.z = -1; D.color = white;
+
+    rz.drawTriangleTextured(A, B, C, tex, TextureFilter::Nearest, TextureWrap::Clamp);
+    rz.drawTriangleTextured(A, C, D, tex, TextureFilter::Nearest, TextureWrap::Clamp);
+
+    // w=1 时透视校正退化为仿射：u(px) = ((px+0.5)-2)/8，r = floor(u*200)
+    // 探针取 u*200=x.5 形式避开 floor 边界；三个探针分居对角线 AC 两侧
+    auto expectR = [](int p){
+        const double u = ((p + 0.5) - 2.0) / 8.0;
+        return static_cast<int>(std::floor(u * 200.0));
+    };
+    const int probes[][2] = {{3, 5}, {7, 6}, {5, 8}};
+    for(auto &pr : probes){
+        const uint32_t got = fb.colorData()[pr[1] * 14 + pr[0]];
+        EXPECT_EQ(static_cast<int>((got >> 16) & 0xFF), expectR(pr[0]))
+            << "px=" << pr[0] << " py=" << pr[1];
+    }
 }
 
 int main(int argc, char **argv){

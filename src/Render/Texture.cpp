@@ -1,6 +1,7 @@
 #include "Texture.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 
 namespace{
 int WrapTexel(int t, int maxIdx, TextureWrap wrap){
@@ -9,6 +10,15 @@ int WrapTexel(int t, int maxIdx, TextureWrap wrap){
     }
     const int size = maxIdx + 1;
     return ((t % size) + size) % size;
+}
+
+uint8_t BlendChannel(uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3,
+                     double ax, double ay, int shift){
+    const double top = static_cast<double>((c0 >> shift) & 0xFF) * (1.0 - ax)
+                     + static_cast<double>((c1 >> shift) & 0xFF) * ax;
+    const double bot = static_cast<double>((c2 >> shift) & 0xFF) * (1.0 - ax)
+                     + static_cast<double>((c3 >> shift) & 0xFF) * ax;
+    return static_cast<uint8_t>(std::lround(top * (1.0 - ay) + bot * ay));
 }
 }
 
@@ -27,10 +37,35 @@ uint32_t Texture::fetchTexel(int tx, int ty, TextureWrap wrap) const{
 }
 
 uint32_t Texture::sample(double u, double v,
-                         TextureFilter /*filter*/, TextureWrap wrap) const{
+                         TextureFilter filter, TextureWrap wrap) const{
     if(m_w == 0 || m_h == 0) return 0xFF000000u;
 
-    const int tx = static_cast<int>(std::floor(u * static_cast<double>(m_w)));
-    const int ty = static_cast<int>(std::floor(v * static_cast<double>(m_h)));
-    return fetchTexel(tx, ty, wrap);
+    if(filter == TextureFilter::Nearest){
+        const int tx = static_cast<int>(std::floor(u * static_cast<double>(m_w)));
+        const int ty = static_cast<int>(std::floor(v * static_cast<double>(m_h)));
+        return fetchTexel(tx, ty, wrap);
+    }
+
+    const double fx = u * static_cast<double>(m_w) - 0.5;
+    const double fy = v * static_cast<double>(m_h) - 0.5;
+    const int x0 = static_cast<int>(std::floor(fx));
+    const int y0 = static_cast<int>(std::floor(fy));
+    const double ax = fx - static_cast<double>(x0);
+    const double ay = fy - static_cast<double>(y0);
+
+    const uint32_t c00 = fetchTexel(x0,     y0,     wrap);
+    const uint32_t c10 = fetchTexel(x0 + 1, y0,     wrap);
+    const uint32_t c01 = fetchTexel(x0,     y0 + 1, wrap);
+    const uint32_t c11 = fetchTexel(x0 + 1, y0 + 1, wrap);
+
+    auto pack = [](uint8_t a, uint8_t r, uint8_t g, uint8_t b) -> uint32_t {
+        return (static_cast<uint32_t>(a) << 24) |
+               (static_cast<uint32_t>(r) << 16) |
+               (static_cast<uint32_t>(g) << 8)  |
+                static_cast<uint32_t>(b);
+    };
+    return pack(BlendChannel(c00,c10,c01,c11,ax,ay,24),
+                BlendChannel(c00,c10,c01,c11,ax,ay,16),
+                BlendChannel(c00,c10,c01,c11,ax,ay,8),
+                BlendChannel(c00,c10,c01,c11,ax,ay,0));
 }

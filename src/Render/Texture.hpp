@@ -23,7 +23,7 @@ public:
     static Texture loadFromFile(const std::string &path);
 
     uint32_t sample(double u, double v,
-                    TextureFilter filter = TextureFilter::Nearest,
+                    TextureFilter filter = TextureFilter::Bilinear,
                     TextureWrap wrap = TextureWrap::Repeat) const;
 
     std::size_t width() const{ return m_w; }

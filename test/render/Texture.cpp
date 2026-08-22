@@ -52,6 +52,22 @@ TEST(TextureTest, WrapClamp){
     EXPECT_EQ(t.sample( 1.25, 1.25, TextureFilter::Nearest, TextureWrap::Clamp), kWhite);
 }
 
+TEST(TextureTest, BilinearExactAtTexelCenter){
+    const uint32_t px[4] = {kRed, kGreen, kBlue, kWhite};
+    Texture t(2, 2, px);
+
+    EXPECT_EQ(t.sample(0.25, 0.25, TextureFilter::Bilinear), kRed);
+    EXPECT_EQ(t.sample(0.75, 0.25, TextureFilter::Bilinear), kGreen);
+}
+
+TEST(TextureTest, BilinearBlendGrayLevels){
+    const uint32_t px[4] = {kGray(100), kGray(200), kGray(0), kGray(200)};
+    Texture t(2, 2, px);
+
+    EXPECT_EQ(t.sample(0.375, 0.25, TextureFilter::Bilinear), kGray(125));
+    EXPECT_EQ(t.sample(0.5,   0.5,  TextureFilter::Bilinear), kGray(125));
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

@@ -70,7 +70,9 @@ TEST(FrameBufferBlendTest, SrcOverHalfAlpha){
 TEST(FrameBufferBlendTest, AlphaZeroSkipsBoth){
     FrameBuffer fb(1, 1);
     fb.setPixel(0, 0, 0xFF0000FFu, -1.0f);
-    fb.blendPixel(0, 0, 0u, -0.5f);                 // α=0 且深度更近
+    // Fix R1(I-1)：-0.5 对 -1.0 更远会被深度守卫先行拒绝，α==0 分支零判别力；
+    // 改 -2.0f（更近）确保真正走到 α==0 早退分支，深度断言锚定「双跳过」
+    fb.blendPixel(0, 0, 0u, -2.0f);                 // α=0 且深度更近
     EXPECT_EQ(fb.colorData()[0], 0xFF0000FFu);
     EXPECT_FLOAT_EQ(fb.depthData()[0], -1.0f);
 }
@@ -80,6 +82,13 @@ TEST(FrameBufferBlendTest, DepthStillGuardsMidAlpha){
     fb.setPixel(0, 0, 0xFF0000FFu, -1.0f);
     const uint32_t a = (128u << 24) | 0x808080u;
     fb.blendPixel(0, 0, a, 0.5f);                   // 更远被拒
+    EXPECT_EQ(fb.colorData()[0], 0xFF0000FFu);
+}
+
+TEST(FrameBufferBlendTest, OpaqueFarStillRejected){
+    FrameBuffer fb(1, 1);
+    fb.setPixel(0, 0, 0xFF0000FFu, -1.0f);
+    fb.blendPixel(0, 0, 0xFF00FF00u, 0.5f);
     EXPECT_EQ(fb.colorData()[0], 0xFF0000FFu);
 }
 

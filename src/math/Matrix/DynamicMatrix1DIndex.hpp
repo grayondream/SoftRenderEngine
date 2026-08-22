@@ -1,6 +1,5 @@
 #pragma once
 #include "DynamicMatrixBase.hpp"
-#include "DynamicMatrix1D.hpp"
 #include <algorithm>
 #include <cassert>
 

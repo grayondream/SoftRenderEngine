@@ -33,6 +33,10 @@
 #include "LightAdv/HDR.hpp"
 #include "LightAdv/Gamma.hpp"
 #include "Advanced/Skybox.hpp"
+#include "Advanced/FrameBuffer.hpp"
+#include "Advanced/MSAA.hpp"
+#include "LightAdv/Defer.hpp"
+#include "LightAdv/SSAO.hpp"
 
 namespace SGE::Samples {
 
@@ -109,6 +113,14 @@ void registerBuiltinScenes(){
         []() -> std::unique_ptr<IScene> { return std::make_unique<GammaScene>(); });
     reg.add("Advanced", "HDR Equirect Skybox (newport loft)",
         []() -> std::unique_ptr<IScene> { return std::make_unique<SkyboxScene>(); });
+    reg.add("Advanced", "Render-to-Texture Cube",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<FrameBufferScene>(); });
+    reg.add("Advanced", "Anti-aliasing (2x SSAA)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<MSAAScene>(); });
+    reg.add("LightAdv", "Deferred Shading (G-buffer)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<DeferScene>(); });
+    reg.add("LightAdv", "SSAO (depth contrast)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<SSAOScene>(); });
 }
 
 }

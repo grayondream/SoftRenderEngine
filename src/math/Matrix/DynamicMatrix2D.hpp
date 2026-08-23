@@ -114,7 +114,7 @@ public:
     }
 
     Matrix2DBase<ValueType>& swapRows(const ConstMatrixSizeType rst, const ConstMatrixSizeType snd){
-        assert(rst < this->d2 && snd < this->d2 && rst >= 0 && snd >= 0);
+        assert(rst < this->d2 && snd < this->d2);
         if(rst == snd){
             return *this;
         }
@@ -126,7 +126,7 @@ public:
     }
 
     Matrix2DBase<ValueType>& swapCols(const ConstMatrixSizeType rst, const ConstMatrixSizeType snd){
-        assert(rst < this->d1 && snd < this->d1 && rst >= 0 && snd >= 0);
+        assert(rst < this->d1 && snd < this->d1);
         if(rst == snd){
             return *this;
         }

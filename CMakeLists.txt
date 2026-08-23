@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_C_COMPILER clang)
+if(NOT DEFINED CMAKE_CXX_COMPILER)
+    set(CMAKE_CXX_COMPILER clang++)
+endif()
+if(NOT DEFINED CMAKE_C_COMPILER)
+    set(CMAKE_C_COMPILER clang)
+endif()
 
 set(PROJECT_NAME soft-game-engine)
 project(${PROJECT_NAME})
@@ -23,8 +27,16 @@ set(SGE_TEST_DIR ${CMAKE_SOURCE_DIR}/test CACHE INTERNAL "Test Source Directory"
 include(${SGE_SOURCE_DIR}/include.cmake)
 
 option(ENABLE_TEST "test basic ability" ON)
+option(ENABLE_SANITIZER "build everything with ASan+UBSan" OFF)
+
+if(ENABLE_SANITIZER)
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
+    add_link_options(-fsanitize=address,undefined)
+endif()
 
 add_subdirectory(${SGE_SOURCE_DIR})
 if(ENABLE_TEST)
+    enable_testing()
     add_subdirectory(${SGE_TEST_DIR})
+    add_subdirectory(${CMAKE_SOURCE_DIR}/tools)
 endif()

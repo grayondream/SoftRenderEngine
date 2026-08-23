@@ -12,10 +12,6 @@ FetchContent_MakeAvailable(googletest)
 set(LINKED_LIBRARIES gtest pthread math render core)
 
 file(GLOB_RECURSE ALL_TEST_FILES "${SGE_TEST_DIR}/*.cpp")
-if(ENABLE_SANITIZER)
-    add_compile_options(-fsanitize=address)
-    add_link_options(-fsanitize=address)
-endif()
 
 foreach(TEST_FILE ${ALL_TEST_FILES})
     get_filename_component(TARGET_NAME ${TEST_FILE} NAME_WE)

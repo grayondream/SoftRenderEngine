@@ -1,6 +1,8 @@
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
+#include <csignal>
 #include <memory>
 #include <ratio>
 #include <system_error>
@@ -21,6 +23,12 @@
 #include "Transform.hpp"
 
 namespace{
+
+std::sig_atomic_t g_stopRequested = 0;
+
+extern "C" void handleStopSignal(int){
+    g_stopRequested = 1;
+}
 
 Object4D MakeCube(){
     Object4D cube{};
@@ -147,12 +155,21 @@ std::error_code Application::run(){
     }
 
     m_pwindow->setListener(this);
+    std::signal(SIGINT, handleStopSignal);
+    std::signal(SIGTERM, handleStopSignal);
+    const char *maxFramesEnv = std::getenv("SGE_MAX_FRAMES");
+    const int64_t maxFrames = maxFramesEnv ? std::atoll(maxFramesEnv) : 0;
     const std::chrono::high_resolution_clock::time_point pt = std::chrono::high_resolution_clock::now();
     auto lastFrameTime = pt;
     int64_t delaTime = 1000;    //ms
     int64_t cycleCount = 0;
     BufferManager::instance()->clear(GenerateColor());
     while(!m_bQuit){
+        if(g_stopRequested || (maxFrames > 0 && cycleCount >= maxFrames)){
+            SDL_Event quit{};
+            quit.type = SDL_QUIT;
+            SDL_PushEvent(&quit);
+        }
         cycleCount += 1;
         auto durationPerCycle = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - pt).count();
         if(durationPerCycle >= delaTime){

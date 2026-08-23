@@ -710,6 +710,28 @@ std::error_code Application::run(){
 
         int kbCount = 0;
         const Uint8 *kb = SDL_GetKeyboardState(&kbCount);
+        static bool s_f12Held = false;
+        if(kb && kbCount > 0 && kb[SDL_SCANCODE_F12] && !s_f12Held){
+            const std::string path = std::format("sge_screenshot_{}.ppm",
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch()).count());
+            FILE *out = std::fopen(path.c_str(), "wb");
+            if(out){
+                std::fprintf(out, "P6\n%zu %zu\n255\n", m_framebuffer.width(), m_framebuffer.height());
+                const auto *px = m_framebuffer.colorData();
+                for(std::size_t i = 0; i < m_framebuffer.width() * m_framebuffer.height(); i++){
+                    const unsigned char bgr[3] = {
+                        static_cast<unsigned char>(px[i] & 0xFF),
+                        static_cast<unsigned char>((px[i] >> 8) & 0xFF),
+                        static_cast<unsigned char>((px[i] >> 16) & 0xFF)};
+                    std::fwrite(bgr, 1, 3, out);
+                }
+                std::fclose(out);
+                LOGI("[shot] saved {}", path);
+            }
+        }
+        s_f12Held = kb && kbCount > 0 && kb[SDL_SCANCODE_F12];
+
         if(kb && kbCount > 0 && kb[SDL_SCANCODE_RIGHTBRACKET] && !m_bracketHeld){
             m_sceneMode = (m_sceneMode + 1) % 8;
             m_framebuffer.clearDepth();

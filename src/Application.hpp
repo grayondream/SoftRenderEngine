@@ -12,17 +12,50 @@
 #include "Render/RayTrace.hpp"
 #include "Render/Primitives.hpp"
 
+namespace SGE::Samples {
+class IScene;
+}
+
 struct ApplicationParam{
     EnvironmentParam env{};
 };
 
 class Application : public WindowEventListener{
 public:
+    Application();
+    ~Application();
+    Application(const Application &) = delete;
+    Application &operator=(const Application &) = delete;
+
     std::error_code initalize(const ApplicationParam &param);
 
     std::error_code run();
 
     virtual void operator()(const WindowEventType t) override final;
+
+    FrameBuffer &framebuffer(){ return m_framebuffer; }
+    SGE::Render::Camera &camera(){ return m_camera; }
+    LightingRig &rig(){ return m_rig; }
+    double &angle(){ return m_angle; }
+    bool &rotating(){ return m_rotating; }
+    float &rotateSpeed(){ return m_rotateSpeed; }
+    bool &fogEnabled(){ return m_fogEnabled; }
+    float &fogStart(){ return m_fogStart; }
+    float &fogEnd(){ return m_fogEnd; }
+    Texture &checker(){ return m_checker; }
+    Object4D &cube(){ return m_cube; }
+    Object4D &sphere(){ return m_sphere; }
+    Object4D &torus(){ return m_torus; }
+    Object4D &teapot(){ return m_teapot; }
+    SGE::Render::RayScene &rtScene(){ return m_rtScene; }
+    FrameBuffer &rtBuffer(){ return m_rtBuffer; }
+    float &pbrMetallic(){ return m_pbrMetallic; }
+    float &pbrRoughness(){ return m_pbrRoughness; }
+    float *pbrColorUi(){ return m_pbrColorUi; }
+    Color32 &pbrBase(){ return m_pbrBase; }
+    int &pcfRadius(){ return m_pcfRadius; }
+    float &spotConeIntensity(){ return m_spotConeIntensity; }
+    int &rtQuality(){ return m_rtQuality; }
 
 private:
     void RenderScene();
@@ -40,7 +73,9 @@ private:
     Object4D m_torus{};
     Object4D m_teapot{};
 
-    int m_sceneMode{0};
+    std::unique_ptr<SGE::Samples::IScene> m_scene{};
+    int m_sceneIndex{-1};
+    bool m_sceneDirty{true};
     bool m_rotating{true};
     float m_rotateSpeed{0.02f};
     bool m_fogEnabled{true};

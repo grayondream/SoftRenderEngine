@@ -12,7 +12,11 @@ add_subdirectory(${SGE_RENDER_DIR})
 aux_source_directory(${SGE_SOURCE_DIR} APP_SRC_FILES)
 list(REMOVE_ITEM APP_SRC_FILES ${SGE_SOURCE_DIR}/main.cpp)
 
+file(GLOB SGE_SAMPLES_SRC ${SGE_SOURCE_DIR}/Samples/*.cpp)
+list(APPEND APP_SRC_FILES ${SGE_SAMPLES_SRC})
+
 add_library(core ${APP_SRC_FILES})
+target_include_directories(core PRIVATE ${SGE_SOURCE_DIR}/Samples)
 target_compile_options(core PRIVATE ${SGE_WARNING_FLAGS})
 target_link_libraries(core PUBLIC SDL2 math render imgui)
 

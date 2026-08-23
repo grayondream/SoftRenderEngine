@@ -7,6 +7,9 @@
 #include <vector>
 
 namespace{
+constexpr std::size_t kMaxObjUVs = 4096;
+constexpr std::size_t kMaxObjNormals = 4096;
+
 struct ObjVertexRef{
     int v = 0;
     int vt = 0;
@@ -102,10 +105,12 @@ bool loadObjFromFile(const std::string &path, Object4D &out){
         }else if(tag == "vt"){
             double u = 0, v = 0;
             if(!(ss >> u >> v)) return fail();
+            if(uvs.size() >= kMaxObjUVs) return fail();
             uvs.push_back(UV2D{u, v});
         }else if(tag == "vn"){
             double x = 0, y = 0, z = 0;
             if(!(ss >> x >> y >> z)) return fail();
+            if(normals.size() >= kMaxObjNormals) return fail();
             normals.push_back(Vector3DBase<double>{x, y, z});
         }else if(tag == "f"){
             std::vector<ObjVertexRef> refs{};
@@ -119,6 +124,7 @@ bool loadObjFromFile(const std::string &path, Object4D &out){
             for(std::size_t i = 1; i + 1 < refs.size(); i++){
                 if(out.numPolys >= kPolyListLen) return fail();
                 PolyF4D &poly = out.plist[out.numPolys++];
+                poly.color = Color32{255, 255, 255, 255};
                 const ObjVertexRef tri[3] = {refs[0], refs[i], refs[i + 1]};
                 bool hasN = true;
                 Point4D p[3]{};

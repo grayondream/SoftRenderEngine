@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <climits>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -44,6 +45,12 @@ uint32_t Texture::fetchTexel(int tx, int ty, TextureWrap wrap) const{
 uint32_t Texture::sample(double u, double v,
                          TextureFilter filter, TextureWrap wrap) const{
     if(m_w == 0 || m_h == 0) return 0xFF000000u;
+    if(!std::isfinite(u) || !std::isfinite(v)) return 0xFF000000u;
+
+    const double maxU = static_cast<double>(INT_MAX) / static_cast<double>(m_w);
+    const double maxV = static_cast<double>(INT_MAX) / static_cast<double>(m_h);
+    u = std::clamp(u, -maxU, maxU);
+    v = std::clamp(v, -maxV, maxV);
 
     if(filter == TextureFilter::Nearest){
         const int tx = static_cast<int>(std::floor(u * static_cast<double>(m_w)));

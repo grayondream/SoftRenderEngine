@@ -17,7 +17,7 @@ struct ScreenVertex{
     double wx = 0;
     double wy = 0;
     double wz = 0;
-    Color32 color{};
+    Color32 color{255, 255, 255, 255};
 };
 
 inline uint32_t PackBGRA(const Color32 &c){

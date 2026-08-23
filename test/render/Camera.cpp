@@ -109,6 +109,24 @@ TEST(CameraTest, UpdateClampsLargeDt){
     EXPECT_TRUE(VecNear(c2.position, 0, 0, 0));
 }
 
+TEST(CameraTest, RightStableAtExtremePitch){
+    SGE::Render::Camera c{};
+    c.yaw = 0;
+    c.pitch = 1.5;
+    const auto r = c.right();
+    EXPECT_NEAR(r.x, -1.0, 1e-12);
+    EXPECT_NEAR(r.y, 0.0, 1e-12);
+    EXPECT_NEAR(r.z, 0.0, 1e-12);
+
+    SGE::Render::Camera d{};
+    d.yaw = 3.14159265358979 / 2;
+    d.pitch = 1.55;
+    const auto r2 = d.right();
+    EXPECT_NEAR(std::sqrt(r2.x*r2.x + r2.y*r2.y + r2.z*r2.z), 1.0, 1e-12);
+    EXPECT_NEAR(r2.x, 0.0, 1e-9);
+    EXPECT_NEAR(r2.z, 1.0, 1e-9);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

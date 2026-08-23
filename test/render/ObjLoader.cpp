@@ -172,6 +172,40 @@ TEST(ObjTest, EndToEndRendersPixels){
     EXPECT_GT(lit, 1000u);
 }
 
+TEST(ObjTest, UvCapacityLimitFailsClosed){
+    std::string content;
+    for(int i = 0; i < 4097; i++){
+        content += "vt 0.5 0.5\n";
+    }
+    content += "v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1/1 2/2 3/3\n";
+    ASSERT_TRUE(WriteFile(TmpPath("uv_overflow.obj"), content));
+    Object4D obj{};
+    EXPECT_FALSE(loadObjFromFile(TmpPath("uv_overflow.obj"), obj));
+}
+
+TEST(ObjTest, NormalCapacityLimitFailsClosed){
+    std::string content;
+    for(int i = 0; i < 4097; i++){
+        content += "vn 0 0 1\n";
+    }
+    content += "v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1//1 2//2 3//3\n";
+    ASSERT_TRUE(WriteFile(TmpPath("n_overflow.obj"), content));
+    Object4D obj{};
+    EXPECT_FALSE(loadObjFromFile(TmpPath("n_overflow.obj"), obj));
+}
+
+TEST(ObjTest, DegenerateFaceYieldsZeroNormalButLoads){
+    ASSERT_TRUE(WriteFile(TmpPath("degenerate.obj"),
+        "v 0 0 0\nv 1 0 0\nv 2 0 0\nf 1 2 3\n"));
+    Object4D obj{};
+    ASSERT_TRUE(loadObjFromFile(TmpPath("degenerate.obj"), obj));
+    EXPECT_EQ(obj.numPolys, 1);
+    const auto &n = obj.plist[0].nlist[0];
+    EXPECT_DOUBLE_EQ(n.x, 0.0);
+    EXPECT_DOUBLE_EQ(n.y, 0.0);
+    EXPECT_DOUBLE_EQ(n.z, 0.0);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

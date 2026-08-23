@@ -53,8 +53,8 @@ uint32_t shade(const LightingRig &rig,
     auto ch = [](double albedoC, double lightSum, double specSum) -> uint32_t {
         double s = albedoC / 255.0 * lightSum + specSum;
         s *= 255.0;
-        if(s < 0) s = 0;
-        if(s > 255) s = 255;
+        if(!(s >= 0)) s = 0;
+        else if(s > 255) s = 255;
         return static_cast<uint32_t>(s);
     };
 

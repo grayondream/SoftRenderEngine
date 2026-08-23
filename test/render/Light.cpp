@@ -1,6 +1,7 @@
 #include "Light.hpp"
 #include <gtest/gtest.h>
 #include <cstdint>
+#include <limits>
 
 namespace{
 int chan(uint32_t px, int shift){ return static_cast<int>((px >> shift) & 0xFF); }
@@ -107,6 +108,22 @@ TEST(LightTest, ZeroRangePointLightIgnored){
                                Vector3DBase<double>{0,0,-1}, Vector3DBase<double>{0,0,0},
                                Vector3DBase<double>{0,0,-5});
     EXPECT_EQ(out, 0xFF000000u);
+}
+
+TEST(LightTest, NanLightDirectionGivesDeterministicOutput){
+    LightingRig rig{};
+    rig.ambient = 0.25f;
+    rig.specularStrength = 0.0f;
+    DirectionalLight dl{};
+    dl.color = ColorFlt{1.0f, 1.0f, 1.0f};
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    dl.direction = Vector3DBase<double>{nan, 0, -1};
+    rig.directional.push_back(dl);
+
+    const uint32_t out = shade(rig, Color32{200,200,200,255},
+                               Vector3DBase<double>{0,0,-1}, Vector3DBase<double>{0,0,0},
+                               Vector3DBase<double>{0,0,-5});
+    EXPECT_EQ(out, 0xFF323232u);
 }
 
 int main(int argc, char **argv){

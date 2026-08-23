@@ -113,6 +113,17 @@ TEST(FrameBufferBlendTest, RoundingConstantAnchored){
     EXPECT_EQ(fb.colorData()[0], 0xFF010101u);
 }
 
+TEST(FrameBufferTest, NonFiniteDepthRejected){
+    FrameBuffer fb(1, 1);
+    fb.setPixel(0, 0, 0xFF0000FFu, -1.0f);
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+    fb.setPixel(0, 0, 0xFF00FF00u, nan);
+    fb.blendPixel(0, 0, 0xFF0000FFu, inf);
+    EXPECT_EQ(fb.colorData()[0], 0xFF0000FFu);
+    EXPECT_FLOAT_EQ(fb.depthData()[0], -1.0f);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

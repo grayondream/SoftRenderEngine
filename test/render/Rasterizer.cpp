@@ -260,6 +260,21 @@ TEST(RasterLitTest, LitVsUnlitGradient){
     EXPECT_EQ(fbToward.colorData()[probe], 0xFF939393u);
 }
 
+TEST(RasterSolidTest, DefaultVertexColorIsVisible){
+    FrameBuffer fb(4, 4);
+    fb.clear(0xFF000000u);
+    Rasterizer rz{fb};
+    const ScreenVertex a{0, 0, 0.5f, 1.0f};
+    const ScreenVertex b{8, 8, 0.5f, 1.0f};
+    const ScreenVertex c{0, 8, 0.5f, 1.0f};
+    rz.drawTriangleSolid(a, b, c);
+    uint32_t lit = 0;
+    for(std::size_t i = 0; i < 16u; i++){
+        if(fb.colorData()[i] != 0xFF000000u) lit++;
+    }
+    EXPECT_GT(lit, 0u);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

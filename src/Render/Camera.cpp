@@ -22,7 +22,7 @@ Vector3DBase<double> Camera::forward() const{
 }
 
 Vector3DBase<double> Camera::right() const{
-    return forward().mul(Vector3DBase<double>{0, 1, 0}).normalize();
+    return Vector3DBase<double>{-std::cos(yaw), 0, std::sin(yaw)};
 }
 
 Matrix4DBase<double> Camera::viewMatrix() const{

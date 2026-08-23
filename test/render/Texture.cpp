@@ -1,5 +1,6 @@
 #include "Texture.hpp"
 #include <gtest/gtest.h>
+#include <vector>
 
 namespace{
 constexpr uint32_t kBlack = 0xFF000000u;
@@ -102,6 +103,16 @@ TEST(TextureTest, LoadFromFileMissingGivesEmpty){
 
 TEST(TextureDeathTest, NullptrNonZeroAsserts){
     EXPECT_DEATH(Texture t(4, 4, nullptr), "");
+}
+
+TEST(TextureTest, HugeUvDoesNotOverflowAndReturnsTexel){
+    Texture t(2, 2, std::vector<uint32_t>{
+        0xFF0000FFu, 0xFF00FF00u, 0xFFFF0000u, 0xFFFFFFFFu}.data());
+    const double huge = 1e300;
+    const uint32_t a = t.sample(huge, huge, TextureFilter::Nearest, TextureWrap::Repeat);
+    EXPECT_EQ((a >> 24) & 0xFF, 0xFF);
+    const uint32_t b = t.sample(huge, huge, TextureFilter::Bilinear, TextureWrap::Repeat);
+    EXPECT_EQ((b >> 24) & 0xFF, 0xFF);
 }
 
 int main(int argc, char **argv){

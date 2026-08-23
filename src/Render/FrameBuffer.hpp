@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <cfloat>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 
@@ -14,6 +15,7 @@ public:
 
     void setPixel(std::size_t x, std::size_t y, uint32_t bgra, float depth){
         if(x >= m_width || y >= m_height) return;
+        if(!std::isfinite(depth)) return;
         auto idx = y * m_width + x;
         if(depth >= m_depth[idx]) return;
         m_depth[idx] = depth;
@@ -31,6 +33,7 @@ public:
 
     void blendPixel(std::size_t x, std::size_t y, uint32_t bgra, float depth){
         if(x >= m_width || y >= m_height) return;
+        if(!std::isfinite(depth)) return;
         const uint32_t sa = (bgra >> 24) & 0xFF;
         if(sa == 0) return;
         auto idx = y * m_width + x;

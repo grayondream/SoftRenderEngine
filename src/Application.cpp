@@ -110,6 +110,13 @@ std::error_code Application::initalize(const ApplicationParam &param){
 
     m_cube = MakeCube();
     m_checker = MakeCheckerTexture();
+    m_sphere = SGE::Render::MakeSphere(1.0, 24, 16);
+    std::snprintf(m_sphere.name, sizeof(m_sphere.name), "%s", "sphere");
+    m_sphere.worldPos = Point4D{-2.8, 0.2, 0, 1};
+    m_torus = SGE::Render::MakeTorus(1.4, 0.45, 32, 16);
+    m_torus.worldPos = Point4D{2.8, 0.0, 0.5, 1};
+    m_teapot = SGE::Render::MakeTeapot();
+    m_teapot.worldPos = Point4D{0, -1.55, 2.2, 1};
     m_rtScene.spheres.push_back(
         SGE::Render::RaySphere{Vector3DBase<double>{0, 0, 0}, 1.2,
                                Color32{255, 60, 60, 255}, 0.6f});
@@ -191,10 +198,24 @@ void Application::RenderScene(){
             }
             break;
         case 2:
-            for(auto &t : Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600)){
-                rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+        {
+            const auto rot = SGE::Math::rotationY(m_angle * 0.5);
+            struct Item{ const Object4D *obj; double ox, oy, oz; };
+            const Item items[] = {
+                {&m_sphere, m_sphere.worldPos.x, m_sphere.worldPos.y + 0.8, m_sphere.worldPos.z},
+                {&m_torus,  m_torus.worldPos.x,  m_torus.worldPos.y + 1.0,  m_torus.worldPos.z},
+                {&m_teapot, m_teapot.worldPos.x, m_teapot.worldPos.y + 0.75, m_teapot.worldPos.z},
+            };
+            for(const auto &it : items){
+                auto im = SGE::Math::translation(it.ox, it.oy, it.oz).mul(rot);
+                auto inrm = SGE::Math::normalMatrix(im);
+                auto t2 = Pipeline::projectObject(*it.obj, im, viewProj, inrm, 800, 600);
+                for(auto &t : t2){
+                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+                }
             }
             break;
+        }
         case 3:
         {
             ShadingContext unlit{nullptr, m_camera.position};

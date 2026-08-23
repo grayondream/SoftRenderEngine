@@ -4,8 +4,8 @@
 #include "PolyF4D.hpp"
 
 constexpr static const int kObject4vNameLen = 64;
-constexpr static const int kObject4vListLen = 64;
-constexpr static const int kPolyListLen = 128;
+constexpr static const int kObject4vListLen = 1024;
+constexpr static const int kPolyListLen = 1024;
 
 
 class Object4D{

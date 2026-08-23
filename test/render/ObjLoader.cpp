@@ -97,7 +97,7 @@ TEST(ObjTest, MissingUvsZeroed){
 
 TEST(ObjTest, CapacityExceededFails){
     std::string content;
-    for(int i = 0; i < 65; i++){
+    for(int i = 0; i < kObject4vListLen + 1; i++){
         content += "v 0 0 0\n";
     }
     ASSERT_TRUE(WriteFile(TmpPath("cap.obj"), content));

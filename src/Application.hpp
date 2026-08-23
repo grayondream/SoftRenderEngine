@@ -10,6 +10,7 @@
 #include "Render/Camera.hpp"
 #include "Render/Light.hpp"
 #include "Render/RayTrace.hpp"
+#include "Render/Primitives.hpp"
 
 struct ApplicationParam{
     EnvironmentParam env{};
@@ -35,6 +36,9 @@ private:
     Texture m_checker{};
     double m_angle{0.0};
     SGE::Render::Camera m_camera{};
+    Object4D m_sphere{};
+    Object4D m_torus{};
+    Object4D m_teapot{};
 
     int m_sceneMode{0};
     bool m_rotating{true};

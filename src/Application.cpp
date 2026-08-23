@@ -110,7 +110,12 @@ LightingRig makeDefaultRigForScene(){
 
 }
 
-Application::Application() = default;
+Application::Application(){
+    if(const char *sc = std::getenv("SGE_START_SCENE")){
+        m_sceneIndex = std::atoi(sc);
+        m_sceneDirty = true;
+    }
+}
 Application::~Application() = default;
 
 std::error_code Application::initalize(const ApplicationParam &param){

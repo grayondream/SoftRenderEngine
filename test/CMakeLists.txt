@@ -11,11 +11,6 @@ FetchContent_MakeAvailable(googletest)
 
 set(LINKED_LIBRARIES gtest pthread math render core)
 
-if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo|MinSizeRel")
-    message(STATUS "NDEBUG build detected: forcing asserts back on for test targets (death tests require them)")
-    add_compile_options(-UNDEBUG)
-endif()
-
 file(GLOB_RECURSE ALL_TEST_FILES "${SGE_TEST_DIR}/*.cpp")
 if(ENABLE_SANITIZER)
     add_compile_options(-fsanitize=address)

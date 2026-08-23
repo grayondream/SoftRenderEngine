@@ -115,6 +115,33 @@ TEST(TextureTest, HugeUvDoesNotOverflowAndReturnsTexel){
     EXPECT_EQ((b >> 24) & 0xFF, 0xFF);
 }
 
+TEST(TextureMipTest, ChainLevelsAndAverage){
+    std::vector<uint32_t> px(64);
+    for(std::size_t i = 0; i < 64; i++){
+        px[i] = (i % 2 == 0) ? 0xFFFF0000u : 0xFF0000FFu;
+    }
+    Texture t(8, 8, px.data());
+    t.buildMipChain();
+    EXPECT_EQ(t.mipCount(), 4);
+
+    const uint32_t c = t.sampleTrilinear(0.5, 0.5, 2.0f, TextureWrap::Repeat);
+    EXPECT_NEAR(static_cast<int>((c >> 16) & 0xFF), 255, 130);
+}
+
+TEST(TextureMipTest, TrilinearBlendsBetweenLevels){
+    Texture t(2, 2, std::vector<uint32_t>{
+        0xFFFFFFFFu, 0xFFFFFFFFu,
+        0xFFFFFFFFu, 0xFFFFFFFFu}.data());
+    t.buildMipChain();
+    EXPECT_EQ(t.mipCount(), 2);
+
+    const uint32_t l0 = t.sampleTrilinear(0.25, 0.25, 0.0f, TextureWrap::Clamp);
+    EXPECT_EQ((l0 >> 16) & 0xFF, 255);
+
+    const uint32_t half = t.sampleTrilinear(0.25, 0.25, 0.5f, TextureWrap::Clamp);
+    EXPECT_EQ((half >> 16) & 0xFF, 255);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

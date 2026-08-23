@@ -164,8 +164,12 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
     bool tl2 = IsTopLeftEdge(v0.x,v0.y, v1.x,v1.y);
 
     constexpr double eps = 1e-9;
+    const bool trilinear = (filter == TextureFilter::Trilinear);
+    float prevU = 0, prevV = 0;
+    bool havePrev = false;
 
     for(int y = y0; y <= y1; y++){
+        if(trilinear) havePrev = false;
         for(int x = x0; x <= x1; x++){
             double px = x + 0.5, py = y + 0.5;
             double w0 = EdgeFunction(v1.x,v1.y, v2.x,v2.y, px,py) * invArea;
@@ -197,7 +201,19 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 wzp = (w0*v0.wz/v0.w + w1*v1.wz/v1.w + w2*v2.wz/v2.w) / iw;
             }
 
-            uint32_t shaded = tex.sample(uPix, vPix, filter, wrap);
+            uint32_t shaded = 0xFF000000u;
+            if(trilinear){
+                float lod = 0.0f;
+                if(havePrev){
+                    const float du = std::abs(uPix - prevU) * tex.width();
+                    const float dv = std::abs(vPix - prevV) * tex.height();
+                    lod = std::log2(std::max(du, dv));
+                }
+                shaded = tex.sampleTrilinear(uPix, vPix, lod, wrap);
+                prevU = uPix; prevV = vPix; havePrev = true;
+            }else{
+                shaded = tex.sample(uPix, vPix, filter, wrap);
+            }
             double shadowFactor = 1.0;
             if(shading && shading->shadow && shading->shadow->depth){
                 const auto &sd = *shading->shadow;

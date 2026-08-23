@@ -193,10 +193,44 @@ void Application::RenderScene(){
 
     switch(m_sceneMode){
         case 1:
-            for(auto &t : Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600)){
-                rz.drawTriangleWireframe(t.v[0], t.v[1], t.v[2]);
+        {
+            auto checkerBig = m_checker;
+            checkerBig.buildMipChain();
+            SGE::Render::TileRenderer tiled{m_framebuffer};
+            const double spread[4] = {1.0, 2.2, 4.6, 9.0};
+            for(int i = 0; i < 4; i++){
+                Object4D plane{};
+                std::snprintf(plane.name, sizeof(plane.name), "%s", "plane");
+                const double s = 0.9;
+                Point4D pv[4] = {{-s,-s,0,1},{s,-s,0,1},{s,s,0,1},{-s,s,0,1}};
+                for(int k = 0; k < 4; k++){ plane.vlistLocal[k] = pv[k]; }
+                plane.numVertices = 4;
+                plane.numPolys = 2;
+                const int pi2[2][3] = {{0,1,2},{0,2,3}};
+                const UV2D uvq[4] = {{0,0},{12,0},{12,12},{0,12}};
+                for(int k = 0; k < 2; k++){
+                    for(int m = 0; m < 3; m++){
+                        plane.plist[k].vlist[m] = pv[pi2[k][m]];
+                        plane.plist[k].uvlist[m] = uvq[pi2[k][m]];
+                        plane.plist[k].nlist[m] = Vector3DBase<double>{0, 0, -1};
+                    }
+                    plane.plist[k].color = Color32{255,255,255,255};
+                }
+                auto pm = SGE::Math::translation(
+                    -3.5 + i * 2.35, 0.0,
+                    -(spread[i] * 0.35) + spread[i]).mul(SGE::Math::rotationY(m_angle * 0.3));
+                auto pnrm = SGE::Math::normalMatrix(pm);
+                auto pt = Pipeline::projectObject(plane, pm, viewProj, pnrm, 800, 600);
+                TextureFilter f = (i % 2 == 0)
+                    ? TextureFilter::Nearest
+                    : TextureFilter::Trilinear;
+                for(auto &t : pt){
+                    rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
+                                            checkerBig, &shading, f, TextureWrap::Repeat);
+                }
             }
             break;
+        }
         case 2:
         {
             const auto rot = SGE::Math::rotationY(m_angle * 0.5);

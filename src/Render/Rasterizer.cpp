@@ -319,7 +319,13 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                     static_cast<int32_t>(shaded & 0xFF), 255};
                 const Vector3DBase<double> N{nxc, nyc, nzc};
                 const Vector3DBase<double> Pw{wxp, wyp, wzp};
-                shaded = shade(*shading->rig, albedo, N.normalize(), Pw, shading->viewPos, shadowFactor);
+                if(shading->pbr){
+                    shaded = pbrShade(*shading->rig, *shading->pbr,
+                                      N.normalize(), Pw, shading->viewPos, shadowFactor);
+                }else{
+                    shaded = shade(*shading->rig, albedo, N.normalize(), Pw,
+                                   shading->viewPos, shadowFactor);
+                }
             }
             if(shading && shading->env && shading->env->enabled){
                 const auto &ep = *shading->env;

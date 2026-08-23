@@ -321,60 +321,33 @@ void Application::RenderScene(){
         }
         case 5:
         {
-            SGE::Render::EnvParams mirror{};
-            mirror.enabled = true;
-            mirror.reflectivity = 0.92;
-            SGE::Render::EnvParams glassEnv{};
-            glassEnv.enabled = true;
-            glassEnv.reflectivity = 0.25;
-            glassEnv.refractivity = 0.85;
-            glassEnv.ior = 1.52;
-            SGE::Render::EnvParams floorEnv{};
-            floorEnv.enabled = true;
-            floorEnv.reflectivity = 0.18;
-
-            Object4D mirrorBall = m_sphere;
-            mirrorBall.worldPos = Point4D{-1.6, 0.6, 0, 1};
-            Object4D crystal = SGE::Render::MakeSphere(0.9, 28, 18);
-            crystal.worldPos = Point4D{1.8, 0.3, 0.4, 1};
-
-            ShadingContext envCtx{&m_rig, m_camera.position,
-                                  m_fogEnabled ? &fog : nullptr,
-                                  nullptr, nullptr, &floorEnv};
             SGE::Render::TileRenderer tiled{m_framebuffer};
-
-            auto mt = Pipeline::projectObject(mirrorBall,
-                SGE::Math::translation(mirrorBall.worldPos.x,
-                    mirrorBall.worldPos.y + 0.4, mirrorBall.worldPos.z),
-                viewProj, nrm, 800, 600);
-            for(auto &t : mt){
-                t.v[0].color = Color32{230, 235, 245, 255};
-                t.v[1].color = Color32{230, 235, 245, 255};
-                t.v[2].color = Color32{230, 235, 245, 255};
-                rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
-            }
-            (void)envCtx; (void)mirror; (void)glassEnv; (void)floorEnv; (void)tiled;
-
-            Object4D groundPlane{};
-            std::snprintf(groundPlane.name, sizeof(groundPlane.name), "%s", "gplane");
-            const double ge2 = 7.0;
-            Point4D gp[4] = {{-ge2,-2,-ge2,1},{ge2,-2,-ge2,1},{ge2,-2,ge2,1},{-ge2,-2,ge2,1}};
-            for(int i = 0;i < 4;i++){ groundPlane.vlistLocal[i] = gp[i]; }
-            groundPlane.numVertices = 4;
-            groundPlane.numPolys = 2;
-            const int gidx[2][3] = {{0,1,2},{0,2,3}};
-            const UV2D guv[4] = {{0,0},{10,0},{10,10},{0,10}};
-            for(int i = 0;i < 2;i++){
-                for(int k = 0;k < 3;k++){
-                    groundPlane.plist[i].vlist[k] = gp[gidx[i][k]];
-                    groundPlane.plist[i].uvlist[k] = guv[gidx[i][k]];
-                    groundPlane.plist[i].nlist[k] = Vector3DBase<double>{0, 1, 0};
+            const int cols = 7, rows = 5;
+            for(int r = 0; r < rows; r++){
+                for(int c = 0; c < cols; c++){
+                    PbrMaterial mat{};
+                    mat.baseColor = Color32{
+                        static_cast<int32_t>(120 + 130 * (r / float(rows))),
+                        static_cast<int32_t>(60 + 40 * c),
+                        static_cast<int32_t>(255 - 130 * (r / float(rows))), 255};
+                    mat.metallic = static_cast<float>(c) / (cols - 1);
+                    mat.roughness = std::max(0.05f,
+                        1.0f - static_cast<float>(r) / (rows - 1));
+                    ShadingContext pbrCtx{&m_rig, m_camera.position,
+                                          nullptr, nullptr, nullptr, nullptr, &mat};
+                    Object4D ball = m_sphere;
+                    const double bx = -4.2 + c * 1.4;
+                    const double by = -0.6 + r * 1.15;
+                    ball.worldPos = Point4D{bx, by, 3.0, 1};
+                    auto bm = SGE::Math::translation(bx, by, 3.0);
+                    auto bnrm = SGE::Math::normalMatrix(bm);
+                    auto bt = Pipeline::projectObject(ball, bm, viewProj, bnrm, 800, 600);
+                    for(auto &t : bt){
+                        rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
+                                                m_checker, &pbrCtx);
+                    }
                 }
-                groundPlane.plist[i].color = Color32{190,190,200,255};
             }
-            auto gt = Pipeline::projectObject(groundPlane,
-                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
-            tiled.drawTextured(gt, m_checker, &envCtx);
             break;
         }
         default:

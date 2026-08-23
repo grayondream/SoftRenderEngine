@@ -32,6 +32,19 @@ struct LightingRig{
     std::vector<SpotLight> spot{};
 };
 
+struct PbrMaterial{
+    Color32 baseColor{200, 60, 60, 255};
+    float metallic{0.0f};
+    float roughness{0.35f};
+};
+
+uint32_t pbrShade(const LightingRig &rig,
+                  const PbrMaterial &mat,
+                  const Vector3DBase<double> &N,
+                  const Vector3DBase<double> &P,
+                  const Vector3DBase<double> &viewPos,
+                  double shadowFactor = 1.0);
+
 uint32_t shade(const LightingRig &rig,
                const Color32 &albedo,
                const Vector3DBase<double> &N,

@@ -1,5 +1,6 @@
 #include "Light.hpp"
 #include <algorithm>
+#include "Environment.hpp"
 #include <cmath>
 
 namespace{
@@ -80,4 +81,83 @@ uint32_t shade(const LightingRig &rig,
          | (ch(albedo.r, diffR, specR) << 16)
          | (ch(albedo.g, diffG, specG) << 8)
          |  ch(albedo.b, diffB, specB);
+}
+
+namespace{
+double D_GGX(double NoH, double a){
+    const double a2 = a * a;
+    const double dd = NoH * NoH * (a2 - 1.0) + 1.0;
+    return a2 / std::max(1e-9, 3.14159265358979 * dd * dd);
+}
+
+double G_Smith(double NoV, double NoL, double a){
+    const double k = (a + 1.0) * (a + 1.0) / 8.0;
+    const double gv = NoV / (NoV * (1.0 - k) + k);
+    const double gl = NoL / (NoL * (1.0 - k) + k);
+    return gv * gl;
+}
+}
+
+uint32_t pbrShade(const LightingRig &rig,
+                  const PbrMaterial &mat,
+                  const Vector3DBase<double> &Nn,
+                  const Vector3DBase<double> &P,
+                  const Vector3DBase<double> &viewPos,
+                  double shadowFactor){
+    const Vector3DBase<double> N = Nn.normalize();
+    const Vector3DBase<double> V = Sub(viewPos, P).normalize();
+    const double NoV = std::max(1e-4, N.dot(V));
+    const double a = std::max(0.045, static_cast<double>(mat.roughness) * mat.roughness);
+    double specR = 0, specG = 0, specB = 0;
+    double lr = 0, lg = 0, lb = 0;
+    for(const auto &dl : rig.directional){
+        const Vector3DBase<double> L = Scale(dl.direction.normalize(), -1.0);
+        const auto Hv = Vector3DBase<double>{L.x+V.x, L.y+V.y, L.z+V.z}.normalize();
+        const double NoL = std::max(0.0, N.dot(L));
+        const double NoH = std::max(0.0, N.dot(Hv));
+        const double VoH = std::max(0.0, V.dot(Hv));
+        if(NoL <= 0) continue;
+
+        const double F0m = 0.04;
+        double Fr = F0m + (mat.baseColor.r / 255.0 - F0m) * mat.metallic;
+        double Fg = F0m + (mat.baseColor.g / 255.0 - F0m) * mat.metallic;
+        double Fb = F0m + (mat.baseColor.b / 255.0 - F0m) * mat.metallic;
+
+        const double D = D_GGX(NoH, a);
+        const double G = G_Smith(NoV, NoL, a);
+        specR += dl.color.r * shadowFactor * D * G / std::max(1e-6, 4.0 * NoV * NoL)
+               * (Fr * VoH + 0.05);
+        specG += dl.color.g * shadowFactor * D * G / std::max(1e-6, 4.0 * NoV * NoL)
+               * (Fg * VoH + 0.05);
+        specB += dl.color.b * shadowFactor * D * G / std::max(1e-6, 4.0 * NoV * NoL)
+               * (Fb * VoH + 0.05);
+
+        const double kd = (1.0 - mat.metallic) * (1.0 - Fr);
+        lr += dl.color.r * kd * NoL * shadowFactor;
+        lg += dl.color.g * kd * NoL * shadowFactor;
+        lb += dl.color.b * kd * NoL * shadowFactor;
+    }
+
+    // analytic image-based approximation: hemispheric irradiance + roughened specular
+    const Color32 skyN = SGE::Render::SampleEnvironment(N);
+    const double ambKd = (1.0 - mat.metallic);
+    lr += skyN.r / 255.0 * ambKd * rig.ambient;
+    lg += skyN.g / 255.0 * ambKd * rig.ambient;
+    lb += skyN.b / 255.0 * ambKd * rig.ambient;
+    specR += skyN.r / 255.0 * mat.metallic * (1.0 - a) * rig.ambient;
+    specG += skyN.g / 255.0 * mat.metallic * (1.0 - a) * rig.ambient;
+    specB += skyN.b / 255.0 * mat.metallic * (1.0 - a) * rig.ambient;
+
+    auto chBase = [&](int baseC, double lightSum){
+        double s = baseC / 255.0 * lightSum;
+        s *= 255.0;
+        if(!(s >= 0)) s = 0;
+        else if(s > 255) s = 255;
+        return static_cast<uint32_t>(s);
+    };
+    const uint32_t outR = chBase(mat.baseColor.r, lr) + static_cast<uint32_t>(std::min(255.0, specR * 255.0));
+    const uint32_t outG = chBase(mat.baseColor.g, lg) + static_cast<uint32_t>(std::min(255.0, specG * 255.0));
+    const uint32_t outB = chBase(mat.baseColor.b, lb) + static_cast<uint32_t>(std::min(255.0, specB * 255.0));
+    return 0xFF000000u | (std::min(outR, 255u) << 16) |
+           (std::min(outG, 255u) << 8) | std::min(outB, 255u);
 }

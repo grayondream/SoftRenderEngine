@@ -46,6 +46,7 @@ struct ShadingContext{
     const ShadowData *shadow{};
     const CubeShadowData *cubeShadow{};
     const EnvParams *env{};
+    const PbrMaterial *pbr{};
 };
 
 struct ScreenRect{

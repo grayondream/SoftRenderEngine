@@ -8,7 +8,7 @@ int main(int, char **){
     Application app{};
     ApplicationParam param{};
     param.env.pos = {{0, 0}, {800, 600}};
-    param.env.format = RenderFormat::RGBA8888;
+    param.env.format = RenderFormat::ARGB8888;
     if(app.initalize(param)){
         LOGE("Failed to initalize application!");
         return 1;

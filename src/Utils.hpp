@@ -33,6 +33,7 @@ inline static SDL_PixelFormatEnum Format2SDLFormat(const RenderFormat format){
     switch(format){
         case RenderFormat::RGBA8888: return SDL_PIXELFORMAT_RGBA8888;
         case RenderFormat::BGRA8888: return SDL_PIXELFORMAT_BGRA8888;
+        case RenderFormat::ARGB8888: return SDL_PIXELFORMAT_ARGB8888;
     }
 
     return {};
@@ -42,6 +43,7 @@ inline static std::size_t FetchPackBytesAccordingFormat(const RenderFormat forma
     switch(format){
         case RenderFormat::RGBA8888: return 4;
         case RenderFormat::BGRA8888: return 4;
+        case RenderFormat::ARGB8888: return 4;
     }
 
     return {};

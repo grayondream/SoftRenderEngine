@@ -46,18 +46,23 @@ public:
         auto width  = this->m_size.width;
         auto pitch  = this->m_pitch;
         auto bytes = FetchPackBytesAccordingFormat(this->m_format);
-        //SDL 像素格式为 32 位小端存储：
-        //RGBA8888 内存顺序为 a b g r；BGRA8888 内存顺序为 a r g b
-        const bool bgra = (this->m_format == RenderFormat::BGRA8888);
+        //32 位小端内存序：
+        //RGBA8888: a b g r；BGRA8888: a r g b；ARGB8888: b g r a
         for(std::size_t i = 0;i < height;i ++){
             for(std::size_t j = 0;j < width;j ++){
                 auto base = i * pitch + j * bytes;
-                buffer[base + 0] = color.a;
-                if(bgra){
+                if(this->m_format == RenderFormat::BGRA8888){
+                    buffer[base + 0] = color.a;
                     buffer[base + 1] = color.r;
                     buffer[base + 2] = color.g;
                     buffer[base + 3] = color.b;
+                }else if(this->m_format == RenderFormat::ARGB8888){
+                    buffer[base + 0] = color.b;
+                    buffer[base + 1] = color.g;
+                    buffer[base + 2] = color.r;
+                    buffer[base + 3] = color.a;
                 }else{
+                    buffer[base + 0] = color.a;
                     buffer[base + 1] = color.b;
                     buffer[base + 2] = color.g;
                     buffer[base + 3] = color.r;
@@ -112,23 +117,15 @@ public:
         lock();
         uint8_t *dst = this->m_buffer.data();
         const auto bytes = FetchPackBytesAccordingFormat(this->m_format);
-        const bool bgra = (this->m_format == RenderFormat::BGRA8888);
-        const auto cw = std::min(w, this->m_size.width);
-        const auto ch = std::min(h, this->m_size.height);
-        for(std::size_t i = 0;i < ch;i ++){
-            for(std::size_t j = 0;j < cw;j ++){
+        //framebuffer 打包恒为 a<<24|r<<16|g<<8|b，小端内存即 [b,g,r,a]
+        for(std::size_t i = 0;i < h;i ++){
+            for(std::size_t j = 0;j < w;j ++){
                 uint32_t v = src[i * w + j];
                 auto base = i * this->m_pitch + j * bytes;
-                dst[base + 0] = static_cast<uint8_t>((v >> 24) & 0xFF);
-                if(bgra){
-                    dst[base + 1] = static_cast<uint8_t>((v >> 16) & 0xFF);
-                    dst[base + 2] = static_cast<uint8_t>((v >> 8) & 0xFF);
-                    dst[base + 3] = static_cast<uint8_t>(v & 0xFF);
-                }else{
-                    dst[base + 1] = static_cast<uint8_t>(v & 0xFF);
-                    dst[base + 2] = static_cast<uint8_t>((v >> 8) & 0xFF);
-                    dst[base + 3] = static_cast<uint8_t>((v >> 16) & 0xFF);
-                }
+                dst[base + 0] = static_cast<uint8_t>(v & 0xFF);
+                dst[base + 1] = static_cast<uint8_t>((v >> 8) & 0xFF);
+                dst[base + 2] = static_cast<uint8_t>((v >> 16) & 0xFF);
+                dst[base + 3] = static_cast<uint8_t>((v >> 24) & 0xFF);
             }
         }
 

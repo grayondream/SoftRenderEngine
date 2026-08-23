@@ -29,6 +29,7 @@ struct ColorBase{
 enum class RenderFormat : int32_t{
     RGBA8888,
     BGRA8888,
+    ARGB8888,
 };
 
 using Position = Position2d;

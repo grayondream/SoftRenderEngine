@@ -27,9 +27,16 @@ inline uint32_t PackBGRA(const Color32 &c){
             static_cast<uint32_t>(c.b);
 }
 
+struct FogParams{
+    double start{};
+    double end{};
+    ColorFlt color{0.5f, 0.5f, 0.5f};
+};
+
 struct ShadingContext{
     const LightingRig *rig{};
     Vector3DBase<double> viewPos{};
+    const FogParams *fog{};
 };
 
 class Rasterizer{

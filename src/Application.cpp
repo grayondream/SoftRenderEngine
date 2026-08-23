@@ -134,7 +134,11 @@ void Application::RenderCube(){
     warm.color = ColorFlt{1.0f, 0.95f, 0.85f};
     warm.range = 12.0;
     rig.point.push_back(warm);
-    ShadingContext shading{&rig, m_camera.position};
+    FogParams fog{};
+    fog.start = 8.0;
+    fog.end = 25.0;
+    fog.color = ColorFlt{0.45f, 0.55f, 0.70f};
+    ShadingContext shading{&rig, m_camera.position, &fog};
 
     m_framebuffer.clear(0xFF000000u);
     Rasterizer rz{m_framebuffer};

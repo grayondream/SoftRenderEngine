@@ -275,6 +275,57 @@ TEST(RasterSolidTest, DefaultVertexColorIsVisible){
     EXPECT_GT(lit, 0u);
 }
 
+TEST(RasterFogTest, NullptrIsNoOp){
+    FrameBuffer withCtx(4, 4), noCtx(4, 4);
+    withCtx.clear(0xFF000000u);
+    noCtx.clear(0xFF000000u);
+
+    Texture tex(2, 2, std::vector<uint32_t>{
+        0xFF0000FFu, 0xFF00FF00u, 0xFFFF0000u, 0xFFFFFFFFu}.data());
+    LightingRig rig{};
+    rig.ambient = 1.0f;
+
+    ShadingContext ctx{&rig, Vector3DBase<double>{0, 2, -6}};
+    Rasterizer rzW{withCtx}, rzN{noCtx};
+    const ScreenVertex a{0, 0, -0.5f, 1};
+    const ScreenVertex b{8, 8, -0.5f, 1};
+    const ScreenVertex c{0, 8, -0.5f, 1};
+    rzW.drawTriangleTextured(a, b, c, tex, &ctx);
+    rzN.drawTriangleTextured(a, b, c, tex, nullptr);
+    for(std::size_t i = 0; i < 16u; i++){
+        EXPECT_EQ(withCtx.colorData()[i], noCtx.colorData()[i]);
+    }
+}
+
+TEST(RasterFogTest, FarConvergesToFogColor){
+    FrameBuffer fb(4, 4);
+    fb.clear(0xFF000000u);
+    Texture tex(2, 2, std::vector<uint32_t>{
+        0xFF0000FFu, 0xFF00FF00u, 0xFFFF0000u, 0xFFFFFFFFu}.data());
+    FogParams fog{};
+    fog.start = 0;
+    fog.end = 1;
+    fog.color = ColorFlt{0.2f, 0.4f, 0.8f};
+    LightingRig rig{};
+    rig.ambient = 0.0f;
+    ShadingContext ctx{&rig, Vector3DBase<double>{10, 0, 0}, &fog};
+
+    Rasterizer rz{fb};
+    const ScreenVertex a{0, 0, -0.5f, 1};
+    const ScreenVertex b{8, 8, -0.5f, 1};
+    const ScreenVertex c{0, 8, -0.5f, 1};
+    rz.drawTriangleTextured(a, b, c, tex, &ctx);
+
+    uint32_t covered = 0;
+    for(std::size_t i = 0; i < 16u; i++){
+        if(fb.colorData()[i] != 0xFF000000u){ covered = fb.colorData()[i]; break; }
+    }
+    EXPECT_EQ(covered >> 24, 0xFF);
+    EXPECT_NEAR(static_cast<int>((covered >> 16) & 0xFF), 51, 2);
+    EXPECT_NEAR(static_cast<int>((covered >> 8) & 0xFF), 102, 2);
+    EXPECT_NEAR(static_cast<int>(covered & 0xFF), 204, 2);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

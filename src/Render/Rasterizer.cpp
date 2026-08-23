@@ -134,7 +134,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
 
             double nxc = 0, nyc = 0, nzc = 0;
             double wxp = 0, wyp = 0, wzp = 0;
-            if(shading && shading->rig){
+            if(shading && (shading->rig || shading->fog)){
                 nxc = (w0*v0.nx/v0.w + w1*v1.nx/v1.w + w2*v2.nx/v2.w) / iw;
                 nyc = (w0*v0.ny/v0.w + w1*v1.ny/v1.w + w2*v2.ny/v2.w) / iw;
                 nzc = (w0*v0.nz/v0.w + w1*v1.nz/v1.w + w2*v2.nz/v2.w) / iw;
@@ -152,6 +152,26 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 const Vector3DBase<double> N{nxc, nyc, nzc};
                 const Vector3DBase<double> Pw{wxp, wyp, wzp};
                 shaded = shade(*shading->rig, albedo, N.normalize(), Pw, shading->viewPos);
+            }
+            if(shading && shading->fog){
+                const FogParams &fog = *shading->fog;
+                const double dx = wxp - shading->viewPos.x;
+                const double dy = wyp - shading->viewPos.y;
+                const double dz = wzp - shading->viewPos.z;
+                const double dist = std::sqrt(dx*dx + dy*dy + dz*dz);
+                double f = (dist - fog.start) / (fog.end - fog.start);
+                if(!(f >= 0)) f = 0;
+                if(f > 1) f = 1;
+                if(f > 0){
+                    auto mixCh = [f](uint32_t shadedC, float fogC) -> uint32_t {
+                        const double v = shadedC + (fogC * 255.0 - shadedC) * f;
+                        return static_cast<uint32_t>(v + 0.5);
+                    };
+                    const uint32_t outR = mixCh((shaded >> 16) & 0xFF, fog.color.r);
+                    const uint32_t outG = mixCh((shaded >> 8) & 0xFF, fog.color.g);
+                    const uint32_t outB = mixCh(shaded & 0xFF, fog.color.b);
+                    shaded = 0xFF000000u | (outR << 16) | (outG << 8) | outB;
+                }
             }
             m_fb.blendPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
                             shaded, zNdc);

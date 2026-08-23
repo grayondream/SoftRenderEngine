@@ -3,6 +3,7 @@
 #include "Texture.hpp"
 #include "Light.hpp"
 #include "Shadow.hpp"
+#include "Environment.hpp"
 #include "GeoObject/Color.hpp"
 
 struct ScreenVertex{
@@ -30,6 +31,7 @@ inline uint32_t PackBGRA(const Color32 &c){
 
 using SGE::Render::ShadowData;
 using SGE::Render::CubeShadowData;
+using SGE::Render::EnvParams;
 
 struct FogParams{
     double start{};
@@ -43,6 +45,7 @@ struct ShadingContext{
     const FogParams *fog{};
     const ShadowData *shadow{};
     const CubeShadowData *cubeShadow{};
+    const EnvParams *env{};
 };
 
 struct ScreenRect{

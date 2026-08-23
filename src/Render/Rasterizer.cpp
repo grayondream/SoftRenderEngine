@@ -321,6 +321,53 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 const Vector3DBase<double> Pw{wxp, wyp, wzp};
                 shaded = shade(*shading->rig, albedo, N.normalize(), Pw, shading->viewPos, shadowFactor);
             }
+            if(shading && shading->env && shading->env->enabled){
+                const auto &ep = *shading->env;
+                const Vector3DBase<double> N = SGE::Render::EnvNormalize(
+                    Vector3DBase<double>{nxc, nyc, nzc});
+                const auto Vd = SGE::Render::EnvNormalize(Vector3DBase<double>{
+                    shading->viewPos.x - wxp, shading->viewPos.y - wyp,
+                    shading->viewPos.z - wzp});
+                const double cosI = std::max(0.0, -(Vd.x*N.x + Vd.y*N.y + Vd.z*N.z));
+
+                const double fr = 1.0 - cosI;
+                const double fresnel = 0.04 + 0.96 * fr*fr*fr*fr*fr;
+
+                const double dotVN = Vd.x*N.x + Vd.y*N.y + Vd.z*N.z;
+                const auto reflDir = Vector3DBase<double>{
+                    Vd.x - 2.0*dotVN*N.x, Vd.y - 2.0*dotVN*N.y, Vd.z - 2.0*dotVN*N.z};
+                const Color32 reflCol = SGE::Render::SampleEnvironment(reflDir);
+
+                Color32 refrCol{25, 28, 40, 255};
+                if(ep.refractivity > 0.0){
+                    const double eta = 1.0 / ep.ior;
+                    const double k = 1.0 - eta*eta*(1.0 - dotVN*dotVN);
+                    if(k > 0.0){
+                        const double tK = eta*dotVN - std::sqrt(k);
+                        const auto refrDir = SGE::Render::EnvNormalize(Vector3DBase<double>{
+                            eta*Vd.x + tK*N.x, eta*Vd.y + tK*N.y, eta*Vd.z + tK*N.z});
+                        refrCol = SGE::Render::SampleEnvironment(refrDir);
+                    }
+                }
+
+                auto mixInto = [&](uint32_t base, const Color32 &c, double w){
+                    if(w <= 0.0) return base;
+                    auto ch = [base](int shift){ return static_cast<double>((base >> shift) & 0xFF); };
+                    auto mixv = [&](double b, int cs){
+                        return static_cast<uint32_t>(b * (1.0 - w) +
+                            static_cast<double>((c.color[cs]) ) * w + 0.5);
+                    };
+                    const uint32_t r = mixv(ch(16), 0);
+                    const uint32_t g = mixv(ch(8), 1);
+                    const uint32_t bl = mixv(ch(0), 2);
+                    return 0xFF000000u | (std::min(r, 255u) << 16) |
+                           (std::min(g, 255u) << 8) | std::min(bl, 255u);
+                };
+
+                shaded = mixInto(shaded, reflCol,
+                    std::min(1.0, ep.reflectivity + fresnel * (ep.reflectivity > 0 ? 0.6 : 0.15)));
+                shaded = mixInto(shaded, refrCol, ep.refractivity * (0.35 + 0.65 * fresnel));
+            }
             if(shading && shading->fog){
                 const FogParams &fog = *shading->fog;
                 const double dx = wxp - shading->viewPos.x;

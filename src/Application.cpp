@@ -192,6 +192,27 @@ void Application::RenderScene(){
     m_framebuffer.clear(0xFF000000u);
     Rasterizer rz{m_framebuffer};
 
+    if(m_sceneMode == 0){
+        const auto rot = SGE::Math::rotationY(m_angle * 0.5);
+        struct Item{ const Object4D *obj; double ox, oy, oz; double s; };
+        const Item items[] = {
+            {&m_sphere, m_sphere.worldPos.x, m_sphere.worldPos.y + 0.8, m_sphere.worldPos.z, 1.0},
+            {&m_torus,  m_torus.worldPos.x,  m_torus.worldPos.y + 1.0,  m_torus.worldPos.z, 1.0},
+            {&m_teapot, m_teapot.worldPos.x, m_teapot.worldPos.y + 0.75, m_teapot.worldPos.z, 1.0}};
+        for(const auto &it : items){
+            auto im = SGE::Math::translation(it.ox, it.oy, it.oz).mul(rot);
+            auto inrm = SGE::Math::normalMatrix(im);
+            auto t2 = Pipeline::projectObject(*it.obj, im, viewProj, inrm, 800, 600);
+            for(auto &t : t2){
+                rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+            }
+        }
+        SGE::Render::TileRenderer tiler{m_framebuffer};
+        auto ct = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
+        tiler.drawTextured(ct, m_checker, &shading);
+        return;
+    }
+
     switch(m_sceneMode){
         case 1:
         {
@@ -300,13 +321,60 @@ void Application::RenderScene(){
         }
         case 5:
         {
-            Object4D obj{};
-            if(loadObjFromFile("assets/cube.obj", obj)){
-                auto tris = Pipeline::projectObject(obj, model, viewProj, nrm, 800, 600);
-                for(auto &t : tris){
-                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
-                }
+            SGE::Render::EnvParams mirror{};
+            mirror.enabled = true;
+            mirror.reflectivity = 0.92;
+            SGE::Render::EnvParams glassEnv{};
+            glassEnv.enabled = true;
+            glassEnv.reflectivity = 0.25;
+            glassEnv.refractivity = 0.85;
+            glassEnv.ior = 1.52;
+            SGE::Render::EnvParams floorEnv{};
+            floorEnv.enabled = true;
+            floorEnv.reflectivity = 0.18;
+
+            Object4D mirrorBall = m_sphere;
+            mirrorBall.worldPos = Point4D{-1.6, 0.6, 0, 1};
+            Object4D crystal = SGE::Render::MakeSphere(0.9, 28, 18);
+            crystal.worldPos = Point4D{1.8, 0.3, 0.4, 1};
+
+            ShadingContext envCtx{&m_rig, m_camera.position,
+                                  m_fogEnabled ? &fog : nullptr,
+                                  nullptr, nullptr, &floorEnv};
+            SGE::Render::TileRenderer tiled{m_framebuffer};
+
+            auto mt = Pipeline::projectObject(mirrorBall,
+                SGE::Math::translation(mirrorBall.worldPos.x,
+                    mirrorBall.worldPos.y + 0.4, mirrorBall.worldPos.z),
+                viewProj, nrm, 800, 600);
+            for(auto &t : mt){
+                t.v[0].color = Color32{230, 235, 245, 255};
+                t.v[1].color = Color32{230, 235, 245, 255};
+                t.v[2].color = Color32{230, 235, 245, 255};
+                rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
             }
+            (void)envCtx; (void)mirror; (void)glassEnv; (void)floorEnv; (void)tiled;
+
+            Object4D groundPlane{};
+            std::snprintf(groundPlane.name, sizeof(groundPlane.name), "%s", "gplane");
+            const double ge2 = 7.0;
+            Point4D gp[4] = {{-ge2,-2,-ge2,1},{ge2,-2,-ge2,1},{ge2,-2,ge2,1},{-ge2,-2,ge2,1}};
+            for(int i = 0;i < 4;i++){ groundPlane.vlistLocal[i] = gp[i]; }
+            groundPlane.numVertices = 4;
+            groundPlane.numPolys = 2;
+            const int gidx[2][3] = {{0,1,2},{0,2,3}};
+            const UV2D guv[4] = {{0,0},{10,0},{10,10},{0,10}};
+            for(int i = 0;i < 2;i++){
+                for(int k = 0;k < 3;k++){
+                    groundPlane.plist[i].vlist[k] = gp[gidx[i][k]];
+                    groundPlane.plist[i].uvlist[k] = guv[gidx[i][k]];
+                    groundPlane.plist[i].nlist[k] = Vector3DBase<double>{0, 1, 0};
+                }
+                groundPlane.plist[i].color = Color32{190,190,200,255};
+            }
+            auto gt = Pipeline::projectObject(groundPlane,
+                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
+            tiled.drawTextured(gt, m_checker, &envCtx);
             break;
         }
         default:
@@ -427,9 +495,10 @@ void Application::RenderDebugUi(){
 
     ImGui::Begin("SoftEngine Debug");
     const char *modes[] = {
-        "0 Lit+Texture (tiled)", "1 Wireframe", "2 Flat Solid",
-        "3 Unlit Texture", "4 Alpha Blend", "5 OBJ Mesh",
-        "6 Shadow Ground", "7 Ray Traced"};
+        "0 Basic Geometry+Lighting", "1 Texture+Filtering",
+        "2 Depth+Alpha Blending", "3 Shadow Mapping+PCF",
+        "4 Env Reflection/Refraction", "5 PBR Sphere Array",
+        "6 Light Cone RayTrace"};
     if(ImGui::Combo("Scene", &m_sceneMode, modes, IM_ARRAYSIZE(modes))){
         LOGI("[UI] scene -> {} via ImGui", m_sceneMode);
         m_framebuffer.clearDepth();

@@ -57,6 +57,7 @@ public:
     uint32_t* colorData(){ return m_color.data(); }
     const uint32_t* colorData() const{ return m_color.data(); }
     float* depthData(){ return m_depth.data(); }
+    const float* depthData() const{ return m_depth.data(); }
     std::size_t width() const{ return m_width; }
     std::size_t height() const{ return m_height; }
 

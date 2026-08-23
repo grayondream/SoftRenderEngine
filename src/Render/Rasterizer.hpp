@@ -2,6 +2,7 @@
 #include "FrameBuffer.hpp"
 #include "Texture.hpp"
 #include "Light.hpp"
+#include "Shadow.hpp"
 #include "GeoObject/Color.hpp"
 
 struct ScreenVertex{
@@ -27,6 +28,8 @@ inline uint32_t PackBGRA(const Color32 &c){
             static_cast<uint32_t>(c.b);
 }
 
+using SGE::Render::ShadowData;
+
 struct FogParams{
     double start{};
     double end{};
@@ -37,6 +40,7 @@ struct ShadingContext{
     const LightingRig *rig{};
     Vector3DBase<double> viewPos{};
     const FogParams *fog{};
+    const ShadowData *shadow{};
 };
 
 class Rasterizer{
@@ -45,6 +49,7 @@ public:
 
     void drawLine(const ScreenVertex &a, const ScreenVertex &b);
     void drawTriangleWireframe(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2);
+    void drawTriangleDepth(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2);
     void drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2);
     void drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex &v1,
                               const ScreenVertex &v2, const Texture &tex,

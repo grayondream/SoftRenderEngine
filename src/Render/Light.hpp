@@ -27,4 +27,5 @@ uint32_t shade(const LightingRig &rig,
                const Color32 &albedo,
                const Vector3DBase<double> &N,
                const Vector3DBase<double> &P,
-               const Vector3DBase<double> &viewPos);
+               const Vector3DBase<double> &viewPos,
+               double shadowFactor = 1.0);

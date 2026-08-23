@@ -16,7 +16,8 @@ uint32_t shade(const LightingRig &rig,
                const Color32 &albedo,
                const Vector3DBase<double> &Nn,
                const Vector3DBase<double> &P,
-               const Vector3DBase<double> &viewPos){
+               const Vector3DBase<double> &viewPos,
+               double shadowFactor){
     const Vector3DBase<double> N = Nn.normalize();
     const Vector3DBase<double> V = Sub(viewPos, P).normalize();
 
@@ -25,15 +26,15 @@ uint32_t shade(const LightingRig &rig,
 
     auto accum = [&](const Vector3DBase<double> &L, const ColorFlt &lc, double atten){
         const double ndotl = std::max(0.0, N.dot(L));
-        diffR += lc.r * ndotl * atten;
-        diffG += lc.g * ndotl * atten;
-        diffB += lc.b * ndotl * atten;
+        diffR += lc.r * ndotl * atten * shadowFactor;
+        diffG += lc.g * ndotl * atten * shadowFactor;
+        diffB += lc.b * ndotl * atten * shadowFactor;
 
         const Vector3DBase<double> Hv = Vector3DBase<double>{
             L.x + V.x, L.y + V.y, L.z + V.z}.normalize();
         const double sp = std::pow(std::max(0.0, N.dot(Hv)),
                                    static_cast<double>(rig.shininess))
-                        * rig.specularStrength * atten;
+                        * rig.specularStrength * atten * shadowFactor;
         specR += lc.r * sp;
         specG += lc.g * sp;
         specB += lc.b * sp;

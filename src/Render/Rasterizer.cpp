@@ -42,6 +42,52 @@ bool IsTopLeftEdge(double ax, double ay, double bx, double by){
 }
 }
 
+void Rasterizer::drawTriangleDepth(const ScreenVertex &v0, const ScreenVertex &v1,
+                                   const ScreenVertex &v2){
+    double area = EdgeFunction(v0.x,v0.y, v1.x,v1.y, v2.x,v2.y);
+    if(area == 0) return;
+    double invArea = 1.0 / area;
+
+    double minX = std::min({v0.x, v1.x, v2.x});
+    double maxX = std::max({v0.x, v1.x, v2.x});
+    double minY = std::min({v0.y, v1.y, v2.y});
+    double maxY = std::max({v0.y, v1.y, v2.y});
+    int x0 = std::max(0, static_cast<int>(std::floor(minX)));
+    int y0 = std::max(0, static_cast<int>(std::floor(minY)));
+    int x1 = std::min(static_cast<int>(m_fb.width()) - 1,  static_cast<int>(std::ceil(maxX)));
+    int y1 = std::min(static_cast<int>(m_fb.height()) - 1, static_cast<int>(std::ceil(maxY)));
+
+    bool tl0 = IsTopLeftEdge(v1.x,v1.y, v2.x,v2.y);
+    bool tl1 = IsTopLeftEdge(v2.x,v2.y, v0.x,v0.y);
+    bool tl2 = IsTopLeftEdge(v0.x,v0.y, v1.x,v1.y);
+
+    constexpr double eps = 1e-9;
+    float *depth = m_fb.depthData();
+
+    for(int y = y0; y <= y1; y++){
+        for(int x = x0; x <= x1; x++){
+            double px = x + 0.5, py = y + 0.5;
+            double w0 = EdgeFunction(v1.x,v1.y, v2.x,v2.y, px,py) * invArea;
+            double w1 = EdgeFunction(v2.x,v2.y, v0.x,v0.y, px,py) * invArea;
+            double w2 = EdgeFunction(v0.x,v0.y, v1.x,v1.y, px,py) * invArea;
+
+            auto inside = [&](double w, bool topLeft){
+                return w > eps || (topLeft && w >= -eps);
+            };
+            if(!inside(w0, tl0) || !inside(w1, tl1) || !inside(w2, tl2)) continue;
+
+            double iw = w0/v0.w + w1/v1.w + w2/v2.w;
+            if(iw <= 0) continue;
+            const float zNdc = static_cast<float>(
+                (w0*v0.z/v0.w + w1*v1.z/v1.w + w2*v2.z/v2.w) / iw);
+            auto idx = static_cast<std::size_t>(y)*m_fb.width() + static_cast<std::size_t>(x);
+            if(zNdc < depth[idx]){
+                depth[idx] = zNdc;
+            }
+        }
+    }
+}
+
 void Rasterizer::drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2){
     double area = EdgeFunction(v0.x,v0.y, v1.x,v1.y, v2.x,v2.y);
     if(area == 0) return;
@@ -144,6 +190,32 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
             }
 
             uint32_t shaded = tex.sample(uPix, vPix, filter, wrap);
+            double shadowFactor = 1.0;
+            if(shading && shading->shadow && shading->shadow->depth){
+                const auto &sd = *shading->shadow;
+                const Vector4DBase<double> Pl{wxp, wyp, wzp, 1.0};
+                const Matrix4DBase<double> &M = sd.lightViewProj;
+                double lx = M[0][0][0][0]*Pl.x + M[0][0][0][1]*Pl.y + M[0][0][0][2]*Pl.z + M[0][0][0][3]*Pl.w;
+                double ly = M[0][0][1][0]*Pl.x + M[0][0][1][1]*Pl.y + M[0][0][1][2]*Pl.z + M[0][0][1][3]*Pl.w;
+                double lz = M[0][0][2][0]*Pl.x + M[0][0][2][1]*Pl.y + M[0][0][2][2]*Pl.z + M[0][0][2][3]*Pl.w;
+                double lw = M[0][0][3][0]*Pl.x + M[0][0][3][1]*Pl.y + M[0][0][3][2]*Pl.z + M[0][0][3][3]*Pl.w;
+                if(lw > 1e-9){
+                    const double nx = lx / lw;
+                    const double ny = ly / lw;
+                    const double nz = lz / lw;
+                    if(nx >= -1.0 && nx <= 1.0 && ny >= -1.0 && ny <= 1.0){
+                        const std::size_t smW = sd.depth->width();
+                        const std::size_t smH = sd.depth->height();
+                        auto sx = static_cast<std::size_t>((nx * 0.5 + 0.5) * static_cast<double>(smW - 1));
+                        auto sy = static_cast<std::size_t>((ny * -0.5 + 0.5) * static_cast<double>(smH - 1));
+                        const float dLight = sd.depth->depthData()[sy * smW + sx];
+                        const float zMain01 = static_cast<float>(nz * 0.5 + 0.5);
+                        if(zMain01 > dLight + static_cast<float>(sd.bias)){
+                            shadowFactor = 0.0;
+                        }
+                    }
+                }
+            }
             if(shading && shading->rig){
                 const Color32 albedo{
                     static_cast<int32_t>((shaded >> 16) & 0xFF),
@@ -151,7 +223,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                     static_cast<int32_t>(shaded & 0xFF), 255};
                 const Vector3DBase<double> N{nxc, nyc, nzc};
                 const Vector3DBase<double> Pw{wxp, wyp, wzp};
-                shaded = shade(*shading->rig, albedo, N.normalize(), Pw, shading->viewPos);
+                shaded = shade(*shading->rig, albedo, N.normalize(), Pw, shading->viewPos, shadowFactor);
             }
             if(shading && shading->fog){
                 const FogParams &fog = *shading->fog;

@@ -29,6 +29,10 @@
 #include "Advanced/NormalLine.hpp"
 #include "Advanced/MultiInstance.hpp"
 #include "Advanced/Saturn.hpp"
+#include "LightAdv/Bloom.hpp"
+#include "LightAdv/HDR.hpp"
+#include "LightAdv/Gamma.hpp"
+#include "Advanced/Skybox.hpp"
 
 namespace SGE::Samples {
 
@@ -97,6 +101,14 @@ void registerBuiltinScenes(){
         []() -> std::unique_ptr<IScene> { return std::make_unique<MultiInstanceScene>(); });
     reg.add("Advanced", "Saturn Ring System",
         []() -> std::unique_ptr<IScene> { return std::make_unique<SaturnScene>(); });
+    reg.add("LightAdv", "Glowing spheres with bloom",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<BloomScene>(); });
+    reg.add("LightAdv", "HDR Tonemapping",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<HDRTonemapScene>(); });
+    reg.add("LightAdv", "Gamma Correction",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<GammaScene>(); });
+    reg.add("Advanced", "HDR Equirect Skybox (newport loft)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<SkyboxScene>(); });
 }
 
 }

@@ -137,7 +137,8 @@ void Rasterizer::drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v
 void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex &v1,
                                       const ScreenVertex &v2, const Texture &tex,
                                       const ShadingContext *shading,
-                                      TextureFilter filter, TextureWrap wrap){
+                                      TextureFilter filter, TextureWrap wrap,
+                                      const ScreenRect *clip){
     double area = EdgeFunction(v0.x,v0.y, v1.x,v1.y, v2.x,v2.y);
     if(area == 0) return;
     double invArea = 1.0 / area;
@@ -150,6 +151,13 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
     int y0 = std::max(0, static_cast<int>(std::floor(minY)));
     int x1 = std::min(static_cast<int>(m_fb.width()) - 1,  static_cast<int>(std::ceil(maxX)));
     int y1 = std::min(static_cast<int>(m_fb.height()) - 1, static_cast<int>(std::ceil(maxY)));
+    if(clip){
+        x0 = std::max(x0, clip->x0);
+        y0 = std::max(y0, clip->y0);
+        x1 = std::min(x1, clip->x1);
+        y1 = std::min(y1, clip->y1);
+    }
+    if(x0 > x1 || y0 > y1) return;
 
     bool tl0 = IsTopLeftEdge(v1.x,v1.y, v2.x,v2.y);
     bool tl1 = IsTopLeftEdge(v2.x,v2.y, v0.x,v0.y);
@@ -233,6 +241,57 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                                 }
                             }
                             shadowFactor = 1.0 - static_cast<double>(occluded) / total;
+                        }
+                    }
+                }
+            }else if(shading && shading->cubeShadow){
+                const auto &cs = *shading->cubeShadow;
+                const Vector3DBase<double> L{wxp - cs.lightPos.x,
+                                             wyp - cs.lightPos.y,
+                                             wzp - cs.lightPos.z};
+                const int face = SGE::Render::cubeFaceIndex(L);
+                const FrameBuffer *faceFb = cs.faces[face];
+                if(faceFb){
+                    const auto M = SGE::Render::cubeFaceVP(cs.lightPos, face);
+                    double lx = M[0][0][0][0]*wxp + M[0][0][0][1]*wyp + M[0][0][0][2]*wzp + M[0][0][0][3];
+                    double ly = M[0][0][1][0]*wxp + M[0][0][1][1]*wyp + M[0][0][1][2]*wzp + M[0][0][1][3];
+                    double lz = M[0][0][2][0]*wxp + M[0][0][2][1]*wyp + M[0][0][2][2]*wzp + M[0][0][2][3];
+                    double lw = M[0][0][3][0]*wxp + M[0][0][3][1]*wyp + M[0][0][3][2]*wzp + M[0][0][3][3];
+                    if(lw > 1e-9){
+                        const double nx = lx / lw;
+                        const double ny = ly / lw;
+                        const double nz = lz / lw;
+                        if(nx >= -1.0 && nx <= 1.0 && ny >= -1.0 && ny <= 1.0){
+                            const std::size_t smW = faceFb->width();
+                            const std::size_t smH = faceFb->height();
+                            auto sx = static_cast<std::size_t>((nx * 0.5 + 0.5) * static_cast<double>(smW - 1));
+                            auto sy = static_cast<std::size_t>((ny * -0.5 + 0.5) * static_cast<double>(smH - 1));
+                            const float zMain01 = static_cast<float>(nz * 0.5 + 0.5);
+                            if(cs.pcfRadius <= 0){
+                                const float dLight = faceFb->depthData()[sy * smW + sx];
+                                if(zMain01 > dLight + static_cast<float>(cs.bias)){
+                                    shadowFactor = 0.0;
+                                }
+                            }else{
+                                int occluded = 0, total = 0;
+                                for(int oy = -cs.pcfRadius; oy <= cs.pcfRadius; oy++){
+                                    for(int ox = -cs.pcfRadius; ox <= cs.pcfRadius; ox++){
+                                        const auto px2 = std::clamp<std::int64_t>(
+                                            static_cast<std::int64_t>(sx) + ox, 0,
+                                            static_cast<std::int64_t>(smW - 1));
+                                        const auto py2 = std::clamp<std::int64_t>(
+                                            static_cast<std::int64_t>(sy) + oy, 0,
+                                            static_cast<std::int64_t>(smH - 1));
+                                        const float dLight = faceFb->depthData()[
+                                            static_cast<std::size_t>(py2) * smW + static_cast<std::size_t>(px2)];
+                                        if(zMain01 > dLight + static_cast<float>(cs.bias)){
+                                            occluded++;
+                                        }
+                                        total++;
+                                    }
+                                }
+                                shadowFactor = 1.0 - static_cast<double>(occluded) / total;
+                            }
                         }
                     }
                 }

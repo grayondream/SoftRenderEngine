@@ -48,10 +48,17 @@ public:
         auto worker = [&](unsigned id){
             Rasterizer rz{m_fb};
             for(std::size_t t = id; t < tileCount; t += threads){
+                const std::size_t tc = t % cols;
+                const std::size_t tr = t / cols;
+                ScreenRect clip{};
+                clip.x0 = static_cast<int>(tc * kTile);
+                clip.y0 = static_cast<int>(tr * kTile);
+                clip.x1 = static_cast<int>(std::min(W, (tc + 1) * kTile)) - 1;
+                clip.y1 = static_cast<int>(std::min(H, (tr + 1) * kTile)) - 1;
                 for(auto idx : buckets[t]){
                     const auto &tri = tris[idx];
                     rz.drawTriangleTextured(tri.v[0], tri.v[1], tri.v[2],
-                                            tex, ctx, filter, wrap);
+                                            tex, ctx, filter, wrap, &clip);
                 }
             }
         };

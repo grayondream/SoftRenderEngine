@@ -29,6 +29,7 @@ inline uint32_t PackBGRA(const Color32 &c){
 }
 
 using SGE::Render::ShadowData;
+using SGE::Render::CubeShadowData;
 
 struct FogParams{
     double start{};
@@ -41,6 +42,14 @@ struct ShadingContext{
     Vector3DBase<double> viewPos{};
     const FogParams *fog{};
     const ShadowData *shadow{};
+    const CubeShadowData *cubeShadow{};
+};
+
+struct ScreenRect{
+    int x0{};
+    int y0{};
+    int x1{};
+    int y1{};
 };
 
 class Rasterizer{
@@ -55,7 +64,8 @@ public:
                               const ScreenVertex &v2, const Texture &tex,
                               const ShadingContext *shading = nullptr,
                               TextureFilter filter = TextureFilter::Bilinear,
-                              TextureWrap wrap = TextureWrap::Repeat);
+                              TextureWrap wrap = TextureWrap::Repeat,
+                              const ScreenRect *clip = nullptr);
 
 private:
     void plot(int x, int y, const Color32 &c);

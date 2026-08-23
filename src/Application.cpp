@@ -16,7 +16,7 @@
 #include "Window.hpp"
 #include "Log.hpp"
 #include "WindowBuffer.hpp"
-#include "Render/Rasterizer.hpp"
+#include "Render/TileRenderer.hpp"
 #include "Render/Pipeline.hpp"
 #include "Render/Texture.hpp"
 #include "Render/Light.hpp"
@@ -141,10 +141,9 @@ void Application::RenderCube(){
     ShadingContext shading{&rig, m_camera.position, &fog};
 
     m_framebuffer.clear(0xFF000000u);
-    Rasterizer rz{m_framebuffer};
-    for(auto &t : Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600)){
-        rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], m_checker, &shading);
-    }
+    SGE::Render::TileRenderer tiled{m_framebuffer};
+    auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
+    tiled.drawTextured(tris, m_checker, &shading);
 
     if(auto buf = BufferManager::instance()->getBuffer()){
         buf->clear({0,0,0,255});

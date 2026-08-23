@@ -218,6 +218,57 @@ TEST(ShadowTest, PointLightVPOccludes){
     EXPECT_GT(chan(litFb.colorData()[probe], 16), chan(shFb.colorData()[probe], 16));
 }
 
+TEST(ShadowTest, CubeShadowOccludesOnAllAxes){
+    FrameBuffer faceZpos{32, 32};
+    faceZpos.clear();
+    {
+        Rasterizer srz{faceZpos};
+        const ScreenVertex a{0, 0, -0.5f, 1};
+        const ScreenVertex b{32, 0, -0.5f, 1};
+        const ScreenVertex c{32, 32, -0.5f, 1};
+        const ScreenVertex d{0, 32, -0.5f, 1};
+        srz.drawTriangleDepth(a, b, c);
+        srz.drawTriangleDepth(a, c, d);
+    }
+
+    SGE::Render::CubeShadowData cs{};
+    cs.faces[4] = &faceZpos;
+    cs.lightPos = Vector3DBase<double>{0, 0, 0};
+    cs.bias = 0.005;
+
+    LightingRig rig{};
+    rig.ambient = 0.25f;
+    DirectionalLight dl{};
+    dl.color = ColorFlt{1, 1, 1};
+    dl.direction = Vector3DBase<double>{0, 0, -1};
+    rig.directional.push_back(dl);
+
+    Texture tex(1, 1, std::vector<uint32_t>{0xFF808080u}.data());
+    ShadingContext ctx{&rig, Vector3DBase<double>{0, 0, -5}, nullptr, nullptr, &cs};
+
+    auto renderProbe = [&](double wz){
+        FrameBuffer fb{32, 32};
+        fb.clear();
+        Rasterizer rz{fb};
+        ScreenVertex tri[3] = {};
+        tri[0] = {4, 31, -0.5f, 1};
+        tri[1] = {27, 31, -0.5f, 1};
+        tri[2] = {15, 6, -0.5f, 1};
+        for(auto &v : tri){
+            v.nx = 0; v.ny = 0; v.nz = -1;
+            v.wx = 0; v.wy = 0; v.wz = wz;
+            v.u = 0; v.v = 0;
+        }
+        rz.drawTriangleTextured(tri[0], tri[1], tri[2], tex, &ctx);
+        return chan(fb.colorData()[15u * 32u + 15u], 16);
+    };
+
+    const int litOppositeFace = renderProbe(-3.0);
+    const int shadowedOnFace = renderProbe(3.0);
+    EXPECT_GT(litOppositeFace, 100);
+    EXPECT_EQ(shadowedOnFace, 32);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

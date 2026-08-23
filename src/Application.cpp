@@ -136,6 +136,22 @@ std::error_code Application::initalize(const ApplicationParam &param){
 }
 
 void Application::RenderScene(){
+    const char *barsEnv = std::getenv("SGE_TEST_BARS");
+    if(barsEnv){
+        const uint32_t bars[4] = {
+            0xFFFF0000u,
+            0xFF00FF00u,
+            0xFF0000FFu,
+            0xFFFFFFFFu};
+        for(std::size_t y = 0; y < 600; y++){
+            for(std::size_t x = 0; x < 800; x++){
+                m_framebuffer.setPixel(x, y, bars[x / 200], -3.0f);
+            }
+        }
+        BufferManager::instance()->draw(
+            reinterpret_cast<const uint8_t*>(m_framebuffer.colorData()));
+        return;
+    }
     if(m_rotating){
         m_angle += m_rotateSpeed;
     }

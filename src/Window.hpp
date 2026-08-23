@@ -2,6 +2,7 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 #include <cstdint>
+#include <functional>
 #include <system_error>
 #include "WindowDefine.hpp"
 
@@ -69,6 +70,16 @@ public:
     }
 
     void show();
+
+    void showWithOverlay(const std::function<void(SDL_Renderer*)> &overlay);
+
+    SDL_Renderer* renderer(){
+        return m_pRender;
+    }
+
+    SDL_Window* window(){
+        return m_pWindow;
+    }
 
     WindowIDType getId(){
         return reinterpret_cast<WindowIDType>(this);

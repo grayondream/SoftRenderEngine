@@ -20,6 +20,11 @@
 #include "Render/Pipeline.hpp"
 #include "Render/Texture.hpp"
 #include "Render/Light.hpp"
+#include "Render/RayTrace.hpp"
+#include "Render/ObjLoader.hpp"
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 #include "Transform.hpp"
 
 namespace{
@@ -97,8 +102,25 @@ std::error_code Application::initalize(const ApplicationParam &param){
         return err;
     }
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForSDLRenderer(m_pwindow->window(), m_pwindow->renderer());
+    ImGui_ImplSDLRenderer2_Init(m_pwindow->renderer());
+
     m_cube = MakeCube();
     m_checker = MakeCheckerTexture();
+    m_rtScene.spheres.push_back(
+        SGE::Render::RaySphere{Vector3DBase<double>{0, 0, 0}, 1.2,
+                               Color32{255, 60, 60, 255}, 0.6f});
+    m_rtScene.spheres.push_back(
+        SGE::Render::RaySphere{Vector3DBase<double>{-2.2, -0.4, 0.5}, 0.8,
+                               Color32{60, 120, 255, 255}, 0.1f});
+    m_rtScene.triangles.push_back(
+        SGE::Render::RayTriangle{Vector3DBase<double>{-6, -1.5, 4},
+                                 Vector3DBase<double>{6, -1.5, 4},
+                                 Vector3DBase<double>{0, -1.5, -4},
+                                 Color32{180, 180, 180, 255}, 0.35f});
     return {};
 }
 
@@ -113,8 +135,10 @@ std::error_code Application::initalize(const ApplicationParam &param){
     }
 }
 
-void Application::RenderCube(){
-    m_angle += 0.02;
+void Application::RenderScene(){
+    if(m_rotating){
+        m_angle += m_rotateSpeed;
+    }
     auto model = SGE::Math::translation(m_cube.worldPos.x, m_cube.worldPos.y, m_cube.worldPos.z)
         .mul(SGE::Math::rotationY(m_angle))
         .mul(SGE::Math::rotationX(0.4));
@@ -123,32 +147,193 @@ void Application::RenderCube(){
     auto viewProj = proj.mul(view);
     auto nrm = SGE::Math::normalMatrix(model);
 
-    LightingRig rig{};
-    rig.ambient = 0.15f;
+    m_rig = LightingRig{};
+    m_rig.ambient = 0.15f;
     DirectionalLight key{};
     key.direction = Vector3DBase<double>{-0.5, 0.8, -1.0};
     key.color = ColorFlt{1.0f, 1.0f, 1.0f};
-    rig.directional.push_back(key);
+    m_rig.directional.push_back(key);
     PointLight warm{};
     warm.position = Vector3DBase<double>{2.5, 2.5, -4.0};
     warm.color = ColorFlt{1.0f, 0.95f, 0.85f};
     warm.range = 12.0;
-    rig.point.push_back(warm);
+    m_rig.point.push_back(warm);
+
     FogParams fog{};
-    fog.start = 8.0;
-    fog.end = 25.0;
+    fog.start = m_fogStart;
+    fog.end = m_fogEnd;
     fog.color = ColorFlt{0.45f, 0.55f, 0.70f};
-    ShadingContext shading{&rig, m_camera.position, &fog};
+    ShadingContext shading{&m_rig, m_camera.position, m_fogEnabled ? &fog : nullptr};
 
     m_framebuffer.clear(0xFF000000u);
-    SGE::Render::TileRenderer tiled{m_framebuffer};
-    auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
-    tiled.drawTextured(tris, m_checker, &shading);
+    Rasterizer rz{m_framebuffer};
+
+    switch(m_sceneMode){
+        case 1:
+            for(auto &t : Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600)){
+                rz.drawTriangleWireframe(t.v[0], t.v[1], t.v[2]);
+            }
+            break;
+        case 2:
+            for(auto &t : Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600)){
+                rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+            }
+            break;
+        case 3:
+        {
+            ShadingContext unlit{nullptr, m_camera.position};
+            SGE::Render::TileRenderer tiled{m_framebuffer};
+            auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
+            tiled.drawTextured(tris, m_checker, &unlit);
+            break;
+        }
+        case 4:
+        {
+            auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
+            for(auto &t : tris){
+                t.v[0].color = Color32{255, 60, 60, 160};
+                t.v[1].color = Color32{255, 60, 60, 160};
+                t.v[2].color = Color32{255, 60, 60, 160};
+                rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+            }
+            ScreenVertex ov[3] = {};
+            ov[0] = {300, 500, -0.4f, 1};
+            ov[1] = {700, 200, -0.4f, 1};
+            ov[2] = {250, 150, -0.4f, 1};
+            ov[0].color = Color32{40, 200, 90, 110};
+            ov[1].color = Color32{40, 200, 90, 110};
+            ov[2].color = Color32{40, 200, 90, 110};
+            rz.drawTriangleSolid(ov[0], ov[1], ov[2]);
+            break;
+        }
+        case 5:
+        {
+            Object4D obj{};
+            if(loadObjFromFile("assets/cube.obj", obj)){
+                auto tris = Pipeline::projectObject(obj, model, viewProj, nrm, 800, 600);
+                for(auto &t : tris){
+                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+                }
+            }
+            break;
+        }
+        default:
+        {
+            SGE::Render::TileRenderer tiled{m_framebuffer};
+            auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
+            tiled.drawTextured(tris, m_checker, &shading);
+            break;
+        }
+    }
+
+    if(m_sceneMode == 6){
+        FrameBuffer shadowMap{256, 256};
+        shadowMap.clear();
+        Object4D ground{};
+        std::snprintf(ground.name, sizeof(ground.name), "%s", "ground");
+        const double e = 6.0;
+        Point4D gv[4] = {{-e,-2,-e,1},{e,-2,-e,1},{e,-2,e,1},{-e,-2,e,1}};
+        for(int i = 0;i < 4;i++){ ground.vlistLocal[i] = gv[i]; }
+        ground.numVertices = 4;
+        ground.numPolys = 2;
+        const int idx[2][3] = {{0,1,2},{0,2,3}};
+        for(int i = 0;i < 2;i++){
+            for(int k = 0;k < 3;k++){
+                ground.plist[i].vlist[k] = gv[idx[i][k]];
+                ground.plist[i].nlist[k] = Vector3DBase<double>{0, 1, 0};
+            }
+            ground.plist[i].color = Color32{210, 210, 220, 255};
+        }
+
+        const auto lightVP = SGE::Render::directionalLightVP(
+            Vector3DBase<double>{-0.5, 0.8, -1.0},
+            Vector3DBase<double>{0, -0.5, 0}, 7.0);
+        {
+            Rasterizer srz{shadowMap};
+            auto depthTris = Pipeline::projectObject(m_cube, model,
+                lightVP, nrm, 256, 256);
+            for(auto &t : depthTris){
+                srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+            }
+            auto gtris = Pipeline::projectObject(ground, SGE::Math::translation(0.0,0.0,0.0),
+                lightVP, nrm, 256, 256);
+            for(auto &t : gtris){
+                srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+            }
+        }
+
+        SGE::Render::ShadowData sd{&shadowMap, lightVP, 0.008};
+        ShadingContext shadCtx{&m_rig, m_camera.position,
+                               m_fogEnabled ? &fog : nullptr, &sd};
+        {
+            SGE::Render::TileRenderer tiled{m_framebuffer};
+            auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
+            tiled.drawTextured(tris, m_checker, &shadCtx);
+            auto gtris = Pipeline::projectObject(ground,
+                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
+            tiled.drawTextured(gtris, m_checker, &shadCtx);
+        }
+    }else if(m_sceneMode == 7){
+        SGE::Render::RayTraceOptions opt{};
+        opt.maxDepth = 3;
+        opt.background = Color32{25, 28, 40, 255};
+        m_rtBuffer.clear();
+        SGE::Render::RayTracer tracer{m_rtBuffer};
+        tracer.render(m_rtScene, m_camera, m_rig, opt);
+        const auto *src = m_rtBuffer.colorData();
+        const std::size_t rw = m_rtBuffer.width(), rh = m_rtBuffer.height();
+        for(std::size_t y = 0; y < 600; y++){
+            const std::size_t sy = y * rh / 600;
+            for(std::size_t x = 0; x < 800; x++){
+                const std::size_t sx = x * rw / 800;
+                m_framebuffer.setPixel(x, y, src[sy * rw + sx], -2.0f);
+            }
+        }
+    }
 
     if(auto buf = BufferManager::instance()->getBuffer()){
         buf->clear({0,0,0,255});
         buf->blitFrame(m_framebuffer.colorData(), m_framebuffer.width(), m_framebuffer.height());
     }
+}
+
+void Application::RenderDebugUi(){
+    ImGui_ImplSDLRenderer2_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("SoftEngine Debug");
+    const char *modes[] = {
+        "0 Lit+Texture (tiled)", "1 Wireframe", "2 Flat Solid",
+        "3 Unlit Texture", "4 Alpha Blend", "5 OBJ Mesh",
+        "6 Shadow Ground", "7 Ray Traced"};
+    if(ImGui::Combo("Scene", &m_sceneMode, modes, IM_ARRAYSIZE(modes))){
+        m_framebuffer.clearDepth();
+    }
+    ImGui::Checkbox("Rotating", &m_rotating);
+    ImGui::SliderFloat("Speed", &m_rotateSpeed, 0.0f, 0.3f, "%.3f");
+    ImGui::Separator();
+    ImGui::Checkbox("Fog", &m_fogEnabled);
+    if(m_fogEnabled){
+        float startEnd[2] = {m_fogStart, m_fogEnd};
+        if(ImGui::SliderFloat2("Fog Range", startEnd, 0.0f, 60.0f, "%.1f")){
+            m_fogStart = std::min(startEnd[0], startEnd[1] - 0.5f);
+            m_fogEnd = std::max(startEnd[1], startEnd[0] + 0.5f);
+        }
+    }
+    ImGui::Separator();
+    ImGui::Text("Camera: WASD move / RF up-down");
+    ImGui::Text("pos=(%.1f, %.1f, %.1f)",
+                m_camera.position.x, m_camera.position.y, m_camera.position.z);
+    ImGui::End();
+
+    ImGui::Render();
+}
+
+void Application::ShutdownUi(){
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 }
 
 std::error_code Application::run(){
@@ -198,11 +383,15 @@ std::error_code Application::run(){
         }
         SGE::Render::update(m_camera, in, frameDt);
 
-        RenderCube();
-        m_pwindow->show();
+        RenderScene();
+        RenderDebugUi();
+        m_pwindow->showWithOverlay([&](SDL_Renderer *r){
+            ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), r);
+        });
         //std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
+    ShutdownUi();
     LOGI("Quit Normally");
     return {};
 }

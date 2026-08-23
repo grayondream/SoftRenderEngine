@@ -8,6 +8,8 @@
 #include "Render/GeoObject/Object4D.hpp"
 #include "Render/Texture.hpp"
 #include "Render/Camera.hpp"
+#include "Render/Light.hpp"
+#include "Render/RayTrace.hpp"
 
 struct ApplicationParam{
     EnvironmentParam env{};
@@ -22,7 +24,9 @@ public:
     virtual void operator()(const WindowEventType t) override final;
 
 private:
-    void RenderCube();
+    void RenderScene();
+    void RenderDebugUi();
+    void ShutdownUi();
 
     std::shared_ptr<Window> m_pwindow{};
     bool m_bQuit{false};
@@ -31,4 +35,14 @@ private:
     Texture m_checker{};
     double m_angle{0.0};
     SGE::Render::Camera m_camera{};
+
+    int m_sceneMode{0};
+    bool m_rotating{true};
+    float m_rotateSpeed{0.02f};
+    bool m_fogEnabled{true};
+    float m_fogStart{8.0f};
+    float m_fogEnd{25.0f};
+    LightingRig m_rig{};
+    SGE::Render::RayScene m_rtScene{};
+    FrameBuffer m_rtBuffer{200, 150};
 };

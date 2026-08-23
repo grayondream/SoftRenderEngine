@@ -34,6 +34,7 @@ if(ENABLE_SANITIZER)
     add_link_options(-fsanitize=address,undefined)
 endif()
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/third_party)
 add_subdirectory(${SGE_SOURCE_DIR})
 if(ENABLE_TEST)
     enable_testing()

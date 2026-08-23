@@ -13,6 +13,7 @@
 #include "Log.hpp"
 #include "WindowDefine.hpp"
 #include "Utils.hpp"
+#include "imgui_impl_sdl2.h"
 
 constexpr const static char *kGameEngineTitle = "My Soft Game Engine";
 
@@ -72,12 +73,19 @@ std::error_code Window::init(){
 }
 
 void Window::show(){
+    showWithOverlay(nullptr);
+}
+
+void Window::showWithOverlay(const std::function<void(SDL_Renderer*)> &overlay){
     SDL_SetRenderDrawColor(m_pRender, m_color.r, m_color.g, m_color.b, m_color.a);
     SDL_RenderClear(m_pRender);
     BufferManager::instance()->swap();
     auto buffer = BufferManager::instance()->getRawBuffer();
     draw(buffer);
     SDL_RenderCopy(m_pRender, m_pTexture, nullptr, nullptr);
+    if(overlay){
+        overlay(m_pRender);
+    }
     SDL_RenderPresent(m_pRender);
 }
 
@@ -86,6 +94,7 @@ void Window::processEvent(){
 
     SDL_Event ev{};
     while(SDL_PollEvent(&ev)){
+        ImGui_ImplSDL2_ProcessEvent(&ev);
         auto type = SDLEventType2WindowEventType(ev.type);
         (*m_listener)(type);
     }

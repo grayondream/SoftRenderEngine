@@ -32,10 +32,15 @@ struct LightingRig{
     std::vector<SpotLight> spot{};
 };
 
+class Texture;
+
 struct PbrMaterial{
     Color32 baseColor{200, 60, 60, 255};
     float metallic{0.0f};
     float roughness{0.35f};
+    const class Texture *albedoTex{};
+    const class Texture *metallicTex{};
+    const class Texture *roughnessTex{};
 };
 
 uint32_t pbrShade(const LightingRig &rig,

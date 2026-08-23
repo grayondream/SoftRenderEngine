@@ -32,6 +32,7 @@ inline uint32_t PackBGRA(const Color32 &c){
 using SGE::Render::ShadowData;
 using SGE::Render::CubeShadowData;
 using SGE::Render::EnvParams;
+namespace SGE::Render{ struct HDRImage; }
 
 struct FogParams{
     double start{};
@@ -53,6 +54,7 @@ struct ShadingContext{
     double parallaxScale{0.0};
     Vector3DBase<double> tangentU{1, 0, 0};
     Vector3DBase<double> tangentV{0, 1, 0};
+    const SGE::Render::HDRImage *iblEquirect{};
 };
 
 struct ScreenRect{

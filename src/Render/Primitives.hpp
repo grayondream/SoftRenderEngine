@@ -28,6 +28,7 @@ inline void AddIndexedTriangle(Object4D &o, int a, int b, int c,
     const auto e1 = Vector3DBase<double>{pb.x-pa.x, pb.y-pa.y, pb.z-pa.z};
     const auto e2 = Vector3DBase<double>{pc.x-pa.x, pc.y-pa.y, pc.z-pa.z};
     if(e1.mul(e2).length() < 1e-12) return;
+    if(o.numVertices >= kObject4vListLen || o.numPolys >= kPolyListLen) return;
     PolyF4D &poly = o.plist[o.numPolys++];
     poly.color = Color32{255, 255, 255, 255};
     poly.vlist[0] = o.vlistLocal[a];
@@ -46,8 +47,10 @@ inline Object4D MakeSphere(double radius, int segU = 24, int segV = 16){
             const double nx = std::sin(phi) * std::cos(th);
             const double ny = std::cos(phi);
             const double nz = std::sin(phi) * std::sin(th);
-            o.vlistLocal[o.numVertices++] =
-                Point4D{radius * nx, radius * ny, radius * nz, 1};
+            if(o.numVertices < kObject4vListLen){
+                o.vlistLocal[o.numVertices++] =
+                    Point4D{radius * nx, radius * ny, radius * nz, 1};
+            }
         }
     }
     for(int v = 0; v < segV; v++){

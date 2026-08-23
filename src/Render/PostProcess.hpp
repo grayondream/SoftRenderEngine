@@ -28,10 +28,6 @@ inline void RunPass(const FrameBuffer &src, FrameBuffer &dst, const PixelFn &fn)
     }
 }
 
-struct Color3f{
-    double r{}, g{}, b{};
-};
-
 inline Color3f fetchRGB(const FrameBuffer &src, double u, double v){
     const auto *px = src.colorData();
     const std::size_t w = src.width(), h = src.height();

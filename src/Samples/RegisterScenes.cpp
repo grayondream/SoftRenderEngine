@@ -37,6 +37,9 @@
 #include "Advanced/MSAA.hpp"
 #include "LightAdv/Defer.hpp"
 #include "LightAdv/SSAO.hpp"
+#include "PBR/PbrTexture.hpp"
+#include "PBR/Irradiance.hpp"
+#include "Model/LoadModel.hpp"
 
 namespace SGE::Samples {
 
@@ -121,6 +124,12 @@ void registerBuiltinScenes(){
         []() -> std::unique_ptr<IScene> { return std::make_unique<DeferScene>(); });
     reg.add("LightAdv", "SSAO (depth contrast)",
         []() -> std::unique_ptr<IScene> { return std::make_unique<SSAOScene>(); });
+    reg.add("PBR", "PBR Textured Sphere (rusted iron)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<PbrTextureScene>(); });
+    reg.add("PBR", "IBL Diffuse Irradiance (loft)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<IrradianceScene>(); });
+    reg.add("Model", "Load Model (nanosuit)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<LoadModelScene>(); });
 }
 
 }

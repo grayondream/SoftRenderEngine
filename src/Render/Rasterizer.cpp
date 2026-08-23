@@ -1,4 +1,5 @@
 #include "Rasterizer.hpp"
+#include "ImageLoader.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -339,7 +340,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 }
             }
             if(shading && shading->rig){
-                const Color32 albedo{
+                Color32 albedo{
                     static_cast<int32_t>((shaded >> 16) & 0xFF),
                     static_cast<int32_t>((shaded >> 8) & 0xFF),
                     static_cast<int32_t>(shaded & 0xFF), 255};
@@ -373,11 +374,49 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 auto &rigRef = (shading->specTex && !shading->pbr)
                     ? effectiveRig : *shading->rig;
                 if(shading->pbr){
-                    shaded = pbrShade(*shading->rig, *shading->pbr,
+                    PbrMaterial m = *shading->pbr;
+                    if(m.albedoTex){
+                        const uint32_t ap = m.albedoTex->sample(
+                            uShaded, vShaded, TextureFilter::Bilinear,
+                            TextureWrap::Repeat);
+                        albedo = Color32{
+                            static_cast<int32_t>((ap >> 16) & 0xFF),
+                            static_cast<int32_t>((ap >> 8) & 0xFF),
+                            static_cast<int32_t>(ap & 0xFF), 255};
+                    }
+                    if(m.metallicTex){
+                        const uint32_t mp = m.metallicTex->sample(
+                            uShaded, vShaded, TextureFilter::Bilinear,
+                            TextureWrap::Repeat);
+                        m.metallic = static_cast<float>(mp & 0xFF) / 255.0f;
+                    }
+                    if(m.roughnessTex){
+                        const uint32_t rp = m.roughnessTex->sample(
+                            uShaded, vShaded, TextureFilter::Bilinear,
+                            TextureWrap::Repeat);
+                        m.roughness = std::max(0.05f,
+                            static_cast<float>((rp >> 8) & 0xFF) / 255.0f);
+                    }
+                    shaded = pbrShade(*shading->rig, m,
                                       N.normalize(), Pw, shading->viewPos, shadowFactor);
                 }else{
                     shaded = shade(rigRef, albedo, N.normalize(), Pw,
                                    shading->viewPos, shadowFactor);
+                }
+                if(shading->iblEquirect && shading->iblEquirect->valid()){
+                    const auto irr = SGE::Render::SampleEquirect(
+                        *shading->iblEquirect, N.normalize(), 0.35f);
+                    double br = (shaded >> 16) & 0xFF;
+                    double bg = (shaded >> 8) & 0xFF;
+                    double bb = shaded & 0xFF;
+                    const double kd = 0.55;
+                    br = std::min(255.0, br + irr.r * kd * (albedo.r / 255.0));
+                    bg = std::min(255.0, bg + irr.g * kd * (albedo.g / 255.0));
+                    bb = std::min(255.0, bb + irr.b * kd * (albedo.b / 255.0));
+                    shaded = 0xFF000000u
+                        | (static_cast<uint32_t>(br + 0.5) << 16)
+                        | (static_cast<uint32_t>(bg + 0.5) << 8)
+                        | static_cast<uint32_t>(bb + 0.5);
                 }
             }
 

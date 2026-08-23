@@ -1,0 +1,67 @@
+name: build-and-test
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev clang uuid-dev
+
+      - name: Configure
+        run: cmake -B build -S .
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
+
+      - name: Run unit tests
+        run: |
+          pass=0; fail=0
+          for t in build/test/math_* build/test/render_*; do
+            if ./$t > /tmp/t.log 2>&1; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL $t"; cat /tmp/t.log; fi
+          done
+          echo "suites=$pass failed=$fail"
+          [ "$fail" -eq 0 ]
+
+      - name: Golden image gate
+        run: cd build && ctest -R golden_image --output-on-failure
+
+      - name: Smoke (headless)
+        run: |
+          SDL_VIDEODRIVER=dummy SDL_RENDER_DRIVER=software SGE_MAX_FRAMES=10 \
+            timeout 20 ./build/src/soft-game-engine
+
+  sanitizer:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev g++ uuid-dev
+
+      - name: Configure (ASan+UBSan via gcc)
+        run: >
+          cmake -B build-san -S . -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
+          -DENABLE_SANITIZER=ON
+
+      - name: Build
+        run: cmake --build build-san -j$(nproc)
+
+      - name: Run tests under sanitizers
+        run: |
+          fail=0
+          for t in build-san/test/math_* build-san/test/render_*; do
+            [ -x "$t" ] || continue
+            ASAN_OPTIONS=detect_leaks=1 "$t" > /tmp/s.log 2>&1 || {
+              fail=$((fail+1)); echo "FAIL $t"; grep -m5 "ERROR\|runtime error" /tmp/s.log; }
+          done
+          echo "sanitizer failed=$fail"
+          [ "$fail" -eq 0 ]

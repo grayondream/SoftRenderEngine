@@ -3,9 +3,6 @@
 #include <cstdint>
 
 namespace{
-constexpr uint32_t kGray(uint32_t v){
-    return 0xFF000000u | (v << 16) | (v << 8) | v;
-}
 int chan(uint32_t px, int shift){ return static_cast<int>((px >> shift) & 0xFF); }
 }
 

@@ -70,8 +70,8 @@ public:
     template<class U, typename Func>
     Matrix2DBase<ValueType>& foreachFuncBetweenMatrix(const Matrix2DBase<U> &mat, Func &&func){
         assert(mat.d1 > 0 && mat.d1 == this->d1 && mat.d2 == this->d2);
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(std::size_t i = 0;i < this->d2;i ++){
+            for(std::size_t j = 0;j < this->d1;j ++){
                 (*this)[i][j] = func((*this)[i][j], mat[i][j]);
             }
         }
@@ -81,8 +81,8 @@ public:
 
     template<typename Func>
     Matrix2DBase<ValueType> &foreachFuncSingleValue(Func &&func){
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(std::size_t i = 0;i < this->d2;i ++){
+            for(std::size_t j = 0;j < this->d1;j ++){
                 (*this)[i][j] = func((*this)[i][j]);
             }
         }
@@ -92,8 +92,8 @@ public:
 
     template<class U, typename Func>
     Matrix2DBase<ValueType> &foreachFuncBinaryValue(const U &u, Func &&func){
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(std::size_t i = 0;i < this->d2;i ++){
+            for(std::size_t j = 0;j < this->d1;j ++){
                 (*this)[i][j] = func((*this)[i][j], u);
             }
         }
@@ -104,8 +104,8 @@ public:
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
         U u{};
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(std::size_t i = 0;i < this->d2;i ++){
+            for(std::size_t j = 0;j < this->d1;j ++){
                 u = func(u, (*this)[i][j]);
             }
         }
@@ -131,7 +131,7 @@ public:
             return *this;
         }
 
-        for(auto i = 0;i < this->d2;i ++){
+        for(std::size_t i = 0;i < this->d2;i ++){
             std::swap((*this)[i][rst], (*this)[i][snd]);
         }
 
@@ -185,10 +185,10 @@ public:
         //d11 ==d22
         //return d12 x d21
         Matrix2DBase<ValueType> ret(this->d2, mat.d1);
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < mat.d1;j++){
+        for(std::size_t i = 0;i < this->d2;i ++){
+            for(std::size_t j = 0;j < mat.d1;j++){
                 ValueType sum{};
-                for(auto k = 0;k < mat.d2;k ++){
+                for(std::size_t k = 0;k < mat.d2;k ++){
                     sum += (*this)[i][k] * mat[k][j];
                 }
                 ret[i][j] = sum;
@@ -205,10 +205,10 @@ public:
         //d11 ==d22
         //return d12 x d21
         Matrix2DBase<ValueType> ret(this->d2, mat.d1);
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < mat.d1;j++){
+        for(std::size_t i = 0;i < this->d2;i ++){
+            for(std::size_t j = 0;j < mat.d1;j++){
                 ValueType sum{};
-                for(auto k = 0;k < mat.d2;k ++){
+                for(std::size_t k = 0;k < mat.d2;k ++){
                     sum += (*this)[i][k] * mat[k][j];
                 }
                 ret[i][j] = sum;
@@ -222,8 +222,8 @@ public:
     template<class U>
     U sum(){
         double acc = 0;
-        for(auto i = 0; i < this->d2; i++){
-            for(auto j = 0; j < this->d1; j++){
+        for(std::size_t i = 0; i < this->d2; i++){
+            for(std::size_t j = 0; j < this->d1; j++){
                 acc += static_cast<double>((*this)[i][j]);
             }
         }
@@ -233,7 +233,7 @@ public:
     Matrix2DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
         this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
-        for(auto i = 0; i < size ;i ++){
+        for(std::size_t i = 0; i < size ;i ++){
             (*this)[i][i] = v;
         }
 
@@ -250,10 +250,10 @@ public:
         Matrix2DBase<ValueType> matrix = *this;
         MatrixSizeType rank = 0;
         auto m = matrix.d2, n = matrix.d1;
-        for (int col = 0; col < n; ++col) {
+        for (std::size_t col = 0; col < n; ++col) {
             // Find the pivot row for this column
             int pivotRow = -1;
-            for (int row = rank; row < m; ++row) {
+            for (std::size_t row = rank; row < m; ++row) {
                 if (fabs(matrix[row][col]) > Math::EpsilonE7) { // Use a small threshold to account for floating-point precision issues
                     pivotRow = row;
                     break;
@@ -270,15 +270,15 @@ public:
 
             // Normalize the pivot row
             double pivotValue = matrix[rank][col];
-            for (int j = col; j < n; ++j) {
+                    for (std::size_t j = col; j < n; ++j) {
                 matrix[rank][j] /= pivotValue;
             }
 
             // Eliminate the current column from all other rows
-            for (int i = 0; i < m; ++i) {
+            for (std::size_t i = 0; i < m; ++i) {
                 if (i != rank) {
                     double factor = matrix[i][col];
-                    for (int j = col; j < n; ++j) {
+            for (std::size_t j = col; j < n; ++j) {
                         matrix[i][j] -= factor * matrix[rank][j];
                     }
                 }
@@ -293,8 +293,8 @@ public:
 
     Matrix2DBase<ValueType> transpose() const{
         Matrix2DBase<ValueType> ret(this->d1, this->d2);
-        for(auto i = 0;i < ret.d2;i ++){
-            for(auto j = 0;j < ret.d1;j ++){
+        for(std::size_t i = 0;i < ret.d2;i ++){
+            for(std::size_t j = 0;j < ret.d1;j ++){
                 ret[i][j] = (*this)[j][i];
             }
         }
@@ -360,8 +360,8 @@ public:
             return false;
         }
 
-        for(auto i = 0;i < m1.d2;i ++){
-            for(auto j = 0;j < m1.d1;j ++){
+        for(std::size_t i = 0;i < m1.d2;i ++){
+            for(std::size_t j = 0;j < m1.d1;j ++){
                 if(!comapreEqual(m1[i][j], m2[i][j])){
                     return false;
                 }

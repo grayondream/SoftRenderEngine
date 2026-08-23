@@ -29,6 +29,11 @@ public:
         std::copy_n(vec.data, Size, data);
     }
 
+    Vector4DBase &operator=(const Vector4DBase &vec){
+        std::copy_n(vec.data, Size, data);
+        return *this;
+    }
+
     //从两个点来创建一个向量
     template<class U, class K>
     Vector4DBase(const Vector4DBase<U> &rst, const Vector4DBase<K> &snd){

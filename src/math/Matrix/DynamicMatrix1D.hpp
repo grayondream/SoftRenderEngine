@@ -61,7 +61,7 @@ public:
     template<class U, typename Func>
     Matrix1DBase<ValueType>& foreachFuncBetweenMatrix(const Matrix1DBase<U> &mat, Func &&func){
         assert(mat.d1 == this->d1);
-        for(auto i = 0;i < this->d1;i ++){
+        for(std::size_t i = 0;i < this->d1;i ++){
             (*this)[i] = func((*this)[i], mat[i]);
         }
 
@@ -70,7 +70,7 @@ public:
 
     template<typename Func>
     Matrix1DBase<ValueType> &foreachFuncSingleValue(Func &&func){
-        for(auto i = 0; i < this->d1;i ++){
+        for(std::size_t i = 0; i < this->d1;i ++){
             (*this)[i] = func((*this)[i]);
         }
 
@@ -79,7 +79,7 @@ public:
 
     template<class U, typename Func>
     Matrix1DBase<ValueType> &foreachFuncBinaryValue(const U &u, Func &&func){
-        for(auto i = 0; i < this->d1;i ++){
+        for(std::size_t i = 0; i < this->d1;i ++){
             (*this)[i] = func((*this)[i], u);
         }
         
@@ -89,7 +89,7 @@ public:
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
         U u{};
-        for(auto i = 0;i < this->d1;i ++){
+        for(std::size_t i = 0;i < this->d1;i ++){
             u = func(u, (*this)[i]);
         }
 
@@ -145,9 +145,9 @@ public:
         //                  [y3 y33]
         assert(this->d1 == mat.d2);
         Matrix1DBase<ValueType> ret(mat.d1);
-        for(auto k = 0;k < ret.d1;k ++){
+        for(std::size_t k = 0;k < ret.d1;k ++){
             ValueType sum {};
-            for(auto i = 0;i < this->d1;i ++){
+            for(std::size_t i = 0;i < this->d1;i ++){
                 sum += (*this)[i] * mat[i][k];
             }
 
@@ -161,9 +161,9 @@ public:
     Matrix1DBase<ValueType> mul(const StaticMatrix2DBase<U, di2, di1> &mat) const{
         assert(this->d1 == mat.d2);
         Matrix1DBase<ValueType> ret(mat.d1);
-        for(auto k = 0;k < ret.d1;k ++){
+        for(std::size_t k = 0;k < ret.d1;k ++){
             ValueType sum {};
-            for(auto i = 0;i < this->d1;i ++){
+            for(std::size_t i = 0;i < this->d1;i ++){
                 sum += (*this)[i] * mat[i][k];
             }
 
@@ -182,7 +182,7 @@ public:
 
     Matrix2DBase<ValueType> transpose() const{
         Matrix2DBase<ValueType> ret(this->d1, 1);
-        for(auto i = 0;i < ret.d2;i ++){
+        for(std::size_t i = 0;i < ret.d2;i ++){
             ret[i][0] = (*this)[i];
         }
 
@@ -192,7 +192,7 @@ public:
     template<class U>
     U sum(){
         double acc = 0;
-        for(auto i = 0; i < this->d1; i++){
+        for(std::size_t i = 0; i < this->d1; i++){
             acc += static_cast<double>((*this)[i]);
         }
         return static_cast<U>(acc);
@@ -216,7 +216,7 @@ auto operator==(const Matrix1DBase<U> &m1, const Matrix1DBase<T> &m2){
         return false;
     }
 
-    for(auto i = 0;i < m1.d1; i ++){
+    for(std::size_t i = 0;i < m1.d1; i ++){
         if(m2[i] != m1[i]){
             return false;
         }

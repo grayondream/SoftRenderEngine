@@ -13,11 +13,11 @@ inline static constexpr double NormalizeAngle(const double angle){
     return a;
 }
 
-inline static constexpr double CosTaylor(const double x, const std::size_t iter = TaylorIterations){
+inline static constexpr double CosTaylor(const double x, const std::size_t = TaylorIterations){
     double ret = 1.0;
     double sig = -1;
     double lastTerm = 1.0;
-    for(int n = 1;n < TaylorIterations - 1;++n){
+    for(std::size_t n = 1;n < TaylorIterations - 1;++n){
         lastTerm = lastTerm * x * x / ((2 * n) * (2 * n - 1));
         ret += lastTerm * sig;
         sig *= -1;
@@ -26,11 +26,11 @@ inline static constexpr double CosTaylor(const double x, const std::size_t iter 
     return ret;
 }
 
-inline static constexpr double SinTaylor(const double x, const std::size_t iter = TaylorIterations){
+inline static constexpr double SinTaylor(const double x, const std::size_t = TaylorIterations){
     double ret = x;
     double sig = -1;
     double lastTerm = x;
-    for(int n = 1;n < TaylorIterations;++n){
+    for(std::size_t n = 1;n < TaylorIterations;++n){
         lastTerm = lastTerm * x * x / ((2 * n + 1) * (2 * n));
         ret += lastTerm * sig;
         sig *= -1;

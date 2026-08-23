@@ -3,7 +3,7 @@
 #include "Application.hpp"
 #include "WindowDefine.hpp"
 
-int main(int argc, char **argv){
+int main(int, char **){
     LOGI("Hello Soft Game Engine");
     Application app{};
     ApplicationParam param{};

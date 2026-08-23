@@ -5,7 +5,7 @@
 #include <memory>
 #include <system_error>
 template<class T>
-class WindowBuffer;
+struct WindowBuffer;
 
 class BufferManager{
 public:

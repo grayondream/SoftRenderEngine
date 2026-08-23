@@ -23,6 +23,8 @@ public:
     MatrixIndex1(ConstPointer data, ConstMatrixSizeType d1)
         : MatrixIndexBase<ValueType>(data), MatrixIndex1Size(d1){}
 
+    MatrixIndex1(const MatrixIndex1 &) = default;
+
     Reference operator[](ConstMatrixSizeType idx){
         assert(idx < this->d1);
         return *(this->m_pstart + idx);

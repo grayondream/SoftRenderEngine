@@ -96,8 +96,8 @@ public:
     template<class U, StaticMatrixSizeType d2, StaticMatrixSizeType d1, typename Func>
     StaticMatrix2DBase<ValueType, d2,d1>& foreachFuncBetweenMatrix(const StaticMatrix2DBase<U, d2, d1> &mat, Func &&func){
         assert(mat.d1 > 0 && mat.d1 == this->d1 && mat.d2 == this->d2);
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(StaticMatrixSizeType i = 0;i < this->d2;i ++){
+            for(StaticMatrixSizeType j = 0;j < this->d1;j ++){
                 (*this)[i][j] = func((*this)[i][j], mat[i][j]);
             }
         }
@@ -107,8 +107,8 @@ public:
 
     template<typename Func>
     StaticMatrix2DBase<ValueType, d2,d1> &foreachFuncSingleValue(Func &&func){
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(StaticMatrixSizeType i = 0;i < this->d2;i ++){
+            for(StaticMatrixSizeType j = 0;j < this->d1;j ++){
                 (*this)[i][j] = func((*this)[i][j]);
             }
         }
@@ -118,8 +118,8 @@ public:
 
     template<class U, typename Func>
     StaticMatrix2DBase<ValueType, d2,d1> &foreachFuncBinaryValue(const U &u, Func &&func){
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(StaticMatrixSizeType i = 0;i < this->d2;i ++){
+            for(StaticMatrixSizeType j = 0;j < this->d1;j ++){
                 (*this)[i][j] = func((*this)[i][j], u);
             }
         }
@@ -130,8 +130,8 @@ public:
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
         U u{};
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(StaticMatrixSizeType i = 0;i < this->d2;i ++){
+            for(StaticMatrixSizeType j = 0;j < this->d1;j ++){
                 u = func(u, (*this)[i][j]);
             }
         }
@@ -146,8 +146,8 @@ public:
             return false;
         }
 
-        for(auto i = 0;i < this->d2;i ++){
-            for(auto j = 0;j < this->d1;j ++){
+        for(StaticMatrixSizeType i = 0;i < this->d2;i ++){
+            for(StaticMatrixSizeType j = 0;j < this->d1;j ++){
                 if((*this)[i][j] != mat[i][j]){
                     return false;
                 }
@@ -212,7 +212,7 @@ public:
     StaticMatrix2DBase<ValueType, d2,d1>& eye(const ValueType v = 1 + ValueType{}){
         this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
-        for(auto i = 0; i < size ;i ++){
+        for(StaticMatrixSizeType i = 0; i < size ;i ++){
             (*this)[i][i] = v;
         }
 

@@ -71,10 +71,10 @@ public:
     template<class U, typename Func>
     Matrix4DBase<ValueType>& foreachFuncBetweenMatrix(const Matrix4DBase<U> &mat, Func &&func){
         assert(mat.d1 > 0 && mat.d1 == this->d1 && mat.d2 == this->d2 && mat.d3 == this->d3 && mat.d4 == this->d4);
-        for(auto c = 0; c < this->d4; c ++){
-            for(auto k = 0;k < this->d3; k ++){
-                for(auto i = 0;i < this->d2; i ++){
-                    for(auto j = 0;j < this->d1; j ++){
+        for(std::size_t c = 0; c < this->d4; c ++){
+            for(std::size_t k = 0;k < this->d3; k ++){
+                for(std::size_t i = 0;i < this->d2; i ++){
+                    for(std::size_t j = 0;j < this->d1; j ++){
                         (*this)[c][k][i][j] = func((*this)[c][k][i][j], mat[c][k][i][j]);
                     }
                 }
@@ -86,10 +86,10 @@ public:
 
     template<typename Func>
     Matrix4DBase<ValueType> &foreachFuncSingleValue(Func &&func){
-        for(auto c = 0; c < this->d4; c ++){
-            for(auto k = 0;k < this->d3; k ++){
-                for(auto i = 0;i < this->d2; i ++){
-                    for(auto j = 0;j < this->d1; j ++){
+        for(std::size_t c = 0; c < this->d4; c ++){
+            for(std::size_t k = 0;k < this->d3; k ++){
+                for(std::size_t i = 0;i < this->d2; i ++){
+                    for(std::size_t j = 0;j < this->d1; j ++){
                         (*this)[c][k][i][j] = func((*this)[c][k][i][j]);
                     }
                 }
@@ -101,10 +101,10 @@ public:
 
     template<class U, typename Func>
     Matrix4DBase<ValueType> &foreachFuncBinaryValue(const U &u, Func &&func){
-        for(auto c = 0; c < this->d4; c ++){
-            for(auto k = 0;k < this->d3; k ++){
-                for(auto i = 0;i < this->d2; i ++){
-                    for(auto j = 0;j < this->d1; j ++){
+        for(std::size_t c = 0; c < this->d4; c ++){
+            for(std::size_t k = 0;k < this->d3; k ++){
+                for(std::size_t i = 0;i < this->d2; i ++){
+                    for(std::size_t j = 0;j < this->d1; j ++){
                         (*this)[c][k][i][j] = func((*this)[c][k][i][j], u);
                     }
                 }
@@ -117,10 +117,10 @@ public:
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
         U u{};
-        for(auto c = 0; c < this->d4; c ++){
-            for(auto k = 0;k < this->d3; k ++){
-                for(auto i = 0;i < this->d2; i ++){
-                    for(auto j = 0;j < this->d1; j ++){
+        for(std::size_t c = 0; c < this->d4; c ++){
+            for(std::size_t k = 0;k < this->d3; k ++){
+                for(std::size_t i = 0;i < this->d2; i ++){
+                    for(std::size_t j = 0;j < this->d1; j ++){
                         u = func(u, (*this)[c][k][i][j]);
                     }
                 }
@@ -175,10 +175,10 @@ public:
     template<class U>
     U sum(){
         double acc = 0;
-        for(auto c = 0; c < this->d4; c++){
-            for(auto k = 0; k < this->d3; k++){
-                for(auto i = 0; i < this->d2; i++){
-                    for(auto j = 0; j < this->d1; j++){
+        for(std::size_t c = 0; c < this->d4; c++){
+            for(std::size_t k = 0; k < this->d3; k++){
+                for(std::size_t i = 0; i < this->d2; i++){
+                    for(std::size_t j = 0; j < this->d1; j++){
                         acc += static_cast<double>((*this)[c][k][i][j]);
                     }
                 }
@@ -190,9 +190,9 @@ public:
     Matrix4DBase<ValueType>& eye(const ValueType v = 1 + ValueType{}){
         this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
-        for(auto c = 0;c < this->d4; c++){
-            for(auto j = 0;j < this->d3; j++){
-                for(auto i = 0; i < size ;i ++){
+        for(std::size_t c = 0;c < this->d4; c++){
+            for(std::size_t j = 0;j < this->d3; j++){
+                for(std::size_t i = 0; i < size ;i ++){
                     (*this)[c][j][i][i] = v;
                 }
             }
@@ -209,12 +209,12 @@ public:
     Matrix4DBase<ValueType> mul(const Matrix4DBase<U> &mat) const{
         assert(this->d1 == mat.d2);
         Matrix4DBase<ValueType> ret(this->d4, this->d3, this->d2, mat.d1);
-        for(auto c = 0; c < this->d4; c++){
-            for(auto k = 0; k < this->d3; k++){
-                for(auto i = 0; i < this->d2; i++){
-                    for(auto j = 0; j < mat.d1; j++){
+        for(std::size_t c = 0; c < this->d4; c++){
+            for(std::size_t k = 0; k < this->d3; k++){
+                for(std::size_t i = 0; i < this->d2; i++){
+                    for(std::size_t j = 0; j < mat.d1; j++){
                         ValueType sum{};
-                        for(auto s = 0; s < this->d1; s++){
+                        for(std::size_t s = 0; s < this->d1; s++){
                             sum += (*this)[c][k][i][s] * mat[c][k][s][j];
                         }
                         ret[c][k][i][j] = sum;
@@ -242,10 +242,10 @@ bool operator==(const Matrix4DBase<U> &m1, const Matrix4DBase<T> &m2){
         return false;
     }
 
-    for(auto c = 0; c < m1.d4; c ++){
-        for(auto k = 0;k < m1.d3; k ++){
-            for(auto i = 0;i < m1.d2;i ++){
-                for(auto j = 0;j < m1.d1;j ++){
+    for(std::size_t c = 0; c < m1.d4; c ++){
+        for(std::size_t k = 0;k < m1.d3; k ++){
+            for(std::size_t i = 0;i < m1.d2;i ++){
+                for(std::size_t j = 0;j < m1.d1;j ++){
                     if(m1[c][k][i][j] != m2[c][k][i][j]){
                         return false;
                     }

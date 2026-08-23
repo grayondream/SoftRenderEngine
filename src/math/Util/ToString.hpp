@@ -176,7 +176,6 @@ inline static std::string MatrixSplice2String(const MatrixType<T> &mat, const st
 
 template<class T, StaticMatrixSizeType... dims, template<class, StaticMatrixSizeType...> class MatrixType>
 std::tuple<StaticMatrixSizeType, std::string, std::string> StaticMatrixGetContext(const MatrixType<T, dims...>  &mat){
-    using type = MatrixType<T, dims...>;
     constexpr auto sz = sizeof...(dims);
     if constexpr(sz == 1){
         return {mat.d1, OUT_STREAM_COMET_CHAR, OUT_STREAM_EMPTY_CHAR};

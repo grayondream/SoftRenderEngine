@@ -16,8 +16,8 @@ TEST(WindowBufferTest, ClearFillsAllPixels){
     WindowBuffer<uint8_t> buf(sz, RenderFormat::RGBA8888);
     WindowColor c(1, 2, 3, 4);
     EXPECT_TRUE(buf.clear(c));
-    for(auto i = 0; i < sz.height; i++){
-        for(auto j = 0; j < sz.width; j++){
+    for(std::size_t i = 0; i < sz.height; i++){
+        for(std::size_t j = 0; j < sz.width; j++){
             const auto base = i * 16 + j * 4;
             EXPECT_EQ(buf.buffer()[base + 0], 4) << "i=" << i << " j=" << j;
             EXPECT_EQ(buf.buffer()[base + 1], 3) << "i=" << i << " j=" << j;
@@ -42,7 +42,7 @@ TEST(WindowBufferTest, ClearBGRAOrder){
     WindowBuffer<uint8_t> buf(sz, RenderFormat::BGRA8888);
     WindowColor c(1, 2, 3, 4);
     EXPECT_TRUE(buf.clear(c));
-    for(auto j = 0; j < sz.width; j++){
+    for(std::size_t j = 0; j < sz.width; j++){
         const auto base = j * 4;
         EXPECT_EQ(buf.buffer()[base + 0], 4);
         EXPECT_EQ(buf.buffer()[base + 1], 1);
@@ -68,7 +68,7 @@ TEST(WindowBufferTest, BlitFrameRGBAOrder){
     const uint32_t px = (4u << 24) | (1u << 16) | (2u << 8) | 3u;
     std::fill(frame.begin(), frame.end(), px);
     EXPECT_TRUE(buf.blitFrame(frame.data(), sz.width, sz.height));
-    for(auto i = 0; i < sz.height * sz.width; i++){
+    for(std::size_t i = 0; i < sz.height * sz.width; i++){
         EXPECT_EQ(buf.buffer()[i*4 + 0], 4) << "px=" << i;
         EXPECT_EQ(buf.buffer()[i*4 + 1], 3) << "px=" << i;
         EXPECT_EQ(buf.buffer()[i*4 + 2], 2) << "px=" << i;
@@ -83,7 +83,7 @@ TEST(WindowBufferTest, BlitFrameBGRAOrder){
     const uint32_t px = (4u << 24) | (1u << 16) | (2u << 8) | 3u;
     std::fill(frame.begin(), frame.end(), px);
     EXPECT_TRUE(buf.blitFrame(frame.data(), sz.width, sz.height));
-    for(auto i = 0; i < sz.height * sz.width; i++){
+    for(std::size_t i = 0; i < sz.height * sz.width; i++){
         EXPECT_EQ(buf.buffer()[i*4 + 0], 4) << "px=" << i;
         EXPECT_EQ(buf.buffer()[i*4 + 1], 1) << "px=" << i;
         EXPECT_EQ(buf.buffer()[i*4 + 2], 2) << "px=" << i;

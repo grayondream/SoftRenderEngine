@@ -49,8 +49,8 @@ public:
         //SDL 像素格式为 32 位小端存储：
         //RGBA8888 内存顺序为 a b g r；BGRA8888 内存顺序为 a r g b
         const bool bgra = (this->m_format == RenderFormat::BGRA8888);
-        for(auto i = 0;i < height;i ++){
-            for(auto j = 0;j < width;j ++){
+        for(std::size_t i = 0;i < height;i ++){
+            for(std::size_t j = 0;j < width;j ++){
                 auto base = i * pitch + j * bytes;
                 buffer[base + 0] = color.a;
                 if(bgra){

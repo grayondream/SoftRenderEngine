@@ -65,7 +65,7 @@ public:
     template<class U, typename Func>
     StaticMatrix1DBase<ValueType, d1>& foreachFuncBetweenMatrix(const StaticMatrix1DBase<U, d1> &mat, Func &&func){
         assert(mat.d1 == this->d1);
-        for(auto i = 0;i < this->d1;i ++){
+        for(StaticMatrixSizeType i = 0;i < this->d1;i ++){
             (*this)[i] = func((*this)[i], mat[i]);
         }
 
@@ -74,7 +74,7 @@ public:
 
     template<typename Func>
     StaticMatrix1DBase<ValueType, d1> &foreachFuncSingleValue(Func &&func){
-        for(auto i = 0; i < this->d1;i ++){
+        for(StaticMatrixSizeType i = 0; i < this->d1;i ++){
             (*this)[i] = func((*this)[i]);
         }
 
@@ -83,7 +83,7 @@ public:
 
     template<class U, typename Func>
     StaticMatrix1DBase<ValueType, d1> &foreachFuncBinaryValue(const U &u, Func &&func){
-        for(auto i = 0; i < this->d1;i ++){
+        for(StaticMatrixSizeType i = 0; i < this->d1;i ++){
             (*this)[i] = func((*this)[i], u);
         }
         
@@ -93,7 +93,7 @@ public:
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
         U u{};
-        for(auto i = 0;i < this->d1;i ++){
+        for(StaticMatrixSizeType i = 0;i < this->d1;i ++){
             u = func(u, (*this)[i]);
         }
 
@@ -133,7 +133,7 @@ public:
             return false;
         }
 
-        auto i = 0;
+        StaticMatrixSizeType i = 0;
         for(i = 0;i < mat.d1 && (*this)[i] == mat[i]; i ++){}
         return i == mat.d1;
     }

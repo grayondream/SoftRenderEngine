@@ -96,9 +96,9 @@ public:
     template<class U, typename Func>
     StaticMatrix3DBase<ValueType, d3, d2, d1>& foreachFuncBetweenMatrix(const StaticMatrix3DBase<U, d3, d2, d1> &mat, Func &&func){
         assert(mat.d1 > 0 && mat.d1 == this->d1 && mat.d2 == this->d2 && mat.d3 == this->d3);
-        for(auto k = 0;k < this->d3; k ++){
-            for(auto i = 0;i < this->d2; i ++){
-                for(auto j = 0;j < this->d1; j ++){
+        for(StaticMatrixSizeType k = 0;k < this->d3; k ++){
+            for(StaticMatrixSizeType i = 0;i < this->d2; i ++){
+                for(StaticMatrixSizeType j = 0;j < this->d1; j ++){
                     (*this)[k][i][j] = func((*this)[k][i][j], mat[k][i][j]);
                 }
             }
@@ -109,9 +109,9 @@ public:
 
     template<typename Func>
     StaticMatrix3DBase<ValueType, d3, d2, d1> &foreachFuncSingleValue(Func &&func){
-        for(auto k = 0;k < this->d3; k ++){
-            for(auto i = 0;i < this->d2; i ++){
-                for(auto j = 0;j < this->d1; j ++){
+        for(StaticMatrixSizeType k = 0;k < this->d3; k ++){
+            for(StaticMatrixSizeType i = 0;i < this->d2; i ++){
+                for(StaticMatrixSizeType j = 0;j < this->d1; j ++){
                     (*this)[k][i][j] = func((*this)[k][i][j]);
                 }
             }
@@ -122,9 +122,9 @@ public:
 
     template<class U, typename Func>
     StaticMatrix3DBase<ValueType, d3, d2, d1> &foreachFuncBinaryValue(const U &u, Func &&func){
-        for(auto k = 0;k < this->d3; k ++){
-            for(auto i = 0;i < this->d2; i ++){
-                for(auto j = 0;j < this->d1; j ++){
+        for(StaticMatrixSizeType k = 0;k < this->d3; k ++){
+            for(StaticMatrixSizeType i = 0;i < this->d2; i ++){
+                for(StaticMatrixSizeType j = 0;j < this->d1; j ++){
                     (*this)[k][i][j] = func((*this)[k][i][j], u);
                 }
             }
@@ -136,9 +136,9 @@ public:
     template<class U, typename Func>
     U foreachFuncTotal(Func &&func){
         U u{};
-        for(auto k = 0;k < this->d3; k ++){
-            for(auto i = 0;i < this->d2; i ++){
-                for(auto j = 0;j < this->d1; j ++){
+        for(StaticMatrixSizeType k = 0;k < this->d3; k ++){
+            for(StaticMatrixSizeType i = 0;i < this->d2; i ++){
+                for(StaticMatrixSizeType j = 0;j < this->d1; j ++){
                     u = func(u, (*this)[k][i][j]);
                 }
             }
@@ -154,9 +154,9 @@ public:
             return false;
         }
 
-        for(auto k = 0;k < this->d3; k ++){
-            for(auto i = 0;i < this->d2;i ++){
-                for(auto j = 0;j < this->d1;j ++){
+        for(StaticMatrixSizeType k = 0;k < this->d3; k ++){
+            for(StaticMatrixSizeType i = 0;i < this->d2;i ++){
+                for(StaticMatrixSizeType j = 0;j < this->d1;j ++){
                     if((*this)[k][i][j] != mat[k][i][j]){
                         return false;
                     }
@@ -224,8 +224,8 @@ public:
     StaticMatrix3DBase<ValueType, d3, d2, d1>& eye(const ValueType v = 1 + ValueType{}){
         this->fill(ValueType{});
         auto size = std::min(this->d1, this->d2);
-        for(auto j = 0;j < this->d3; j++){
-            for(auto i = 0; i < size ;i ++){
+        for(StaticMatrixSizeType j = 0;j < this->d3; j++){
+            for(StaticMatrixSizeType i = 0; i < size ;i ++){
                 (*this)[j][i][i] = v;
             }
         }

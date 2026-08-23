@@ -42,6 +42,11 @@ public:
         std::copy_n(vec.data, Size, data);
     }
 
+    Vector3DBase &operator=(const Vector3DBase &vec){
+        std::copy_n(vec.data, Size, data);
+        return *this;
+    }
+
     template<class U>
     Vector3DBase(const Polar2DBase<U> &pt){
         z = pt.z;

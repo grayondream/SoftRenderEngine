@@ -308,8 +308,10 @@ void Application::RenderDebugUi(){
         "3 Unlit Texture", "4 Alpha Blend", "5 OBJ Mesh",
         "6 Shadow Ground", "7 Ray Traced"};
     if(ImGui::Combo("Scene", &m_sceneMode, modes, IM_ARRAYSIZE(modes))){
+        LOGI("[UI] scene -> {} via ImGui", m_sceneMode);
         m_framebuffer.clearDepth();
     }
+    ImGui::Text("Current scene: %d", m_sceneMode);
     ImGui::Checkbox("Rotating", &m_rotating);
     ImGui::SliderFloat("Speed", &m_rotateSpeed, 0.0f, 0.3f, "%.3f");
     ImGui::Separator();
@@ -373,6 +375,19 @@ std::error_code Application::run(){
 
         int kbCount = 0;
         const Uint8 *kb = SDL_GetKeyboardState(&kbCount);
+        if(kb && kbCount > 0 && kb[SDL_SCANCODE_RIGHTBRACKET] && !m_bracketHeld){
+            m_sceneMode = (m_sceneMode + 1) % 8;
+            m_framebuffer.clearDepth();
+            LOGI("[KEY] scene -> {} via ]", m_sceneMode);
+        }
+        if(kb && kbCount > 0 && kb[SDL_SCANCODE_LEFTBRACKET] && !m_bracketHeld){
+            m_sceneMode = (m_sceneMode + 7) % 8;
+            m_framebuffer.clearDepth();
+            LOGI("[KEY] scene -> {} via [", m_sceneMode);
+        }
+        m_bracketHeld = kb && kbCount > 0 &&
+            (kb[SDL_SCANCODE_RIGHTBRACKET] || kb[SDL_SCANCODE_LEFTBRACKET]);
+
         SGE::Render::InputState in{};
         if(kb && kbCount > 0){
             in.w = kb[SDL_SCANCODE_W] != 0;      in.s = kb[SDL_SCANCODE_S] != 0;

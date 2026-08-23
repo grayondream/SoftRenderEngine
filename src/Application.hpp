@@ -45,4 +45,5 @@ private:
     LightingRig m_rig{};
     SGE::Render::RayScene m_rtScene{};
     FrameBuffer m_rtBuffer{200, 150};
+    bool m_bracketHeld{false};
 };

@@ -43,6 +43,7 @@ uint32_t shade(const LightingRig &rig,
         accum(dl.direction.normalize(), dl.color, 1.0);
     }
     for(const auto &pl : rig.point){
+        if(pl.range <= 0) continue;
         const Vector3DBase<double> diff = Sub(pl.position, P);
         const double atten = Clamp01(1.0 - diff.length() / pl.range);
         if(atten <= 0) continue;

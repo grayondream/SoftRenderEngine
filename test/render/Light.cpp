@@ -96,6 +96,22 @@ TEST(LightTest, SpecularHalfVector){
     EXPECT_NEAR(chan(offset,0), 138, 2);
 }
 
+TEST(LightTest, ZeroRangePointLightIgnored){
+    LightingRig rig{};
+    rig.ambient = 0.0f;
+    rig.specularStrength = 0.0f;
+    PointLight pl{};
+    pl.position = Vector3DBase<double>{0, 0, -5};
+    pl.color = ColorFlt{1.0f, 1.0f, 1.0f};
+    pl.range = 0.0;
+    rig.point.push_back(pl);
+
+    const uint32_t out = shade(rig, Color32{128,128,128,255},
+                               Vector3DBase<double>{0,0,-1}, Vector3DBase<double>{0,0,0},
+                               Vector3DBase<double>{0,0,-5});
+    EXPECT_EQ(out, 0xFF000000u);
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

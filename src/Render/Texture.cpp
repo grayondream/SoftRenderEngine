@@ -1,4 +1,5 @@
 #include "Texture.hpp"
+#include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -27,6 +28,7 @@ uint8_t BlendChannel(uint32_t c0, uint32_t c1, uint32_t c2, uint32_t c3,
 
 Texture::Texture(std::size_t w, std::size_t h, const uint32_t *bgra)
     : m_w(w), m_h(h){
+    assert(bgra != nullptr || (w == 0 && h == 0));
     if(bgra){
         m_pixels.assign(bgra, bgra + w * h);
     }

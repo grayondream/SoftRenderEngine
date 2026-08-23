@@ -56,7 +56,9 @@ TEST(CameraTest, UpdateMovesAlongForward){
     c.yaw = 0; c.pitch = 0;
     SGE::Render::InputState in{};
     in.w = true;
-    SGE::Render::update(c, in, 1.0);
+    for(int i = 0; i < 10; i++){
+        SGE::Render::update(c, in, 0.1);
+    }
     EXPECT_TRUE(VecNear(c.position, 0, 0, 3));
 }
 
@@ -66,7 +68,9 @@ TEST(CameraTest, UpdateStrafesAlongRight){
     c.yaw = 0; c.pitch = 0;
     SGE::Render::InputState in{};
     in.d = true;
-    SGE::Render::update(c, in, 1.0);
+    for(int i = 0; i < 10; i++){
+        SGE::Render::update(c, in, 0.1);
+    }
     EXPECT_TRUE(VecNear(c.position, -3, 0, 0));
 }
 
@@ -75,14 +79,34 @@ TEST(CameraTest, UpdateTurnAndPitchClamp){
     c.position = Vector3DBase<double>{0, 0, 0};
     SGE::Render::InputState in{};
     in.left = true;
-    SGE::Render::update(c, in, 1.0);
+    for(int i = 0; i < 10; i++){
+        SGE::Render::update(c, in, 0.1);
+    }
     EXPECT_NEAR(c.yaw, 1.5, 1e-12);
 
     in.left = false; in.up = true;
-    for(int i = 0; i < 10; i++){
-        SGE::Render::update(c, in, 1.0);
+    for(int i = 0; i < 20; i++){
+        SGE::Render::update(c, in, 0.1);
     }
     EXPECT_NEAR(c.pitch, 3.14159265358979 / 2 - 0.01, 1e-12);
+}
+
+TEST(CameraTest, UpdateClampsLargeDt){
+    SGE::Render::Camera c{};
+    c.position = Vector3DBase<double>{0, 0, 0};
+    c.yaw = 0; c.pitch = 0;
+    SGE::Render::InputState in{};
+    in.w = true;
+    SGE::Render::update(c, in, 100.0);
+    EXPECT_TRUE(VecNear(c.position, 0, 0, 0.3));
+
+    SGE::Render::Camera c2{};
+    c2.position = Vector3DBase<double>{0, 0, 0};
+    c2.yaw = 0; c2.pitch = 0;
+    SGE::Render::InputState neg{};
+    neg.w = true;
+    SGE::Render::update(c2, neg, -5.0);
+    EXPECT_TRUE(VecNear(c2.position, 0, 0, 0));
 }
 
 int main(int argc, char **argv){

@@ -100,6 +100,10 @@ TEST(TextureTest, LoadFromFileMissingGivesEmpty){
     EXPECT_EQ(t.sample(0.5, 0.5), kBlack);
 }
 
+TEST(TextureDeathTest, NullptrNonZeroAsserts){
+    EXPECT_DEATH(Texture t(4, 4, nullptr), "");
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

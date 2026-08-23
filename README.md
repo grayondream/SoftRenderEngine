@@ -22,17 +22,21 @@ SGE_TEST_BARS=1   ./build/src/soft-game-engine        # 通道诊断色带
 
 操作：WASD/RF 平移，方向键转向；`[`/`]` 切换场景；ImGui 面板切换场景与参数。
 
-## 七大经典场景（ImGui 或 ]/[ 切换）
+## 示例场景库（41 项，ImGui 下拉分组或 ]/[ 循环切换；`SGE_START_SCENE=N` 指定起始项）
 
-| # | 场景 | 展示能力 |
-|---|------|---------|
-| 0 | 基础几何与光照 | 球/圆环/Utah 茶壶参数化生成器、Blinn-Phong、tile 多线程 |
-| 1 | 纹理映射与滤波 | Mipmap 链 + 三线性滤波 vs 最近邻，多距离对比 |
-| 2 | 深度测试与透明混合 | Z-Buffer、画家算法排序、src-over 半透明 |
-| 3 | 阴影映射 + PCF | 聚光透视深度 Pass、PCF 软边阴影 |
-| 4 | 环境反射与折射 | 解析环境探针、菲涅尔、Snell 折射 |
-| 5 | PBR 材质球阵 | Cook-Torrance (GGX/Smith/Schlick) + 解析 IBL 近似 |
-| 6 | 光锥光线追踪 | CPU 光追：聚光体积锥、玻璃折射、伪焦散、20 球体 |
+对齐 GraphicsAPILearn 的 OpenGL samples 渲染效果，按组组织：
+
+| 组 | 场景 | 能力要点 |
+|----|------|---------|
+| Showcase (7) | 几何陈列 / Mipmap滤波 / 透明排序 / 聚光PCF / 环境反射折射 / PBR球阵 / 光锥光追 | 引擎七大综合演示 |
+| Base (5) | Triangle / TexturedRect / TexturedCube(container2) / CameraWalk / SimpleTexture | 顶点色、纹理采样、相机漫游 |
+| Light (9) | Ambient / Diffuse / Specular / Material×4 / LightMap / 方向光 / 点光衰减 / 聚光软边 / 多光源 | Blinn-Phong 全家桶 |
+| LightAdv (10) | NormalMap(brickwall) / ParallaxMap(steep) / Bloom / HDR三分屏 / Gamma / SSAO / Defer + Shadow/PCF/点光阴影 | 切线空间贴图与后处理链 |
+| Advanced (10) | DepthTest / CullFace / Blend窗排序 / Explode / NormalLine / Instancing / Saturn / Skybox(loft.hdr) / RenderToTexture / SSAA | 几何模拟与离屏渲染 |
+| PBR (2) | Cook-Torrance 球阵 / rusted_iron 五件套贴图球 / IBL漫反射(loft) | GGX/Smith/Schlick + 环境光 |
+| Model (1) | nanosuit.obj 加载旋转展示 | 自研 OBJ 加载器 |
+
+已知简化：MSAA 以 2x 盒滤波超采样等效实现；IBL 为 equirect 直接采样近似（未做 cubemap 辐照度卷积/预滤波/BRDF LUT）；模型 MTL 材质暂以统一色调代替。
 
 ## 质量门禁
 

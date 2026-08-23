@@ -3,6 +3,7 @@
 #include "Window.hpp"
 #include <cstring>
 #include <random>
+#include <cstdio>
 #include <ctime>
 
 //Here is a trick code, I am too lazy to write all switch code
@@ -14,6 +15,7 @@ inline static void WriteBufferIntoSDLTexture(SDL_Texture *ptexture, const void *
     void *pixels{};
     int pitch{};
     if(SDL_LockTexture(ptexture, nullptr, &pixels, &pitch) != 0){
+        std::fprintf(stderr, "[display] LockTexture failed: %s\n", SDL_GetError());
         return;
     }
 

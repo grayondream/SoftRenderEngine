@@ -161,7 +161,7 @@ std::error_code Application::initalize(const ApplicationParam &param){
         m_rtScene.cone.direction = Vector3DBase<double>{-4.0, -6.5, -1.5};
         m_rtScene.cone.cutoffCos = 0.82;
         m_rtScene.cone.range = 26.0;
-        m_rtScene.cone.intensity = 1.2f;
+        m_rtScene.cone.intensity = m_spotConeIntensity;
         m_rtScene.cone.enabled = true;
     }
     return {};
@@ -384,7 +384,7 @@ void Application::RenderScene(){
         }
 
         SGE::Render::ShadowData sd{&shadowMap, lightVP, 0.004};
-        sd.pcfRadius = 2;
+        sd.pcfRadius = m_pcfRadius;
         ShadingContext shadCtx{&m_rig, m_camera.position,
                                m_fogEnabled ? &fog : nullptr, &sd};
         {
@@ -476,13 +476,12 @@ void Application::RenderScene(){
             for(int r = 0; r < rows; r++){
                 for(int c = 0; c < cols; c++){
                     PbrMaterial mat{};
-                    mat.baseColor = Color32{
-                        static_cast<int32_t>(120 + 130 * (r / float(rows))),
-                        static_cast<int32_t>(60 + 40 * c),
-                        static_cast<int32_t>(255 - 130 * (r / float(rows))), 255};
-                    mat.metallic = static_cast<float>(c) / (cols - 1);
-                    mat.roughness = std::max(0.05f,
-                        1.0f - static_cast<float>(r) / (rows - 1));
+                    mat.baseColor = m_pbrBase;
+                    mat.metallic = std::clamp(
+                        static_cast<float>(c) / (cols - 1) + m_pbrMetallic - 0.5f, 0.0f, 1.0f);
+                    mat.roughness = std::clamp(
+                        1.0f - static_cast<float>(r) / (rows - 1) + m_pbrRoughness - 0.35f,
+                        0.05f, 1.0f);
                     ShadingContext pbrCtx{&m_rig, m_camera.position,
                                           nullptr, nullptr, nullptr, nullptr, &mat};
                     Object4D ball = m_sphere;
@@ -507,6 +506,11 @@ void Application::RenderScene(){
             opt.maxDepth = 3;
             opt.background = Color32{25, 28, 40, 255};
             m_rtBuffer.clear();
+            const std::size_t targetW[3] = {100, 200, 400};
+            const std::size_t targetH[3] = {75, 150, 300};
+            if(m_rtBuffer.width() != targetW[m_rtQuality]){
+                m_rtBuffer = FrameBuffer{targetW[m_rtQuality], targetH[m_rtQuality]};
+            }
             SGE::Render::RayTracer tracer{m_rtBuffer};
             tracer.render(m_rtScene, m_camera, m_rig, opt);
             const auto *srcRT = m_rtBuffer.colorData();
@@ -587,7 +591,7 @@ void Application::RenderScene(){
         }
 
         SGE::Render::ShadowData sd{&shadowMap, lightVP, 0.004};
-        sd.pcfRadius = 2;
+        sd.pcfRadius = m_pcfRadius;
         ShadingContext shadCtx{&m_rig, m_camera.position,
                                m_fogEnabled ? &fog : nullptr, &sd};
         {
@@ -657,6 +661,24 @@ void Application::RenderDebugUi(){
             m_fogStart = std::min(startEnd[0], startEnd[1] - 0.5f);
             m_fogEnd = std::max(startEnd[1], startEnd[0] + 0.5f);
         }
+    }
+    ImGui::Separator();
+    if(m_sceneMode == 3){
+        ImGui::SliderInt("PCF Radius", &m_pcfRadius, 0, 4);
+    }
+    if(m_sceneMode == 5){
+        ImGui::SliderFloat("Metallic", &m_pbrMetallic, 0.0f, 1.0f);
+        ImGui::SliderFloat("Roughness", &m_pbrRoughness, 0.05f, 1.0f);
+        ImGui::ColorEdit3("Base Color", reinterpret_cast<float*>(&m_pbrColorUi));
+        m_pbrBase = Color32{
+            static_cast<int32_t>(m_pbrColorUi[0] * 255.0f),
+            static_cast<int32_t>(m_pbrColorUi[1] * 255.0f),
+            static_cast<int32_t>(m_pbrColorUi[2] * 255.0f), 255};
+    }
+    if(m_sceneMode == 6){
+        const char *qs[] = {"100x75", "200x150", "400x300"};
+        ImGui::Combo("RT Quality", &m_rtQuality, qs, 3);
+        ImGui::SliderFloat("Cone Intensity", &m_spotConeIntensity, 0.0f, 3.0f);
     }
     ImGui::Separator();
     ImGui::Text("Camera: WASD move / RF up-down");

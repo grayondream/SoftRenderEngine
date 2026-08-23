@@ -50,4 +50,11 @@ private:
     SGE::Render::RayScene m_rtScene{};
     FrameBuffer m_rtBuffer{200, 150};
     bool m_bracketHeld{false};
+    float m_pbrMetallic{0.5f};
+    float m_pbrColorUi[3]{0.78f, 0.24f, 0.24f};
+    float m_pbrRoughness{0.35f};
+    Color32 m_pbrBase{200, 60, 60, 255};
+    int m_pcfRadius{2};
+    float m_spotConeIntensity{1.2f};
+    int m_rtQuality{1};
 };

@@ -20,12 +20,15 @@ public:
     using MatrixDataType = DynamicMatrixTraits<T>::MatrixDataType;
 
 public:
-    Matrix2DBase(ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
-        : MatrixBase<ValueType>(d1 * d2), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){} 
+    Matrix2DBase() : MatrixBase<ValueType>(0), MatrixIndex2<ValueType>(this->getRawBuffer(), 0, 0){ }
 
-    Matrix2DBase(const std::initializer_list<ValueType> &ls, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+    Matrix2DBase(ConstMatrixSizeType d2, ConstMatrixSizeType d1)
+        : MatrixBase<ValueType>(d1 * d2), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){}
+
+    Matrix2DBase(const std::initializer_list<ValueType> &ls, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
         : MatrixBase<ValueType>(ls), MatrixIndex2<ValueType>(this->getRawBuffer(), d2, d1){
-        assert(this->d2 * this->d1 == ls.size()); 
+        assert(ls.size() > 0);
+        assert(this->d2 * this->d1 == ls.size());
     } 
 
     Matrix2DBase(ConstPointer data, ConstMatrixSizeType d2, ConstMatrixSizeType d1)

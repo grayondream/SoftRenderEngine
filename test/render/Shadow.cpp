@@ -118,6 +118,106 @@ TEST(ShadowTest, NoShadowContextUnchanged){
     EXPECT_EQ(zero, 0xFF323232u);
 }
 
+TEST(ShadowTest, PcfSoftensShadowEdge){
+    FrameBuffer smap{64, 64};
+    smap.clear();
+    {
+        Rasterizer srz{smap};
+        const ScreenVertex a{0, 32, -0.5f, 1};
+        const ScreenVertex b{64, 32, -0.5f, 1};
+        const ScreenVertex c{64, 64, -0.5f, 1};
+        const ScreenVertex d{0, 64, -0.5f, 1};
+        srz.drawTriangleDepth(a, b, c);
+        srz.drawTriangleDepth(a, c, d);
+    }
+
+    const auto lvp = SGE::Render::directionalLightVP(
+        Vector3DBase<double>{0, 0, -1}, Vector3DBase<double>{0, 0, 0}, 4.0);
+    SGE::Render::ShadowData sd{&smap, lvp, 0.005};
+    sd.pcfRadius = 1;
+
+    LightingRig rig{};
+    rig.ambient = 0.25f;
+    DirectionalLight dl{};
+    dl.color = ColorFlt{1, 1, 1};
+    dl.direction = Vector3DBase<double>{0, 0, -1};
+    rig.directional.push_back(dl);
+
+    Texture tex(1, 1, std::vector<uint32_t>{0xFF808080u}.data());
+    ShadingContext ctx{&rig, Vector3DBase<double>{0, 0, -5}, nullptr, &sd};
+
+    FrameBuffer fb{32, 32};
+    fb.clear();
+    Rasterizer rz{fb};
+    ScreenVertex tri[3] = {};
+    tri[0] = {4, 31, -0.5f, 1};
+    tri[1] = {27, 31, -0.5f, 1};
+    tri[2] = {15, 6, -0.5f, 1};
+    for(auto &v : tri){
+        v.nx = 0; v.ny = 0; v.nz = -1;
+        v.wx = 0; v.wy = 0; v.wz = 0;
+        v.u = 0; v.v = 0;
+    }
+    rz.drawTriangleTextured(tri[0], tri[1], tri[2], tex, &ctx);
+
+    std::size_t edgePixel = 15u * 32u + 15u;
+    const int v = chan(fb.colorData()[edgePixel], 16);
+    EXPECT_GT(v, 32);
+    EXPECT_LT(v, 210);
+}
+
+TEST(ShadowTest, PointLightVPOccludes){
+    FrameBuffer smap{64, 64};
+    smap.clear();
+    {
+        Rasterizer srz{smap};
+        const ScreenVertex a{0, 0, -0.5f, 1};
+        const ScreenVertex b{64, 0, -0.5f, 1};
+        const ScreenVertex c{64, 64, -0.5f, 1};
+        const ScreenVertex d{0, 64, -0.5f, 1};
+        srz.drawTriangleDepth(a, b, c);
+        srz.drawTriangleDepth(a, c, d);
+    }
+
+    const auto lvp = SGE::Render::pointLightVP(
+        Vector3DBase<double>{0, 0, -6}, Vector3DBase<double>{0, 0, 0},
+        M_PI / 3, 1.0, 0.1, 50.0);
+    SGE::Render::ShadowData sd{&smap, lvp, 0.005};
+
+    LightingRig rig{};
+    rig.ambient = 0.25f;
+    DirectionalLight dl{};
+    dl.color = ColorFlt{1, 1, 1};
+    dl.direction = Vector3DBase<double>{0, 0, -1};
+    rig.directional.push_back(dl);
+
+    Texture tex(1, 1, std::vector<uint32_t>{0xFF808080u}.data());
+    ShadingContext ctx{&rig, Vector3DBase<double>{0, 0, -5}, nullptr, &sd};
+
+    FrameBuffer litFb{32, 32}, shFb{32, 32};
+    litFb.clear(); shFb.clear();
+
+    ScreenVertex tri[3] = {};
+    tri[0] = {4, 31, -0.5f, 1};
+    tri[1] = {27, 31, -0.5f, 1};
+    tri[2] = {15, 6, -0.5f, 1};
+    for(auto &v : tri){
+        v.nx = 0; v.ny = 0; v.nz = -1;
+        v.wx = 0; v.wy = 0; v.wz = 0;
+        v.u = 0; v.v = 0;
+    }
+    ctx.shadow = nullptr;
+    Rasterizer rLit{litFb};
+    rLit.drawTriangleTextured(tri[0], tri[1], tri[2], tex, &ctx);
+
+    ctx.shadow = &sd;
+    Rasterizer rSh{shFb};
+    rSh.drawTriangleTextured(tri[0], tri[1], tri[2], tex, &ctx);
+
+    std::size_t probe = 15u * 32u + 15u;
+    EXPECT_GT(chan(litFb.colorData()[probe], 16), chan(shFb.colorData()[probe], 16));
+}
+
 int main(int argc, char **argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

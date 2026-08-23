@@ -8,6 +8,7 @@ struct ShadowData{
     const FrameBuffer *depth{};
     Matrix4DBase<double> lightViewProj{};
     double bias{0.005};
+    int pcfRadius{0};
 };
 
 inline Matrix4DBase<double> directionalLightVP(const Vector3DBase<double> &dir,
@@ -20,6 +21,15 @@ inline Matrix4DBase<double> directionalLightVP(const Vector3DBase<double> &dir,
     const auto view = SGE::Math::lookAt(eye, center, Vector3DBase<double>{0, 1, 0});
     const auto proj = SGE::Math::orthographic(-extent, extent, -extent, extent,
                                               0.1, extent * 4.0);
+    return proj.mul(view);
+}
+
+inline Matrix4DBase<double> pointLightVP(const Vector3DBase<double> &pos,
+                                         const Vector3DBase<double> &target,
+                                         double fovY, double aspect,
+                                         double nearZ, double farZ){
+    const auto view = SGE::Math::lookAt(pos, target, Vector3DBase<double>{0, 1, 0});
+    const auto proj = SGE::Math::perspective(fovY, aspect, nearZ, farZ);
     return proj.mul(view);
 }
 

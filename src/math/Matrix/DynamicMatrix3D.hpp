@@ -14,11 +14,14 @@ public:
     using MatrixDataType = DynamicMatrixTraits<T>::MatrixDataType;
 
 public:
-    Matrix3DBase(ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1) 
+    Matrix3DBase() : MatrixBase<ValueType>(0), MatrixIndex3<ValueType>(this->getRawBuffer(), 0, 0, 0){ }
+
+    Matrix3DBase(ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
     : MatrixBase<ValueType>(d1 * d2 * d3), MatrixIndex3<ValueType>(this->getRawBuffer(), d3, d2, d1){}
 
     Matrix3DBase(const std::initializer_list<ValueType> &ls, ConstMatrixSizeType d3, ConstMatrixSizeType d2, ConstMatrixSizeType d1)
         : MatrixBase<ValueType>(ls), MatrixIndex3<ValueType>(this->getRawBuffer(), d3, d2, d1){
+        assert(ls.size() > 0);
         assert(d3 * d2 * d1 == ls.size());
     }
 

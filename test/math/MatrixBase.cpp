@@ -159,6 +159,17 @@ TEST(DynamicMatrixTest, InitializerCreate){
     EXPECT_EQ(m2[0][1][1], 11);
 }
 
+TEST(MatrixDefaultConstructionTest, EmptyBracesDoesNotCrash){
+    Matrix1DBase<double> a{};
+    EXPECT_TRUE(a.empty());
+    Matrix2DBase<double> b{};
+    EXPECT_TRUE(b.empty());
+    Matrix3DBase<double> c{};
+    EXPECT_TRUE(c.empty());
+    Matrix4DBase<double> d{};
+    EXPECT_TRUE(d.empty());
+}
+
 int main(int argc, char **argv){
     LOGI("Start matrix base ability test");
     testing::InitGoogleTest(&argc, argv);

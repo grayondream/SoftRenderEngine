@@ -208,10 +208,31 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                         const std::size_t smH = sd.depth->height();
                         auto sx = static_cast<std::size_t>((nx * 0.5 + 0.5) * static_cast<double>(smW - 1));
                         auto sy = static_cast<std::size_t>((ny * -0.5 + 0.5) * static_cast<double>(smH - 1));
-                        const float dLight = sd.depth->depthData()[sy * smW + sx];
                         const float zMain01 = static_cast<float>(nz * 0.5 + 0.5);
-                        if(zMain01 > dLight + static_cast<float>(sd.bias)){
-                            shadowFactor = 0.0;
+                        if(sd.pcfRadius <= 0){
+                            const float dLight = sd.depth->depthData()[sy * smW + sx];
+                            if(zMain01 > dLight + static_cast<float>(sd.bias)){
+                                shadowFactor = 0.0;
+                            }
+                        }else{
+                            int occluded = 0, total = 0;
+                            for(int oy = -sd.pcfRadius; oy <= sd.pcfRadius; oy++){
+                                for(int ox = -sd.pcfRadius; ox <= sd.pcfRadius; ox++){
+                                    const auto px2 = std::clamp<std::int64_t>(
+                                        static_cast<std::int64_t>(sx) + ox, 0,
+                                        static_cast<std::int64_t>(smW - 1));
+                                    const auto py2 = std::clamp<std::int64_t>(
+                                        static_cast<std::int64_t>(sy) + oy, 0,
+                                        static_cast<std::int64_t>(smH - 1));
+                                    const float dLight = sd.depth->depthData()[
+                                        static_cast<std::size_t>(py2) * smW + static_cast<std::size_t>(px2)];
+                                    if(zMain01 > dLight + static_cast<float>(sd.bias)){
+                                        occluded++;
+                                    }
+                                    total++;
+                                }
+                            }
+                            shadowFactor = 1.0 - static_cast<double>(occluded) / total;
                         }
                     }
                 }

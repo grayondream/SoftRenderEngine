@@ -290,33 +290,6 @@ void Application::RenderScene(){
         }
         case 2:
         {
-            const auto rot = SGE::Math::rotationY(m_angle * 0.5);
-            struct Item{ const Object4D *obj; double ox, oy, oz; };
-            const Item items[] = {
-                {&m_sphere, m_sphere.worldPos.x, m_sphere.worldPos.y + 0.8, m_sphere.worldPos.z},
-                {&m_torus,  m_torus.worldPos.x,  m_torus.worldPos.y + 1.0,  m_torus.worldPos.z},
-                {&m_teapot, m_teapot.worldPos.x, m_teapot.worldPos.y + 0.75, m_teapot.worldPos.z},
-            };
-            for(const auto &it : items){
-                auto im = SGE::Math::translation(it.ox, it.oy, it.oz).mul(rot);
-                auto inrm = SGE::Math::normalMatrix(im);
-                auto t2 = Pipeline::projectObject(*it.obj, im, viewProj, inrm, 800, 600);
-                for(auto &t : t2){
-                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
-                }
-            }
-            break;
-        }
-        case 3:
-        {
-            ShadingContext unlit{nullptr, m_camera.position};
-            SGE::Render::TileRenderer tiled{m_framebuffer};
-            auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
-            tiled.drawTextured(tris, m_checker, &unlit);
-            break;
-        }
-        case 4:
-        {
             auto torusTris = Pipeline::projectObject(m_torus, model, viewProj, nrm, 800, 600);
             for(auto &t : torusTris){
                 rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
@@ -352,6 +325,150 @@ void Application::RenderScene(){
             ov[1].color = Color32{40, 200, 90, 110};
             ov[2].color = Color32{40, 200, 90, 110};
             rz.drawTriangleSolid(ov[0], ov[1], ov[2]);
+                        break;
+        }
+        case 3:
+        {
+        FrameBuffer shadowMap{256, 256};
+        shadowMap.clear();
+        Object4D ground{};
+        std::snprintf(ground.name, sizeof(ground.name), "%s", "ground");
+        const double e = 6.0;
+        Point4D gv[4] = {{-e,-2,-e,1},{e,-2,-e,1},{e,-2,e,1},{-e,-2,e,1}};
+        for(int i = 0;i < 4;i++){ ground.vlistLocal[i] = gv[i]; }
+        ground.numVertices = 4;
+        ground.numPolys = 2;
+        const int idx[2][3] = {{0,1,2},{0,2,3}};
+        for(int i = 0;i < 2;i++){
+            for(int k = 0;k < 3;k++){
+                ground.plist[i].vlist[k] = gv[idx[i][k]];
+                ground.plist[i].nlist[k] = Vector3DBase<double>{0, 1, 0};
+            }
+            ground.plist[i].color = Color32{210, 210, 220, 255};
+        }
+
+        Object4D obstacleCone = SGE::Render::MakeCone(0.8, 2.0);
+        obstacleCone.worldPos = Point4D{-3.0, -0.5, 1.5, 1};
+        Object4D obstacleSphere = SGE::Render::MakeSphere(1.0, 24, 16);
+        obstacleSphere.worldPos = Point4D{3.0, -0.3, -1.0, 1};
+
+        const Vector3DBase<double> lightPos{6.5, 6.0, 5.0};
+        const auto lightVP = SGE::Render::pointLightVP(lightPos,
+            Vector3DBase<double>{0, -1.5, 0}, M_PI / 2, 1.0, 0.5, 60.0);
+
+        SpotLight spot{};
+        spot.position = lightPos;
+        spot.direction = Vector3DBase<double>{-6.5, -7.5, -5.0};
+        spot.color = ColorFlt{1.0f, 0.97f, 0.9f};
+        spot.range = 40.0;
+        spot.cutoffCos = 0.55;
+        m_rig.spot.push_back(spot);
+
+        Object4D obstacleCube = m_cube;
+        struct Obstacle{ const Object4D *obj; double x, y, z; double ry; };
+        const Obstacle obstacles[] = {
+            {&obstacleCube, 0.0, 0.0, 0.0, m_angle},
+            {&obstacleCone, obstacleCone.worldPos.x, obstacleCone.worldPos.y, obstacleCone.worldPos.z, m_angle * 0.5},
+            {&obstacleSphere, obstacleSphere.worldPos.x, obstacleSphere.worldPos.y + 1.3, obstacleSphere.worldPos.z, 0.0}};
+        const auto sceneRot = SGE::Math::rotationY(m_angle);
+
+        {
+            Rasterizer srz{shadowMap};
+            auto gtris = Pipeline::projectObject(ground, SGE::Math::translation(0.0,0.0,0.0),
+                lightVP, nrm, 256, 256);
+            for(auto &t : gtris) srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+            for(const auto &ob : obstacles){
+                auto om = SGE::Math::translation(ob.x, ob.y, ob.z).mul(SGE::Math::rotationY(ob.ry));
+                auto onrm = SGE::Math::normalMatrix(om);
+                auto ot = Pipeline::projectObject(*ob.obj, om, lightVP, onrm, 256, 256);
+                for(auto &t : ot) srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+            }
+        }
+
+        SGE::Render::ShadowData sd{&shadowMap, lightVP, 0.004};
+        sd.pcfRadius = 2;
+        ShadingContext shadCtx{&m_rig, m_camera.position,
+                               m_fogEnabled ? &fog : nullptr, &sd};
+        {
+            SGE::Render::TileRenderer tiled{m_framebuffer};
+            for(const auto &ob : obstacles){
+                if(ob.obj == &obstacleCube) continue;
+                auto om = SGE::Math::translation(ob.x, ob.y, ob.z).mul(SGE::Math::rotationY(ob.ry));
+                auto onrm = SGE::Math::normalMatrix(om);
+                auto ot = Pipeline::projectObject(*ob.obj, om, viewProj, onrm, 800, 600);
+                for(auto &t : ot){
+                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+                }
+            }
+            auto gtris = Pipeline::projectObject(ground,
+                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
+            tiled.drawTextured(gtris, m_checker, &shadCtx);
+            auto ctris = Pipeline::projectObject(obstacleCube,
+                SGE::Math::translation(0.0, 0.0, 0.0).mul(sceneRot), viewProj,
+                SGE::Math::normalMatrix(SGE::Math::rotationY(m_angle)), 800, 600);
+            tiled.drawTextured(ctris, m_checker, &shadCtx);
+        }
+            break;
+        }
+        case 4:
+        {
+            SGE::Render::EnvParams mirrorEnv{};
+            mirrorEnv.enabled = true;
+            mirrorEnv.reflectivity = 0.92;
+            SGE::Render::EnvParams glassEnv{};
+            glassEnv.enabled = true;
+            glassEnv.reflectivity = 0.25;
+            glassEnv.refractivity = 0.85;
+            glassEnv.ior = 1.52;
+            SGE::Render::EnvParams floorEnv{};
+            floorEnv.enabled = true;
+            floorEnv.reflectivity = 0.18;
+
+            Texture whiteTex(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
+            SGE::Render::TileRenderer tiled{m_framebuffer};
+
+            Object4D mirrorBall = m_sphere;
+            mirrorBall.worldPos = Point4D{-1.6, 0.0, 0, 1};
+            auto mm = SGE::Math::translation(mirrorBall.worldPos.x,
+                mirrorBall.worldPos.y + 0.9, mirrorBall.worldPos.z);
+            auto mnrm = SGE::Math::normalMatrix(mm);
+            ShadingContext mirrorCtx{&m_rig, m_camera.position,
+                nullptr, nullptr, nullptr, &mirrorEnv};
+            auto mt = Pipeline::projectObject(mirrorBall, mm, viewProj, mnrm, 800, 600);
+            tiled.drawTextured(mt, whiteTex, &mirrorCtx);
+
+            Object4D crystal = SGE::Render::MakeSphere(0.9, 28, 18);
+            crystal.worldPos = Point4D{1.8, -0.1, 0.4, 1};
+            auto cm = SGE::Math::translation(crystal.worldPos.x,
+                crystal.worldPos.y + 1.0, crystal.worldPos.z);
+            auto cnrm = SGE::Math::normalMatrix(cm);
+            ShadingContext crystalCtx{&m_rig, m_camera.position,
+                nullptr, nullptr, nullptr, &glassEnv};
+            auto ct = Pipeline::projectObject(crystal, cm, viewProj, cnrm, 800, 600);
+            tiled.drawTextured(ct, whiteTex, &crystalCtx);
+
+            Object4D groundPlane{};
+            std::snprintf(groundPlane.name, sizeof(groundPlane.name), "%s", "gplane");
+            const double ge2 = 7.0;
+            Point4D gp[4] = {{-ge2,-2,-ge2,1},{ge2,-2,-ge2,1},{ge2,-2,ge2,1},{-ge2,-2,ge2,1}};
+            for(int i = 0;i < 4;i++){ groundPlane.vlistLocal[i] = gp[i]; }
+            groundPlane.numVertices = 4;
+            groundPlane.numPolys = 2;
+            const int gidx[2][3] = {{0,1,2},{0,2,3}};
+            const UV2D guv[4] = {{0,0},{10,0},{10,10},{0,10}};
+            for(int i = 0;i < 2;i++){
+                for(int k = 0;k < 3;k++){
+                    groundPlane.plist[i].vlist[k] = gp[gidx[i][k]];
+                    groundPlane.plist[i].uvlist[k] = guv[gidx[i][k]];
+                    groundPlane.plist[i].nlist[k] = Vector3DBase<double>{0, 1, 0};
+                }
+                groundPlane.plist[i].color = Color32{190,190,200,255};
+            }
+            ShadingContext envCtx{&m_rig, m_camera.position,
+                m_fogEnabled ? &fog : nullptr, nullptr, nullptr, &floorEnv};
+            auto gt = Pipeline::projectObject(groundPlane,
+                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
+            tiled.drawTextured(gt, m_checker, &envCtx);
             break;
         }
         case 5:
@@ -381,6 +498,26 @@ void Application::RenderScene(){
                         rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                                 m_checker, &pbrCtx);
                     }
+                }
+            }
+            break;
+        }
+
+        case 6:
+        {
+            SGE::Render::RayTraceOptions opt{};
+            opt.maxDepth = 3;
+            opt.background = Color32{25, 28, 40, 255};
+            m_rtBuffer.clear();
+            SGE::Render::RayTracer tracer{m_rtBuffer};
+            tracer.render(m_rtScene, m_camera, m_rig, opt);
+            const auto *srcRT = m_rtBuffer.colorData();
+            const std::size_t rw = m_rtBuffer.width(), rh = m_rtBuffer.height();
+            for(std::size_t yy = 0; yy < 600; yy++){
+                const std::size_t sy2 = yy * rh / 600;
+                for(std::size_t xx = 0; xx < 800; xx++){
+                    const std::size_t sx2 = xx * rw / 800;
+                    m_framebuffer.setPixel(xx, yy, srcRT[sy2 * rw + sx2], -2.0f);
                 }
             }
             break;

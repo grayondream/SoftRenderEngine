@@ -20,6 +20,15 @@
 #include "Light/PointLight.hpp"
 #include "Light/SpotLightScene.hpp"
 #include "Light/MultiLights.hpp"
+#include "LightAdv/NormalMap.hpp"
+#include "LightAdv/ParallaxMap.hpp"
+#include "Advanced/DepthTest.hpp"
+#include "Advanced/CullFace.hpp"
+#include "Advanced/Blend.hpp"
+#include "Advanced/Explode.hpp"
+#include "Advanced/NormalLine.hpp"
+#include "Advanced/MultiInstance.hpp"
+#include "Advanced/Saturn.hpp"
 
 namespace SGE::Samples {
 
@@ -70,6 +79,24 @@ void registerBuiltinScenes(){
         []() -> std::unique_ptr<IScene> { return std::make_unique<SpotLightScene>(); });
     reg.add("Light", "Multiple Lights",
         []() -> std::unique_ptr<IScene> { return std::make_unique<MultiLightsScene>(); });
+    reg.add("LightAdv", "Normal Mapping (brickwall)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<NormalMapScene>(); });
+    reg.add("LightAdv", "Parallax Mapping (steep)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<ParallaxMapScene>(); });
+    reg.add("Advanced", "Depth Test Overlap",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<DepthTestScene>(); });
+    reg.add("Advanced", "Backface Culling",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<CullFaceScene>(); });
+    reg.add("Advanced", "Alpha Blend Windows",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<BlendScene>(); });
+    reg.add("Advanced", "Explode (CPU vertex offset)",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<ExplodeScene>(); });
+    reg.add("Advanced", "Normal Visualization Lines",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<NormalLineScene>(); });
+    reg.add("Advanced", "100 Cubes Instancing",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<MultiInstanceScene>(); });
+    reg.add("Advanced", "Saturn Ring System",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<SaturnScene>(); });
 }
 
 }

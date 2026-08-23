@@ -46,6 +46,7 @@ void Rasterizer::drawTriangleDepth(const ScreenVertex &v0, const ScreenVertex &v
                                    const ScreenVertex &v2){
     double area = EdgeFunction(v0.x,v0.y, v1.x,v1.y, v2.x,v2.y);
     if(area == 0) return;
+    if(cullBackface && area < 0) return;
     double invArea = 1.0 / area;
 
     double minX = std::min({v0.x, v1.x, v2.x});
@@ -91,6 +92,7 @@ void Rasterizer::drawTriangleDepth(const ScreenVertex &v0, const ScreenVertex &v
 void Rasterizer::drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2){
     double area = EdgeFunction(v0.x,v0.y, v1.x,v1.y, v2.x,v2.y);
     if(area == 0) return;
+    if(cullBackface && area < 0) return;
     double invArea = 1.0 / area;
 
     double minX = std::min({v0.x, v1.x, v2.x});
@@ -141,6 +143,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                                       const ScreenRect *clip){
     double area = EdgeFunction(v0.x,v0.y, v1.x,v1.y, v2.x,v2.y);
     if(area == 0) return;
+    if(cullBackface && area < 0) return;
     double invArea = 1.0 / area;
 
     double minX = std::min({v0.x, v1.x, v2.x});
@@ -203,6 +206,28 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
 
             uint32_t shaded = 0xFF000000u;
             const bool skipTex = (shading != nullptr && shading->pbr != nullptr);
+            double uShaded = uPix, vShaded = vPix;
+            if(shading && shading->heightTex && shading->parallaxScale > 0.0){
+                Vector3DBase<double> V{shading->viewPos.x - wxp,
+                    shading->viewPos.y - wyp, shading->viewPos.z - wzp};
+                Vector3DBase<double> T{shading->tangentU};
+                Vector3DBase<double> B{shading->tangentV};
+                Vector3DBase<double> N{nxc, nyc, nzc};
+                const double tx = V.dot(T), ty = V.dot(B);
+                const int steps = 8;
+                double layerD = 1.0 / steps;
+                double cu = 0.0, cv = 0.0;
+                for(int i2 = 0; i2 < steps; i2++){
+                    const uint32_t hpx = shading->heightTex->sample(
+                        uPix + cu, vPix + cv, TextureFilter::Bilinear,
+                        TextureWrap::Repeat);
+                    const float h = static_cast<float>(hpx & 0xFF) / 255.0f;
+                    if(1.0 - (cu * steps) <= h){ break; }
+                    cu += layerD * shading->parallaxScale * tx;
+                    cv += layerD * shading->parallaxScale * ty;
+                }
+                uShaded += cu; vShaded += cv;
+            }
             if(trilinear){
                 float lod = 0.0f;
                 if(havePrev){
@@ -210,10 +235,10 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                     const float dv = std::abs(vPix - prevV) * tex.height();
                     lod = std::log2(std::max(du, dv));
                 }
-                shaded = tex.sampleTrilinear(uPix, vPix, lod, wrap);
+                shaded = tex.sampleTrilinear(uShaded, vShaded, lod, wrap);
                 prevU = uPix; prevV = vPix; havePrev = true;
             }else if(!skipTex){
-                shaded = tex.sample(uPix, vPix, filter, wrap);
+                shaded = tex.sample(uShaded, vShaded, filter, wrap);
             }
             double shadowFactor = 1.0;
             if(shading && shading->shadow && shading->shadow->depth){
@@ -318,16 +343,44 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                     static_cast<int32_t>((shaded >> 16) & 0xFF),
                     static_cast<int32_t>((shaded >> 8) & 0xFF),
                     static_cast<int32_t>(shaded & 0xFF), 255};
-                const Vector3DBase<double> N{nxc, nyc, nzc};
+                Vector3DBase<double> N{nxc, nyc, nzc};
+                if(shading->normalTex){
+                    const uint32_t np = shading->normalTex->sample(
+                        uShaded, vShaded, TextureFilter::Bilinear,
+                        TextureWrap::Repeat);
+                    const double nx2 = ((np >> 16) & 0xFF) / 255.0 * 2.0 - 1.0;
+                    const double ny2 = ((np >> 8) & 0xFF) / 255.0 * 2.0 - 1.0;
+                    const double nz2 = (np & 0xFF) / 255.0 * 2.0 - 1.0;
+                    N = Vector3DBase<double>{
+                        shading->tangentU.x * nx2 + shading->tangentV.x * ny2
+                            + N.x * nz2,
+                        shading->tangentU.y * nx2 + shading->tangentV.y * ny2
+                            + N.y * nz2,
+                        shading->tangentU.z * nx2 + shading->tangentV.z * ny2
+                            + N.z * nz2};
+                    N = N.normalize();
+                }
                 const Vector3DBase<double> Pw{wxp, wyp, wzp};
+                LightingRig effectiveRig = *shading->rig;
+                if(shading->specTex && !shading->pbr){
+                    const uint32_t sp = shading->specTex->sample(
+                        uShaded, vShaded, TextureFilter::Bilinear,
+                        TextureWrap::Clamp);
+                    const float sMask =
+                        static_cast<float>(sp & 0xFF) / 255.0f;
+                    effectiveRig.specularStrength *= sMask;
+                }
+                auto &rigRef = (shading->specTex && !shading->pbr)
+                    ? effectiveRig : *shading->rig;
                 if(shading->pbr){
                     shaded = pbrShade(*shading->rig, *shading->pbr,
                                       N.normalize(), Pw, shading->viewPos, shadowFactor);
                 }else{
-                    shaded = shade(*shading->rig, albedo, N.normalize(), Pw,
+                    shaded = shade(rigRef, albedo, N.normalize(), Pw,
                                    shading->viewPos, shadowFactor);
                 }
             }
+
             if(shading && shading->env && shading->env->enabled){
                 const auto &ep = *shading->env;
                 const Vector3DBase<double> N = SGE::Render::EnvNormalize(

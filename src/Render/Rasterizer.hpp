@@ -47,6 +47,12 @@ struct ShadingContext{
     const CubeShadowData *cubeShadow{};
     const EnvParams *env{};
     const PbrMaterial *pbr{};
+    const Texture *normalTex{};
+    const Texture *specTex{};
+    const Texture *heightTex{};
+    double parallaxScale{0.0};
+    Vector3DBase<double> tangentU{1, 0, 0};
+    Vector3DBase<double> tangentV{0, 1, 0};
 };
 
 struct ScreenRect{
@@ -59,6 +65,7 @@ struct ScreenRect{
 class Rasterizer{
 public:
     explicit Rasterizer(FrameBuffer &fb) : m_fb(fb){ }
+    bool cullBackface{false};
 
     void drawLine(const ScreenVertex &a, const ScreenVertex &b);
     void drawTriangleWireframe(const ScreenVertex &v0, const ScreenVertex &v1, const ScreenVertex &v2);

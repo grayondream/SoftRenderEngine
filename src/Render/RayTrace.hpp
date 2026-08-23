@@ -11,6 +11,8 @@ struct RaySphere{
     double radius{1.0};
     Color32 albedo{255, 255, 255, 255};
     float reflectivity{0.0f};
+    float refractivity{0.0f};
+    double ior{1.5};
 };
 
 struct RayTriangle{
@@ -19,9 +21,19 @@ struct RayTriangle{
     float reflectivity{0.0f};
 };
 
+struct SpotCone{
+    Vector3DBase<double> position{};
+    Vector3DBase<double> direction{};
+    double cutoffCos{0.85};
+    double range{30.0};
+    float intensity{1.0f};
+    bool enabled{false};
+};
+
 struct RayScene{
     std::vector<RaySphere> spheres{};
     std::vector<RayTriangle> triangles{};
+    SpotCone cone{};
 };
 
 struct RayTraceOptions{

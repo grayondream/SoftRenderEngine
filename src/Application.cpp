@@ -337,33 +337,66 @@ void Application::RenderScene(){
             ground.plist[i].color = Color32{210, 210, 220, 255};
         }
 
-        const auto lightVP = SGE::Render::directionalLightVP(
-            Vector3DBase<double>{-0.5, 0.8, -1.0},
-            Vector3DBase<double>{0, -0.5, 0}, 7.0);
+        Object4D obstacleCone = SGE::Render::MakeCone(0.8, 2.0);
+        obstacleCone.worldPos = Point4D{-3.0, -0.5, 1.5, 1};
+        Object4D obstacleSphere = SGE::Render::MakeSphere(1.0, 24, 16);
+        obstacleSphere.worldPos = Point4D{3.0, -0.3, -1.0, 1};
+
+        const Vector3DBase<double> lightPos{6.5, 6.0, 5.0};
+        const auto lightVP = SGE::Render::pointLightVP(lightPos,
+            Vector3DBase<double>{0, -1.5, 0}, M_PI / 2, 1.0, 0.5, 60.0);
+
+        SpotLight spot{};
+        spot.position = lightPos;
+        spot.direction = Vector3DBase<double>{-6.5, -7.5, -5.0};
+        spot.color = ColorFlt{1.0f, 0.97f, 0.9f};
+        spot.range = 40.0;
+        spot.cutoffCos = 0.55;
+        m_rig.spot.push_back(spot);
+
+        Object4D obstacleCube = m_cube;
+        struct Obstacle{ const Object4D *obj; double x, y, z; double ry; };
+        const Obstacle obstacles[] = {
+            {&obstacleCube, 0.0, 0.0, 0.0, m_angle},
+            {&obstacleCone, obstacleCone.worldPos.x, obstacleCone.worldPos.y, obstacleCone.worldPos.z, m_angle * 0.5},
+            {&obstacleSphere, obstacleSphere.worldPos.x, obstacleSphere.worldPos.y + 1.3, obstacleSphere.worldPos.z, 0.0}};
+        const auto sceneRot = SGE::Math::rotationY(m_angle);
+
         {
             Rasterizer srz{shadowMap};
-            auto depthTris = Pipeline::projectObject(m_cube, model,
-                lightVP, nrm, 256, 256);
-            for(auto &t : depthTris){
-                srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
-            }
             auto gtris = Pipeline::projectObject(ground, SGE::Math::translation(0.0,0.0,0.0),
                 lightVP, nrm, 256, 256);
-            for(auto &t : gtris){
-                srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+            for(auto &t : gtris) srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+            for(const auto &ob : obstacles){
+                auto om = SGE::Math::translation(ob.x, ob.y, ob.z).mul(SGE::Math::rotationY(ob.ry));
+                auto onrm = SGE::Math::normalMatrix(om);
+                auto ot = Pipeline::projectObject(*ob.obj, om, lightVP, onrm, 256, 256);
+                for(auto &t : ot) srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
             }
         }
 
-        SGE::Render::ShadowData sd{&shadowMap, lightVP, 0.008};
+        SGE::Render::ShadowData sd{&shadowMap, lightVP, 0.004};
+        sd.pcfRadius = 2;
         ShadingContext shadCtx{&m_rig, m_camera.position,
                                m_fogEnabled ? &fog : nullptr, &sd};
         {
             SGE::Render::TileRenderer tiled{m_framebuffer};
-            auto tris = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
-            tiled.drawTextured(tris, m_checker, &shadCtx);
+            for(const auto &ob : obstacles){
+                if(ob.obj == &obstacleCube) continue;
+                auto om = SGE::Math::translation(ob.x, ob.y, ob.z).mul(SGE::Math::rotationY(ob.ry));
+                auto onrm = SGE::Math::normalMatrix(om);
+                auto ot = Pipeline::projectObject(*ob.obj, om, viewProj, onrm, 800, 600);
+                for(auto &t : ot){
+                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+                }
+            }
             auto gtris = Pipeline::projectObject(ground,
                 SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
             tiled.drawTextured(gtris, m_checker, &shadCtx);
+            auto ctris = Pipeline::projectObject(obstacleCube,
+                SGE::Math::translation(0.0, 0.0, 0.0).mul(sceneRot), viewProj,
+                SGE::Math::normalMatrix(SGE::Math::rotationY(m_angle)), 800, 600);
+            tiled.drawTextured(ctris, m_checker, &shadCtx);
         }
     }else if(m_sceneMode == 7){
         SGE::Render::RayTraceOptions opt{};

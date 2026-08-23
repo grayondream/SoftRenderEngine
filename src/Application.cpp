@@ -291,10 +291,8 @@ void Application::RenderScene(){
         }
     }
 
-    if(auto buf = BufferManager::instance()->getBuffer()){
-        buf->clear({0,0,0,255});
-        buf->blitFrame(m_framebuffer.colorData(), m_framebuffer.width(), m_framebuffer.height());
-    }
+    BufferManager::instance()->draw(
+        reinterpret_cast<const uint8_t*>(m_framebuffer.colorData()));
 }
 
 void Application::RenderDebugUi(){

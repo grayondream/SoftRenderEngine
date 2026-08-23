@@ -202,6 +202,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
             }
 
             uint32_t shaded = 0xFF000000u;
+            const bool skipTex = (shading != nullptr && shading->pbr != nullptr);
             if(trilinear){
                 float lod = 0.0f;
                 if(havePrev){
@@ -211,7 +212,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 }
                 shaded = tex.sampleTrilinear(uPix, vPix, lod, wrap);
                 prevU = uPix; prevV = vPix; havePrev = true;
-            }else{
+            }else if(!skipTex){
                 shaded = tex.sample(uPix, vPix, filter, wrap);
             }
             double shadowFactor = 1.0;

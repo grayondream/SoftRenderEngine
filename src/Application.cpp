@@ -229,20 +229,18 @@ void Application::RenderScene(){
 
     if(m_sceneMode == 0){
         const auto rot = SGE::Math::rotationY(m_angle * 0.5);
-        struct Item{ const Object4D *obj; double ox, oy, oz; double s; };
+        struct Item{ const Object4D *obj; double ox, oy, oz; };
         const Item items[] = {
-            {&m_sphere, m_sphere.worldPos.x, m_sphere.worldPos.y + 0.8, m_sphere.worldPos.z, 1.0},
-            {&m_torus,  m_torus.worldPos.x,  m_torus.worldPos.y + 1.0,  m_torus.worldPos.z, 1.0},
-            {&m_teapot, m_teapot.worldPos.x, m_teapot.worldPos.y + 0.75, m_teapot.worldPos.z, 1.0}};
+            {&m_sphere, m_sphere.worldPos.x, m_sphere.worldPos.y + 0.8, m_sphere.worldPos.z},
+            {&m_torus,  m_torus.worldPos.x,  m_torus.worldPos.y + 1.0,  m_torus.worldPos.z},
+            {&m_teapot, m_teapot.worldPos.x, m_teapot.worldPos.y + 0.75, m_teapot.worldPos.z}};
+        SGE::Render::TileRenderer tiler{m_framebuffer};
         for(const auto &it : items){
             auto im = SGE::Math::translation(it.ox, it.oy, it.oz).mul(rot);
             auto inrm = SGE::Math::normalMatrix(im);
             auto t2 = Pipeline::projectObject(*it.obj, im, viewProj, inrm, 800, 600);
-            for(auto &t : t2){
-                rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
-            }
+            tiler.drawTextured(t2, m_checker, &shading);
         }
-        SGE::Render::TileRenderer tiler{m_framebuffer};
         auto ct = Pipeline::projectObject(m_cube, model, viewProj, nrm, 800, 600);
         tiler.drawTextured(ct, m_checker, &shading);
         return;

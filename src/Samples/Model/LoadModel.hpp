@@ -12,7 +12,8 @@ namespace SGE::Samples {
 // GL AppType: LoadModel — nanosuit.obj with real MTL diffuse atlas
 class LoadModelScene final : public IScene {
 public:
-    void setup(Application &) override {
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.5, 6.0, 0.0, -0.12);
         m_loaded = loadObjMultiMaterial(
             "assets/models/nanosuit/nanosuit.obj",
             m_chunks, m_faceMtl, m_mats);

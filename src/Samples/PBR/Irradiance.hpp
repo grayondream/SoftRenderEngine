@@ -9,6 +9,10 @@ namespace SGE::Samples {
 
 class IrradianceScene final : public IScene {
 public:
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.0, 3.0);
+    }
+
     void render(Application &app) override {
         static SGE::Render::HDRImage env = []{
             return SGE::Render::ImageLoader::loadHdr("assets/textures/newport_loft.hdr");

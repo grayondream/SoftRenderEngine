@@ -12,6 +12,9 @@ namespace SGE::Samples {
 class SSAOScene final : public IScene {
 public:
     bool m_ssaoOn{true};
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 1.2, -4.0);
+    }
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         fb.clear(kRefClear);

@@ -9,6 +9,10 @@ namespace SGE::Samples {
 
 class CubeTextureScene final : public IScene {
 public:
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.0, 3.0);
+    }
+
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         fb.clear(kRefClear);

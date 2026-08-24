@@ -41,6 +41,9 @@ private:
         return cube;
     }
 
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.8, -4.2);
+    }
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         auto rig = makeDefaultRig();

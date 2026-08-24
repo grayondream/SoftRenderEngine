@@ -11,6 +11,9 @@ namespace SGE::Samples {
 class HDRTonemapScene final : public IScene {
 public:
     float m_exposure{0.5f};
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 1.6, 3.0);
+    }
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         fb.clear(kRefClear);

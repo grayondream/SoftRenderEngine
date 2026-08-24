@@ -12,6 +12,9 @@ class BloomScene final : public IScene {
 public:
     bool m_bloomEnabled{true};
     float m_threshold{0.75f};
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.0, 3.0);
+    }
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         fb.clear(kRefClear);

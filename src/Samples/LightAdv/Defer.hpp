@@ -10,6 +10,10 @@ namespace SGE::Samples {
 
 class DeferScene final : public IScene {
 public:
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.5, 3.0);
+    }
+
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         static FrameBuffer albedoFb{800, 600};

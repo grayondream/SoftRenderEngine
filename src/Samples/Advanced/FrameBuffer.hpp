@@ -11,6 +11,9 @@ namespace SGE::Samples {
 
 class FrameBufferScene final : public IScene {
 public:
+    void setup(Application &app) override {
+        resetCamera(app, -1.0, -1.5, 3.5, 0.0, -10.0 * M_PI / 180.0);
+    }
     int m_effect{0};   // 0 none, 1 inversion, 2 gray, 3 sharpen
     void render(Application &app) override {
         auto &fb = app.framebuffer();

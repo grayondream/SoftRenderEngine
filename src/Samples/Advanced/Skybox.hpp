@@ -10,7 +10,8 @@ namespace SGE::Samples {
 
 class SkyboxScene final : public IScene {
 public:
-    void setup(Application &) override {
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.0, 3.0);
         static const char *files[6] = {
             "assets/textures/Skybox/right.jpg",
             "assets/textures/Skybox/left.jpg",

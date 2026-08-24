@@ -9,6 +9,9 @@ namespace SGE::Samples {
 
 class MSAAScene final : public IScene {
 public:
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.0, 3.0);
+    }
 public:
     bool m_gray{false};
     bool m_4x{false};

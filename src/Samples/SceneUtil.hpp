@@ -103,6 +103,15 @@ inline SGE::Render::Camera refCamera(double x = 0, double y = 0, double z = 3,
     return cam;
 }
 
+// Reset the global (user-controlled) camera to a reference pose on scene
+// switch, mirroring how each GL sample initializes its own camera.
+inline void resetCamera(Application &app, double x = 0, double y = 0,
+                        double z = 3, double yaw = 0, double pitch = 0){
+    app.camera().position = Vector3DBase<double>{x, y, z};
+    app.camera().yaw = yaw;
+    app.camera().pitch = pitch;
+}
+
 inline Matrix4DBase<double> refViewProj(const SGE::Render::Camera &cam){
     auto view = cam.viewMatrix();
     auto proj = SGE::Math::perspective(M_PI / 3, 800.0 / 600.0, 0.1, 100.0);

@@ -11,6 +11,9 @@ namespace SGE::Samples {
 
 class DepthTestScene final : public IScene {
 public:
+    void setup(Application &app) override {
+        resetCamera(app, 0.0, 0.0, 3.0);
+    }
 public:
     bool m_depthView{true};
     void render(Application &app) override {

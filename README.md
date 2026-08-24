@@ -22,32 +22,32 @@ SGE_TEST_BARS=1   ./build/src/soft-game-engine        # 通道诊断色带
 
 操作：WASD/RF 平移，方向键转向；`[`/`]` 切换场景；ImGui 面板切换场景与参数。
 
-## 示例场景库（39 项，严格按 GraphicsAPILearn `AppType` 枚举顺序排列）
+## 示例场景库（39 项，严格按 GraphicsAPILearn `AppType` 枚举顺序排列，渲染参数从参考源码逐项提取对齐）
 
-ImGui 下拉分组或 ]/[ 循环切换；`SGE_START_SCENE=N` 指定起始项。
+ImGui 下拉分组或 ]/[ 循环切换；`SGE_START_SCENE=N` 指定起始项；F12 截图导出 PPM。
 
-| # | GL AppType | 场景 | # | GL AppType | 场景 |
-|---|-----------|------|---|-----------|------|
-| 0 | Triangle | 彩色渐变三角 | 20 | SimpleGeometry | 参数化几何陈列(球/环/茶壶/锥/柱) |
-| 1 | Rect | 纹理矩形 | 21 | Explode | CPU 顶点爆炸 |
-| 2 | SimpleTexture | 基础纹理 | 22 | NormalLine | 法线线段可视化 |
-| 3 | Cube | container2 贴图立方体 | 23 | MultiInstance | 100 立方体实例化 |
-| 4 | Camera | 相机漫游 | 24 | MultiInstance_Saturn | 土星环系统 |
-| 5 | Ambient | 纯环境光 | 25 | Msaa(SSAA) | 2x 超采样抗锯齿 |
-| 6 | Diffuse | Lambert 漫反射 | 26 | BlinnPhong | Phong vs Blinn 高光对比 |
-| 7 | Specular | 镜面高光 | 27 | Gamma | gamma 校正阶梯 |
-| 8 | Material | 四材质系统 | 28 | Shadow_Map | 聚光阴影 + PCF 可调 |
-| 9 | LightMap | 漫反射贴图光照 | 29 | Shadow_PointLight | 点光六面 cube 阴影 |
-| 10 | Source_Direction | 方向光 | 30 | NormalMap | brickwall 法线贴图 |
-| 11 | Source_Point | 点光衰减 | 31 | ParallaxMap | bricks2 steep 视差 |
-| 12 | Source_Spot | 聚光软边 | 32 | Hdr | Clamp/Reinhard/ACES 三分屏 |
-| 13 | Source_Mult | 四色多光源 | 33 | Bloom | 亮度提取+高斯泛光 |
-| 14 | LoadModel | nanosuit.obj 展示 | 34 | Defer | 延迟着色 G-buffer |
-| 15 | DepthTest | 深度交叠 | 35 | SSAO | 深度对比 AO |
-| 16 | Blend | 半透明窗排序 | 36 | PBR_Base | metal×rough 球阵可调 |
-| 17 | CullFace | 背面剔除开关 | 37 | PBR_Texture | rusted_iron 五件套 |
-| 18 | FrameBuffer | 离屏渲染贴图立方体 | 38 | PBR_IBL_Irradiance | loft.hdr 环境漫反射 |
-| 19 | SkyBox | newport_loft.hdr 天空盒 | | | |
+| # | 场景 | 参考要点 | # | 场景 | 参考要点 |
+|---|------|---------|---|------|---------|
+| 0 | Triangle | NDC 红蓝绿三角 | 20 | Simple Geometry Houses | 四角彩色小房子+白顶(GS 模拟) |
+| 1 | Rect | 四角红蓝绿白 | 21 | Explode | 渐变球面法线呼吸爆炸 |
+| 2 | Simple Texture | dog.jpg 正立直出 | 22 | Normal Lines | 红线框球+黄法线刺 |
+| 3 | Textured Cubes | 10 狗图立方体阵 fov45 自转 | 23 | Instanced Sphere Grid | 红梯度线框球海 gap4 |
+| 4 | Camera Walkthrough | 同上可漫游 fov60 | 24 | Saturn Ring System | 岩石环 radius20 公转 |
+| 5 | Ambient Light | 铜球 0.2·白光+灯泡标记 | 25 | Anti-aliasing (2x SSAA) | dog cube+灰度开关 |
+| 6 | Diffuse Light | 光位 (1,1,1.5) amb0.3 | 26 | Blinn-Phong vs Phong | wood 地板 pow32/8 切换 |
+| 7 | Specular Light | 轨道光 r=5 amb.1 spec.5 | 27 | Gamma Correction | wood 地板 5 彩光横排 |
+| 8 | Material Ramp | 5 球强度 v=(i+1)/5 cam z=6 | 28 | Spot Shadow + PCF | PCF 半径 0-4 可调 |
+| 9 | Light Map | container2 双贴图 cube@(1,0,0) | 29 | Point Cube Shadow | 房间盒+z 振荡点光 |
+| 10 | Directional Casters | 125 格阵 dir(-.2,-1,-.3) | 30 | Normal Mapping | brickwall 光(0,0,1) |
+| 11 | Point Casters | 轨道点光衰减 | 31 | Parallax Mapping | bricks2 steep h=0.1 |
+| 12 | Spot Casters | cos12.5°/17.5° 软边 | 32 | HDR Corridor | 反法线长廊+1-exp 曝光 |
+| 13 | Multiple Sources | dir+4 点光+聚光组合 | 33 | Bloom | 10 木箱+4 彩灯泛光 |
+| 14 | Load Model | nanosuit.obj unlit 直出 | 34 | Deferred Shading | G-buffer+彩虹灯阵 |
+| 15 | Depth Test Grid | 64 大理石箱深度灰度化 | 35 | SSAO Contact Shadows | 房间盒+模型接触暗化 |
+| 16 | Alpha Blend Windows | 参考 5 窗位排序 | 36 | PBR Base | 25 球红 ramp metal/rough 可调 |
+| 17 | Backface Culling | 45° 单箱剔除开关 | 37 | PBR Textured | rusted_iron 五件套 |
+| 18 | FrameBuffer Post FX | 64 容器箱反相/灰度/锐化 | 38 | IBL Irradiance | loft.hdr 环境+背景 |
+| 19 | Skybox 6-face | 六面 jpg cubemap 射线采样 | | | |
 
 跳过的纯 GL API 学习项：TemplateTest(stencil)/AdvancedGLSL/UniformBuffer/IBL_Irradiance_Conversion/IBL_Specular。
 已知简化：MSAA 以 2x 盒滤波超采样等效；IBL 为 equirect 直接采样近似；MTL 材质暂以统一色调代替。

@@ -65,12 +65,46 @@ public:
             drawLamp(app, rz, Vector3DBase<double>{l.x, l.y, l.z}, 0.25);
         }
         if(m_bloomEnabled){
-            static FrameBuffer bright{800, 600};
-            SGE::Render::ExtractBright(fb, bright, m_threshold);
-            for(int i = 0; i < 5; i++){
-                SGE::Render::GaussianBlur(bright, 6);
+            // extract at half resolution then upsample-additive
+            static FrameBuffer bright{400, 300};
+            static FrameBuffer brightFull{800, 600};
+            bright.clear();
+            const auto *srcPx = fb.colorData();
+            for(int y = 0; y < 300; y++){
+                for(int x = 0; x < 400; x++){
+                    const uint32_t c =
+                        srcPx[(y * 2) * 800 + x * 2];
+                    const int lumR = (c >> 16) & 0xFF;
+                    const int lumG = (c >> 8) & 0xFF;
+                    const int lumB = c & 0xFF;
+                    const double lum = 0.2126 * lumR
+                        + 0.7152 * lumG + 0.0722 * lumB;
+                    if(lum > m_threshold * 255.0){
+                        const double k = (lum - m_threshold * 255.0)
+                            / std::max(1e-3, lum);
+                        bright.setPixel(x, y,
+                            0xFF000000u
+                            | (static_cast<uint32_t>(
+                                lumR * k) << 16)
+                            | (static_cast<uint32_t>(
+                                lumG * k) << 8)
+                            | static_cast<uint32_t>(
+                                lumB * k), -2.0f);
+                    }
+                }
             }
-            SGE::Render::AdditiveBlend(fb, bright);
+            for(int i = 0; i < 3; i++){
+                SGE::Render::GaussianBlur(bright, 5);
+            }
+            // upsample to full res with 2x2 box
+            const auto *bp = bright.colorData();
+            for(int y = 0; y < 600; y++){
+                for(int x = 0; x < 800; x++){
+                    brightFull.setPixel(x, y,
+                        bp[(y / 2) * 400 + x / 2], -2.0f);
+                }
+            }
+            SGE::Render::AdditiveBlend(fb, brightFull);
         }
     }
     void drawUi(Application &) override {

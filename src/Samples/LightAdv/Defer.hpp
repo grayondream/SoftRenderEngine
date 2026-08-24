@@ -60,12 +60,13 @@ public:
                 n.g / 255.0 * 2.0 - 1.0, n.b / 255.0 * 2.0 - 1.0};
             N = N.normalize();
             double or2 = 0, og = 0, ob = 0;
-            for(int gx = 0; gx < 10; gx += 2){
-                for(int gz = 0; gz < 10; gz += 2){
+            for(int gx = 0; gx < 10; gx += 3){
+                for(int gz = 0; gz < 10; gz += 3){
                     const double lx = (gx - 4.5) * 1.0;
                     const double lz = (gz - 4.5) * 1.0 - 2.0;
                     const double dx = lx, dz = lz;
                     const double d2 = dx * dx + dz * dz + 9.0;
+                    if(d2 > 60.0){ continue; }   // distance cull
                     const double att = 1.0 / (1.0 + 0.7 * std::sqrt(d2)
                         + 1.8 * d2 * 0.06);
                     const float cr = std::min(1.0f,

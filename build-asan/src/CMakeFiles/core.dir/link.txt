@@ -1,0 +1,2 @@
+/usr/bin/llvm-ar qc libcore.a CMakeFiles/core.dir/Application.cpp.o CMakeFiles/core.dir/BufferManager.cpp.o CMakeFiles/core.dir/Environment.cpp.o CMakeFiles/core.dir/Window.cpp.o CMakeFiles/core.dir/WindowBuffer.cpp.o CMakeFiles/core.dir/Samples/RegisterScenes.cpp.o CMakeFiles/core.dir/Samples/SceneRegistry.cpp.o
+/usr/bin/llvm-ranlib libcore.a

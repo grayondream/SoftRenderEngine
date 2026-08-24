@@ -1,0 +1,1 @@
+/usr/bin/g++  -std=c++20 -fsanitize=address,undefined -Wl,--dependency-file=CMakeFiles/bench_raster.dir/link.d CMakeFiles/bench_raster.dir/bench_raster.cpp.o -o bench_raster  ../src/Render/librender.a ../src/math/libmath.a ../src/libcore.a ../src/Render/librender.a -luuid ../src/math/libmath.a ../third_party/libimgui.a -lSDL2

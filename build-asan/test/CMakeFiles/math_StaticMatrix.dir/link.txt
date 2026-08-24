@@ -1,0 +1,1 @@
+/usr/bin/g++  -std=c++20 -fsanitize=address,undefined -Wl,--dependency-file=CMakeFiles/math_StaticMatrix.dir/link.d CMakeFiles/math_StaticMatrix.dir/math/StaticMatrix.cpp.o -o math_StaticMatrix  ../lib/libgtest.a -lpthread ../src/math/libmath.a ../src/Render/librender.a ../src/libcore.a ../src/math/libmath.a ../src/Render/librender.a -luuid ../third_party/libimgui.a -lSDL2

@@ -7,6 +7,10 @@
 #include "Render/Texture.hpp"
 #include "Render/Camera.hpp"
 #include "Transform.hpp"
+#include "Render/Primitives.hpp"
+#include "Render/TileRenderer.hpp"
+#include "Render/Shadow.hpp"
+#include "Render/PostProcess.hpp"
 
 namespace{
 
@@ -55,11 +59,175 @@ Texture MakeCheckerTexture(){
 
 }
 
+namespace{
+
+FrameBuffer g_fb{800, 600};
+
+void WritePPM(const std::string &path){
+    FILE *out = std::fopen(path.c_str(), "wb");
+    if(!out){
+        std::fprintf(stderr, "cannot open %s\n", path.c_str());
+        std::exit(2);
+    }
+    std::fprintf(out, "P6\n800 600\n255\n");
+    const auto *px = g_fb.colorData();
+    for(std::size_t i = 0; i < 800u * 600u; i++){
+        const unsigned char bgr[3] = {
+            static_cast<unsigned char>(px[i] & 0xFF),
+            static_cast<unsigned char>((px[i] >> 8) & 0xFF),
+            static_cast<unsigned char>((px[i] >> 16) & 0xFF)};
+        std::fwrite(bgr, 1, 3, out);
+    }
+    std::fclose(out);
+}
+
+// mode: shadow — spot shadow + PCF on ground/cube/cone/sphere (angle fixed)
+void RenderShadow(){
+    using namespace SGE::Render;
+    g_fb.clear(0xFF000000u);
+    Rasterizer rz{g_fb};
+    LightingRig rig{};
+    rig.ambient = 0.35f;
+    Camera camera{};
+    camera.position = Vector3DBase<double>{0, 0, -6};
+    auto viewProj = SGE::Math::perspective(
+        M_PI / 3, 800.0 / 600.0, 0.1, 100.0)
+        .mul(camera.viewMatrix());
+    const auto nrm = SGE::Math::normalMatrix(
+        SGE::Math::translation(0.0, 0.0, 0.0));
+    static FrameBuffer shadowMap{256, 256};
+    shadowMap.clear();
+    static Object4D ground{};
+    Point4D gv[4] = {{-5,-1,-5,1},{5,-1,-5,1},{5,-1,5,1},{-5,-1,5,1}};
+    for(int i = 0; i < 4; i++){ ground.vlistLocal[i] = gv[i]; }
+    ground.numVertices = 4;
+    ground.numPolys = 2;
+    const int gi[2][3] = {{0,1,2},{0,2,3}};
+    for(int k = 0; k < 2; k++){
+        for(int m = 0; m < 3; m++){
+            ground.plist[k].vlist[m] = gv[gi[k][m]];
+            ground.plist[k].nlist[m] =
+                Vector3DBase<double>{0, 1, 0};
+        }
+        ground.plist[k].color = Color32{210, 210, 220, 255};
+    }
+    std::fprintf(stderr, "shadow: prims done\n");
+    static Object4D cone = SGE::Render::MakeCone(0.8, 2.0);
+    std::fprintf(stderr, "shadow: cone ok\n");
+    static Object4D sphere = SGE::Render::MakeSphere(1.0, 24, 16);
+    const Vector3DBase<double> lightPos{4.0, 5.0, 3.0};
+    const auto lightVP = pointLightVP(lightPos,
+        Vector3DBase<double>{0, -1, 0}, M_PI / 2, 1.0, 0.5, 60.0);
+    SpotLight spot{};
+    spot.position = lightPos;
+    spot.direction = Vector3DBase<double>{-4.0, -5.0, -3.0};
+    spot.color = ColorFlt{1.0f, 0.97f, 0.9f};
+    spot.range = 40.0;
+    spot.cutoffCos = 0.55;
+    rig.spot.push_back(spot);
+    struct Ob{ const Object4D *obj; double x,y,z,ry; };
+    const Ob obs[2] = {
+        {&cone, -2.0, -0.5, 1.0, 0.0},
+        {&sphere, 2.0, 0.2, -0.5, 0.0}};
+    std::fprintf(stderr, "shadow: depth pass\n");
+    {
+        Rasterizer srz{shadowMap};
+        auto gt = Pipeline::projectObject(ground,
+            SGE::Math::translation(0.0,0.0,0.0),
+            lightVP, nrm, 256, 256);
+        for(auto &t : gt) srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+        for(const auto &ob : obs){
+            auto om = SGE::Math::translation(ob.x, ob.y, ob.z);
+            auto on = SGE::Math::normalMatrix(om);
+            auto ot = Pipeline::projectObject(*ob.obj, om,
+                lightVP, on, 256, 256);
+            for(auto &t : ot)
+                srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
+        }
+    }
+    std::fprintf(stderr, "shadow: main pass\n");
+    ShadowData sd{&shadowMap, lightVP, 0.004};
+    sd.pcfRadius = 2;
+    ShadingContext ctx{&rig, camera.position, nullptr, &sd};
+    TileRenderer tiled{g_fb};
+    for(const auto &ob : obs){
+        auto om = SGE::Math::translation(ob.x, ob.y, ob.z);
+        auto on = SGE::Math::normalMatrix(om);
+        auto ot = Pipeline::projectObject(*ob.obj, om,
+            viewProj, on, 800, 600);
+        for(auto &t : ot) rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+    }
+    auto gt2 = Pipeline::projectObject(ground,
+        SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
+    tiled.drawTextured(gt2, MakeCheckerTexture(), &ctx);
+}
+
+// mode: pbr — small metal/roughness sphere row
+void RenderPbr(){
+    using namespace SGE::Render;
+    g_fb.clear(0xFF000000u);
+    Rasterizer rz{g_fb};
+    LightingRig rig{};
+    rig.ambient = 0.03f;
+    for(int i = 0; i < 2; i++){
+        PointLight p{};
+        p.position = Vector3DBase<double>{i == 0 ? -8.0 : 8.0,
+            8.0, 8.0};
+        p.range = 200.0;
+        rig.point.push_back(p);
+    }
+    Texture white(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
+    static Object4D proto = MakeSphere(0.45, 24, 16);
+    Camera camera{};
+    camera.position = Vector3DBase<double>{0, 0, -5};
+    auto viewProj = SGE::Math::perspective(
+        M_PI / 3, 800.0 / 600.0, 0.1, 100.0)
+        .mul(camera.viewMatrix());
+    for(int c = 0; c < 5; c++){
+        PbrMaterial mat{};
+        mat.baseColor = Color32{230, 80, 60, 255};
+        mat.metallic = c / 4.0f;
+        mat.roughness = 0.15f + 0.18f * c;
+        ShadingContext ctx{&rig, camera.position,
+            nullptr, nullptr, nullptr, nullptr, &mat};
+        auto bm = SGE::Math::translation(-2.4 + c * 1.2, 0.0, 0.0);
+        auto bnrm = SGE::Math::normalMatrix(bm);
+        auto bt = Pipeline::projectObject(proto, bm,
+            viewProj, bnrm, 800, 600);
+        for(auto &t : bt){
+            rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
+                                    white, &ctx);
+        }
+    }
+}
+
+// mode: bloom — emissive quads + threshold blur additive
+void RenderBloom(){
+    using namespace SGE::Render;
+    g_fb.clear(0xFF0A0A12u);
+    Rasterizer rz{g_fb};
+    ScreenVertex q[4] = {};
+    q[0] = {300.0, 400.0, 0.5f, 1}; q[1] = {500.0, 400.0, 0.5f, 1};
+    q[2] = {500.0, 200.0, 0.5f, 1}; q[3] = {300.0, 200.0, 0.5f, 1};
+    for(int i = 0; i < 4; i++) q[i].color = Color32{255, 240, 200, 255};
+    rz.drawTriangleSolid(q[0], q[1], q[2]);
+    rz.drawTriangleSolid(q[0], q[2], q[3]);
+    FrameBuffer bright{800, 600};
+    ExtractBright(g_fb, bright, 0.7f);
+    GaussianBlur(bright, 6);
+    AdditiveBlend(g_fb, bright);
+}
+
+}
+
 int main(int argc, char **argv){
     if(argc < 2){
-        std::fprintf(stderr, "usage: golden_render <out.ppm>\n");
+        std::fprintf(stderr, "usage: golden_render <out.ppm> [mode]\n"
+                             "modes: lit_cube (default), shadow, pbr, "
+                             "bloom\n");
         return 2;
     }
+    const std::string mode = argc >= 3 ? argv[2] : "lit_cube";
 
     Object4D cube = MakeCube();
     Texture checker = MakeCheckerTexture();
@@ -89,11 +257,27 @@ int main(int argc, char **argv){
     rig.point.push_back(warm);
     ShadingContext shading{&rig, camera.position};
 
-    FrameBuffer fb{800, 600};
+    FrameBuffer &fb = g_fb;
     fb.clear(0xFF000000u);
     Rasterizer rz{fb};
     for(auto &t : ::Pipeline::projectObject(cube, model, viewProj, nrm, 800, 600)){
         rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], checker, &shading);
+    }
+
+    if(mode == "shadow"){
+        RenderShadow();
+        WritePPM(argv[1]);
+        return 0;
+    }
+    if(mode == "pbr"){
+        RenderPbr();
+        WritePPM(argv[1]);
+        return 0;
+    }
+    if(mode == "bloom"){
+        RenderBloom();
+        WritePPM(argv[1]);
+        return 0;
     }
 
     FILE *out = std::fopen(argv[1], "wb");

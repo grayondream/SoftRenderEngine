@@ -1,0 +1,15 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/ares/workspace/SoftGameEngine/build-asan/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/third_party/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/src/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/src/math/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/src/Render/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/test/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/_deps/googletest-build/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/_deps/googletest-build/googletest/cmake_install.cmake",
+		"/home/ares/workspace/SoftGameEngine/build-asan/tools/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

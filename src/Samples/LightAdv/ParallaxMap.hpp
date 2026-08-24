@@ -44,7 +44,7 @@ public:
             .mul(SGE::Math::rotationY(std::sin(a) * 0.35));
         auto wnrm = SGE::Math::normalMatrix(wm);
         SGE::Render::TileRenderer tiled{fb};
-        auto wt = Pipeline::projectObject(wall, wm, viewProj, wnrm, 800, 600);
+        auto wt = Pipeline::projectObject(wall, wm, viewProj, wnrm, g_renderW, g_renderH);
         tiled.drawTextured(wt, diffuse, &ctx);
         drawLightMarker(app, rz, p.position, Color32{255, 250, 220, 255});
     }

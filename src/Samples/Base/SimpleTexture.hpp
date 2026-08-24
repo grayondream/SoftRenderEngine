@@ -35,9 +35,9 @@ public:
         }
         auto pm = SGE::Math::translation(0.0, 0.0, 0.0);
         auto pt = Pipeline::projectObject(plane, pm,
-            SGE::Math::perspective(M_PI / 3, 800.0 / 600.0, 0.01, 10.0)
+            SGE::Math::perspective(M_PI / 3, static_cast<double>(g_renderW) / g_renderH, 0.01, 10.0)
                 .mul(refCamera().viewMatrix()),
-            SGE::Math::normalMatrix(pm), 800, 600);
+            SGE::Math::normalMatrix(pm), g_renderW, g_renderH);
         for(auto &t : pt){
             rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                     dog, nullptr, TextureFilter::Bilinear,

@@ -57,20 +57,13 @@ public:
                         .mul(SGE::Math::rotationY(0.3));
                     auto cnrm = SGE::Math::normalMatrix(cm);
                     auto ct = Pipeline::projectObject(cubeProto, cm,
-                        vp, cnrm, 800, 600);
+                        vp, cnrm, g_renderW, g_renderH);
                     tiled.drawTextured(ct, marble, &ctx);
                 }
             }
         }
         // reference: output is linearized depth grayscale
-        if(m_depthView){
-            static FrameBuffer tmp{800, 600};
-            SGE::Render::RunPass(fb, tmp, [&](double u, double v,
-                                              const FrameBuffer &s){
-                (void)u; (void)v; (void)s;
-                return Color32{255, 255, 255, 255};
-            });
-        }
+        if(!m_depthView){ return; }
     }
     void drawUi(Application &) override {
         ImGui::Checkbox("Depth Grayscale", &m_depthView);

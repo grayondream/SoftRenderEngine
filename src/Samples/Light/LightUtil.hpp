@@ -18,7 +18,7 @@ inline void drawLitCubeWall(Application &app, const LightingRig &rig,
                 .mul(SGE::Math::rotationX(0.35));
             auto cnrm = SGE::Math::normalMatrix(cm);
             ShadingContext ctx{&rig, app.camera().position};
-            auto ct = Pipeline::projectObject(cube, cm, viewProj, cnrm, 800, 600);
+            auto ct = Pipeline::projectObject(cube, cm, viewProj, cnrm, g_renderW, g_renderH);
             SGE::Render::TileRenderer tiled{app.framebuffer()};
             tiled.drawTextured(ct, app.checker(), &ctx);
         }
@@ -31,7 +31,7 @@ inline void drawLightMarker(Application &app, Rasterizer &rz,
     auto mm = SGE::Math::translation(pos.x, pos.y, pos.z);
     auto mnrm = SGE::Math::normalMatrix(mm);
     auto mt = Pipeline::projectObject(marker, mm,
-        defaultViewProj(app), mnrm, 800, 600);
+        defaultViewProj(app), mnrm, g_renderW, g_renderH);
     for(auto &t : mt){
         t.v[0].color = color; t.v[1].color = color; t.v[2].color = color;
         rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);

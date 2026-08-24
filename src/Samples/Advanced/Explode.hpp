@@ -61,7 +61,7 @@ public:
             .mul(SGE::Math::scale(2.0, 2.0, 2.0));
         auto snrm = SGE::Math::normalMatrix(sm);
         auto st = Pipeline::projectObject(boom, sm,
-            refViewProj(app.camera()), snrm, 800, 600);
+            refViewProj(app.camera()), snrm, g_renderW, g_renderH);
         for(auto &t : st){
             rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
         }

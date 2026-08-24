@@ -42,7 +42,7 @@ public:
         auto wm = SGE::Math::translation(0.0, 1.4, 2.2);
         auto wnrm = SGE::Math::normalMatrix(wm);
         SGE::Render::TileRenderer tiled{fb};
-        auto wt = Pipeline::projectObject(wall, wm, viewProj, wnrm, 800, 600);
+        auto wt = Pipeline::projectObject(wall, wm, viewProj, wnrm, g_renderW, g_renderH);
         tiled.drawTextured(wt, diffuse, &ctx);
         drawLamp(app, rz, p.position, 0.06);
     }

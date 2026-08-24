@@ -29,6 +29,7 @@
 #include "imgui_impl_sdlrenderer2.h"
 #include "Transform.hpp"
 #include "Samples/IScene.hpp"
+#include "Samples/SceneUtil.hpp"
 
 namespace{
 
@@ -171,6 +172,26 @@ void Application::RenderScene(){
         m_scene->setup(*this);
         m_sceneDirty = false;
     }
+    // dynamic render resolution: render small, upscale to display buffer
+    FrameBuffer *target = &m_framebuffer;
+    static FrameBuffer dynFB{800, 600};
+    if(m_renderScalePct < 100){
+        const std::size_t rw =
+            800u * static_cast<unsigned>(m_renderScalePct) / 100u;
+        const std::size_t rh =
+            600u * static_cast<unsigned>(m_renderScalePct) / 100u;
+        SGE::Samples::g_renderW = static_cast<int>(rw);
+        SGE::Samples::g_renderH = static_cast<int>(rh);
+        if(dynFB.width() != rw){
+            dynFB = FrameBuffer{rw, rh};
+        }
+        target = &dynFB;
+    }else{
+        SGE::Samples::g_renderW = 800;
+        SGE::Samples::g_renderH = 600;
+    }
+    std::swap(m_framebuffer, *target);
+
     // frame-skip: reuse the last rendered frame for heavy scenes
     if(m_renderEveryN > 1 && m_lastFrameValid && !m_sceneDirty
        && (m_frameCounter++ % m_renderEveryN) != 0){
@@ -184,6 +205,20 @@ void Application::RenderScene(){
     m_rig = makeDefaultRigForScene();
     m_scene->render(*this);
     m_lastFrameValid = true;
+    std::swap(m_framebuffer, *target);
+
+    if(m_renderScalePct < 100){
+        const auto *sp = dynFB.colorData();
+        auto *dp = m_framebuffer.colorData();
+        const std::size_t sw = dynFB.width(), sh = dynFB.height();
+        for(std::size_t y2 = 0; y2 < 600; y2++){
+            const std::size_t sy2 = y2 * sh / 600;
+            for(std::size_t x2 = 0; x2 < 800; x2++){
+                dp[y2 * 800 + x2] =
+                    sp[sy2 * sw + (x2 * sw / 800)];
+            }
+        }
+    }
 
     BufferManager::instance()->draw(
         reinterpret_cast<const uint8_t*>(m_framebuffer.colorData()));
@@ -216,6 +251,16 @@ void Application::RenderDebugUi(){
     }
     if(m_sceneIndex >= 0 && m_sceneIndex < static_cast<int>(entries.size())){
         ImGui::Text("Current: %s", entries[m_sceneIndex].name);
+    }
+    const char *resOpts[] = {"100%", "75%", "50%"};
+    const int resVals[3] = {100, 75, 50};
+    int resIdx = 0;
+    for(int ri = 0; ri < 3; ri++){
+        if(resVals[ri] == m_renderScalePct){ resIdx = ri; }
+    }
+    if(ImGui::Combo("Render Resolution", &resIdx, resOpts, 3)){
+        m_renderScalePct = resVals[resIdx];
+        m_lastFrameValid = false;
     }
     ImGui::SliderInt("Render Every N", &m_renderEveryN, 1, 6);
     if(m_renderEveryN > 1){

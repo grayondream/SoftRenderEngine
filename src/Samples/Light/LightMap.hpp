@@ -36,7 +36,7 @@ public:
         auto cm = SGE::Math::translation(1.0, 0.0, 0.0);
         auto cnrm = SGE::Math::normalMatrix(cm);
         auto ct = Pipeline::projectObject(cube, cm,
-            refViewProj(refCamera()), cnrm, 800, 600);
+            refViewProj(refCamera()), cnrm, g_renderW, g_renderH);
         for(auto &tr : ct){
             rz.drawTriangleTextured(tr.v[0], tr.v[1], tr.v[2],
                                     diffuse, &ctx);

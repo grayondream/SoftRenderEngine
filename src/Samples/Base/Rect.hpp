@@ -15,7 +15,7 @@ public:
         Rasterizer rz{fb};
         auto ndc = [](double nx, double ny){
             return std::pair<int,int>{
-                static_cast<int>((nx * 0.5 + 0.5) * 800),
+                static_cast<int>((nx * 0.5 + 0.5) * g_renderW),
                 static_cast<int>((-(ny * 0.5) + 0.5) * 600)};
         };
         auto [tx, ty] = ndc(0.5, 0.5);      // TR red

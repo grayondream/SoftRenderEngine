@@ -27,7 +27,7 @@ public:
             .mul(SGE::Math::rotationY(M_PI / 4));
         auto cnrm = SGE::Math::normalMatrix(cm);
         auto ct = Pipeline::projectObject(cube, cm,
-            refViewProj(app.camera()), cnrm, 800, 600);
+            refViewProj(app.camera()), cnrm, g_renderW, g_renderH);
         for(auto &t : ct){
             rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                     marble, nullptr, TextureFilter::Bilinear,

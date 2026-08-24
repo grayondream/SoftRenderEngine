@@ -75,13 +75,14 @@ public:
         auto rnrm = SGE::Math::normalMatrix(rm);
         auto cam = refCamera(0, 1.6, 3.0);
         auto rt = Pipeline::projectObject(room, rm,
-            refViewProj(cam), rnrm, 800, 600);
+            refViewProj(cam), rnrm, g_renderW, g_renderH);
         for(auto &t : rt){
             rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                     wood, &ctx);
         }
         // reference tonemap: 1 - exp(-c * exposure), then gamma 2.2
-        static FrameBuffer tmp{800, 600};
+        static FrameBuffer tmp{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)};
+        if(tmp.width() != static_cast<std::size_t>(g_renderW)){ tmp = FrameBuffer{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)}; }
         tonemapPass(fb, tmp, m_exposure);
     }
     void drawUi(Application &) override {

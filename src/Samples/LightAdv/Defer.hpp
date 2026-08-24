@@ -16,8 +16,10 @@ public:
 
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        static FrameBuffer albedoFb{800, 600};
-        static FrameBuffer normalFb{800, 600};
+        static FrameBuffer albedoFb{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)};
+        if(albedoFb.width() != static_cast<std::size_t>(g_renderW)){ albedoFb = FrameBuffer{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)}; }
+        static FrameBuffer normalFb{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)};
+        if(normalFb.width() != static_cast<std::size_t>(g_renderW)){ normalFb = FrameBuffer{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)}; }
         auto cam = refCamera(0, 0.5 + 4.0, 3.0);
         cam.pitch = -0.45;
         const auto vp = refViewProj(cam);
@@ -33,7 +35,7 @@ public:
                 auto gm = SGE::Math::translation(0.0, -0.5, -2.0);
                 auto gnrm = SGE::Math::normalMatrix(gm);
                 auto gt = Pipeline::projectObject(ground, gm,
-                    vp, gnrm, 800, 600);
+                    vp, gnrm, g_renderW, g_renderH);
                 for(auto &t : gt){
                     ScreenVertex a = t.v[0], b2 = t.v[1], c2 = t.v[2];
                     a.color = Color32{150, 90, 60, 255};
@@ -56,8 +58,8 @@ public:
         const std::size_t gw = normalFb.width();
         const auto *npx = normalFb.colorData();
         const auto *apx = albedoFb.colorData();
-        for(std::size_t y2 = 0; y2 < 600; y2++){
-            for(std::size_t x2 = 0; x2 < 800; x2++){
+        for(std::size_t y2 = 0; y2 < static_cast<std::size_t>(g_renderH); y2++){
+            for(std::size_t x2 = 0; x2 < static_cast<std::size_t>(g_renderW); x2++){
             const uint32_t nc = npx[y2 * gw + x2];
             const uint32_t ac = apx[y2 * gw + x2];
             Vector3DBase<double> N{

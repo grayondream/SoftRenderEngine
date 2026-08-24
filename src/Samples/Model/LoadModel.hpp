@@ -58,7 +58,7 @@ public:
         SGE::Render::TileRenderer tiled{fb};
         for(const auto &c : m_chunks){
             auto mt = Pipeline::projectObject(c, model2,
-                vp, mnrm, 800, 600);
+                vp, mnrm, g_renderW, g_renderH);
             tiled.drawTextured(mt, m_atlas.texture, &ctx);
         }
     }

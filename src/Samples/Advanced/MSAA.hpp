@@ -27,15 +27,15 @@ public:
             .mul(SGE::Math::rotationY(M_PI / 4));
         auto cnrm = SGE::Math::normalMatrix(cm);
         auto ct = Pipeline::projectObject(cube, cm,
-            refViewProj(app.camera()), cnrm, 800, 600);
+            refViewProj(app.camera()), cnrm, g_renderW, g_renderH);
         for(auto &t : ct){
             rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                     dog, nullptr, TextureFilter::Bilinear,
                                     TextureWrap::Clamp);
         }
         if(m_gray){
-            for(std::size_t y = 0; y < 600; y++){
-                for(std::size_t x = 0; x < 800; x++){
+            for(std::size_t y = 0; y < static_cast<std::size_t>(g_renderH); y++){
+                for(std::size_t x = 0; x < static_cast<std::size_t>(g_renderW); x++){
                     const uint32_t c =
                         fb.colorData()[y * 800 + x];
                     const int g = static_cast<int>(

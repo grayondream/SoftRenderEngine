@@ -67,7 +67,7 @@ public:
                     static_cast<double>(col) * 1.0,
                     static_cast<double>(row) * 1.0, 6.0);
                 auto bnrm = SGE::Math::normalMatrix(bm);
-                auto bt = Pipeline::projectObject(ball, bm, vp, bnrm, 800, 600);
+                auto bt = Pipeline::projectObject(ball, bm, vp, bnrm, g_renderW, g_renderH);
                 for(auto &t : bt){
                     rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                             white, &ctx);

@@ -37,7 +37,7 @@ public:
             const double x = (i - count / 2.0) * 2.5;
             auto sm = SGE::Math::translation(x, 0.0, 0.0);
             auto snrm = SGE::Math::normalMatrix(sm);
-            auto st = Pipeline::projectObject(sphere, sm, vp, snrm, 800, 600);
+            auto st = Pipeline::projectObject(sphere, sm, vp, snrm, g_renderW, g_renderH);
             for(auto &tr : st){
                 rz.drawTriangleTextured(tr.v[0], tr.v[1], tr.v[2],
                                         tint, &ctx);

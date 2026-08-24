@@ -47,12 +47,12 @@ private:
         auto fpm = SGE::Math::translation(0.0, 0.0, 0.0);
         auto fpnrm = SGE::Math::normalMatrix(fpm);
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,
-            vp, fpnrm, 800, 600), metal, &ctx);
+            vp, fpnrm, g_renderW, g_renderH), metal, &ctx);
         for(const auto &c : cubes){
             auto cm = SGE::Math::translation(c.x, c.y + 0.5, c.z);
             auto cnrm = SGE::Math::normalMatrix(cm);
             tiled.drawTextured(Pipeline::projectObject(cube, cm,
-                vp, cnrm, 800, 600), marble, &ctx);
+                vp, cnrm, g_renderW, g_renderH), marble, &ctx);
         }
         // transparent windows far->near (reference positions)
         static const double wins[5][3] = {
@@ -77,7 +77,7 @@ private:
             auto wm = SGE::Math::translation(w.x, w.y, w.z);
             auto wnrm = SGE::Math::normalMatrix(wm);
             auto wt = Pipeline::projectObject(m_winQuad, wm,
-                vp, wnrm, 800, 600);
+                vp, wnrm, g_renderW, g_renderH);
             for(auto &t : wt){
                 rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                         window, nullptr,

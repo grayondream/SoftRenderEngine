@@ -72,6 +72,7 @@ private:
     int m_sceneIndex{-1};
     bool m_sceneDirty{true};
     int m_renderEveryN{1};
+    int m_renderScalePct{100};
     int m_frameCounter{0};
     bool m_lastFrameValid{false};
     bool m_rotating{true};

@@ -123,14 +123,14 @@ private:
         drawLamp(app, rz, lightPos, 0.1);
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(room, rm, viewProj, rnrm,
-            800, 600), wood, &ctx);
+            g_renderW, g_renderH), wood, &ctx);
         for(const auto &ob : obs){
             Object4D c = unitCube(app);
             auto om = SGE::Math::translation(ob.x, ob.y, ob.z)
                 .mul(SGE::Math::scale(ob.s, ob.s, ob.s));
             auto onrm = SGE::Math::normalMatrix(om);
             tiled.drawTextured(Pipeline::projectObject(c, om, viewProj, onrm,
-                800, 600), wood, &ctx);
+                g_renderW, g_renderH), wood, &ctx);
         }
     }
     void drawUi(Application &) override {

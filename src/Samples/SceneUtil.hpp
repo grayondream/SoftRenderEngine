@@ -10,6 +10,11 @@
 
 namespace SGE::Samples {
 
+// Dynamic render resolution (scenes must use these instead of literals)
+inline int g_renderW = 800;
+inline int g_renderH = 600;
+
+
 inline LightingRig makeDefaultRig(){
     LightingRig rig{};
     rig.ambient = 0.15f;
@@ -54,7 +59,8 @@ inline FogParams defaultFog(Application &app){
 
 inline Matrix4DBase<double> defaultViewProj(Application &app){
     auto view = app.camera().viewMatrix();
-    auto proj = SGE::Math::perspective(M_PI / 3, 800.0 / 600.0, 0.1, 100.0);
+    auto proj = SGE::Math::perspective(M_PI / 3,
+        static_cast<double>(g_renderW) / g_renderH, 0.1, 100.0);
     return proj.mul(view);
 }
 

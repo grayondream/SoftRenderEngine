@@ -38,7 +38,7 @@ public:
                         gx * 1.1, gy * 1.1 - 2.0, gz * 1.1 - 5.0);
                     auto cnrm = SGE::Math::normalMatrix(cm);
                     tiled.drawTextured(Pipeline::projectObject(cube, cm,
-                        vp, cnrm, 800, 600), container, &ctx);
+                        vp, cnrm, g_renderW, g_renderH), container, &ctx);
                 }
             }
         }

@@ -16,7 +16,7 @@ public:
         // NDC (-1..1) -> screen
         auto ndc = [](double nx, double ny){
             return std::pair<int,int>{
-                static_cast<int>((nx * 0.5 + 0.5) * 800),
+                static_cast<int>((nx * 0.5 + 0.5) * g_renderW),
                 static_cast<int>((-(ny * 0.5) + 0.5) * 600)};
         };
         auto [x0, y0] = ndc(0.0, 0.5);

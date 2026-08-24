@@ -51,7 +51,7 @@ public:
                         .mul(SGE::Math::rotationZ(rotA * 0.5));
                     auto cnrm = SGE::Math::normalMatrix(cm);
                     auto ct = Pipeline::projectObject(cubeProto, cm,
-                        vp, cnrm, 800, 600);
+                        vp, cnrm, g_renderW, g_renderH);
                     tiled.drawTextured(ct, diffuse, &ctx);
                     drawn++;
                 }

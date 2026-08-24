@@ -35,7 +35,7 @@ public:
         auto pnrm = SGE::Math::normalMatrix(pm);
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(planet, pm,
-            vp, pnrm, 800, 600), tint, &ctx);
+            vp, pnrm, g_renderW, g_renderH), tint, &ctx);
         // rock ring: radius 20->scaled 4, y*0.4, slow orbit
         static Object4D rock = SGE::Render::MakeSphere(1.0, 8, 5);
         constexpr int kRocks = 240;
@@ -56,7 +56,7 @@ public:
                 .mul(SGE::Math::scale(sc, sc, sc));
             auto rnrm = SGE::Math::normalMatrix(rm);
             tiled.drawTextured(Pipeline::projectObject(rock, rm,
-                vp, rnrm, 800, 600), tint, &ctx);
+                vp, rnrm, g_renderW, g_renderH), tint, &ctx);
         }
     }
     void drawUi(Application &) override {

@@ -40,7 +40,7 @@ public:
         auto fpnrm = SGE::Math::normalMatrix(fpm);
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,
-            refViewProj(app.camera()), fpnrm, 800, 600), wood, &ctx);
+            refViewProj(app.camera()), fpnrm, g_renderW, g_renderH), wood, &ctx);
         for(int i = 0; i < 5; i++){
             drawLamp(app, rz,
                 Vector3DBase<double>{-2.0 + i * 1.0, 0.5, 2.0},

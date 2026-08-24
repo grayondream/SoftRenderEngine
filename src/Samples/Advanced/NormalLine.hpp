@@ -22,7 +22,7 @@ public:
             .mul(SGE::Math::scale(2.0, 2.0, 2.0));
         auto snrm = SGE::Math::normalMatrix(sm);
         const auto vp = refViewProj(app.camera());
-        auto st = Pipeline::projectObject(sphere, sm, vp, snrm, 800, 600);
+        auto st = Pipeline::projectObject(sphere, sm, vp, snrm, g_renderW, g_renderH);
         for(auto &t : st){
             ScreenVertex r0 = t.v[0], r1 = t.v[1], r2 = t.v[2];
             r0.color = Color32{255, 0, 0, 255};
@@ -41,8 +41,8 @@ public:
             Point4D p1{(sv.x + n.x * mag) * 2.0, (sv.y + n.y * mag) * 2.0,
                        (sv.z + n.z * mag) * 2.0, 1};
             ScreenVertex a{}, b{};
-            if(!projectWorldPoint(vp, p0, 800, 600, a)){ continue; }
-            if(!projectWorldPoint(vp, p1, 800, 600, b)){ continue; }
+            if(!projectWorldPoint(vp, p0, g_renderW, g_renderH, a)){ continue; }
+            if(!projectWorldPoint(vp, p1, g_renderW, g_renderH, b)){ continue; }
             a.color = Color32{255, 255, 0, 255};
             b.color = Color32{255, 255, 0, 255};
             rz.drawLine(a, b);

@@ -84,25 +84,25 @@ public:
                 auto om = SGE::Math::translation(ob.x, ob.y, ob.z)
                     .mul(SGE::Math::rotationY(ob.ry));
                 auto onrm = SGE::Math::normalMatrix(om);
-                auto ot = Pipeline::projectObject(*ob.obj, om, viewProj, onrm, 800, 600);
+                auto ot = Pipeline::projectObject(*ob.obj, om, viewProj, onrm, g_renderW, g_renderH);
                 for(auto &t : ot){
                     rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
                 }
             }
             auto gtris = Pipeline::projectObject(ground,
-                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
+                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, g_renderW, g_renderH);
             tiled.drawTextured(gtris, app.checker(), &shadCtx);
             auto ctris = Pipeline::projectObject(obstacleCube,
                 SGE::Math::translation(0.0, 0.0, 0.0).mul(sceneRot), viewProj,
-                SGE::Math::normalMatrix(SGE::Math::rotationY(ang)), 800, 600);
+                SGE::Math::normalMatrix(SGE::Math::rotationY(ang)), g_renderW, g_renderH);
             tiled.drawTextured(ctris, app.checker(), &shadCtx);
         }
         if(m_viewDepth){
             // reference ShadowMapApp: fullscreen raw depth grayscale
-            for(std::size_t y2 = 0; y2 < 600; y2++){
-                for(std::size_t x2 = 0; x2 < 800; x2++){
+            for(std::size_t y2 = 0; y2 < static_cast<std::size_t>(g_renderH); y2++){
+                for(std::size_t x2 = 0; x2 < static_cast<std::size_t>(g_renderW); x2++){
                     const float d =
-                        shadowMap.depthData()[y2 * 256 + (x2 / 3)]
+                        shadowMap.depthData()[static_cast<std::size_t>(y2 * 256 / static_cast<std::size_t>(g_renderH)) * 256 + static_cast<std::size_t>(x2 * 256 / static_cast<std::size_t>(g_renderW))]
                         * 255.0f;
                     const int g = std::min(255,
                         static_cast<int>(d));

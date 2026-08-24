@@ -35,7 +35,7 @@ public:
             auto m = SGE::Math::translation(cubePos[i][0], cubePos[i][1],
                                             cubePos[i][2]).mul(rotAxis);
             auto nrm = SGE::Math::normalMatrix(m);
-            auto tris = Pipeline::projectObject(cube, m, vp, nrm, 800, 600);
+            auto tris = Pipeline::projectObject(cube, m, vp, nrm, g_renderW, g_renderH);
             for(auto &t : tris){
                 rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                         dog, nullptr, TextureFilter::Bilinear,

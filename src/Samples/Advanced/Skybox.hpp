@@ -34,15 +34,15 @@ public:
             right.z * fwd.x - right.x * fwd.z,
             right.x * fwd.y - right.y * fwd.x};
         up.normalize();
-        const double aspect = 800.0 / 600.0;
+        const double aspect = static_cast<double>(g_renderW) / g_renderH;
         const double tanH = std::tan(M_PI / 6);
         const double tanV = tanH / aspect;
-        for(std::size_t y2 = 0; y2 < 600; y2++){
+        for(std::size_t y2 = 0; y2 < static_cast<std::size_t>(g_renderH); y2++){
             const double ny = -(2.0 * (static_cast<double>(y2) + 0.5)
-                / 600.0 - 1.0);
-            for(std::size_t x2 = 0; x2 < 800; x2++){
+                / static_cast<double>(g_renderH) - 1.0);
+            for(std::size_t x2 = 0; x2 < static_cast<std::size_t>(g_renderW); x2++){
                 const double nx = 2.0 * (static_cast<double>(x2) + 0.5)
-                    / 800.0 - 1.0;
+                    / static_cast<double>(g_renderW) - 1.0;
                 Vector3DBase<double> dir{
                     fwd.x + right.x * nx * tanH + up.x * ny * tanV,
                     fwd.y + right.y * nx * tanH + up.y * ny * tanV,
@@ -60,7 +60,7 @@ public:
             .mul(SGE::Math::rotationY(M_PI / 4));
         auto cnrm = SGE::Math::normalMatrix(cm);
         auto ct = Pipeline::projectObject(cube, cm,
-            refViewProj(cam), cnrm, 800, 600);
+            refViewProj(cam), cnrm, g_renderW, g_renderH);
         for(auto &t : ct){
             rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                     dog, nullptr, TextureFilter::Bilinear,

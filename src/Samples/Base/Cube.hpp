@@ -28,7 +28,7 @@ public:
         // reference: view = translate(0,0,-3), projection fov 45
         auto view = SGE::Math::translation(0.0, 0.0, -3.0);
         auto proj = SGE::Math::perspective(45.0 * M_PI / 180.0,
-                                           800.0 / 600.0, 0.1, 100.0);
+                                           static_cast<double>(g_renderW) / g_renderH, 0.1, 100.0);
         const auto vp = proj.mul(view);
         for(int i = 0; i < 10; i++){
             Object4D cube = unitCube(app);
@@ -40,7 +40,7 @@ public:
             auto m = SGE::Math::translation(cubePos[i][0], cubePos[i][1],
                                             cubePos[i][2]).mul(rotAxis);
             auto nrm = SGE::Math::normalMatrix(m);
-            auto tris = Pipeline::projectObject(cube, m, vp, nrm, 800, 600);
+            auto tris = Pipeline::projectObject(cube, m, vp, nrm, g_renderW, g_renderH);
             for(auto &t : tris){
                 rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                         dog, nullptr, TextureFilter::Bilinear,

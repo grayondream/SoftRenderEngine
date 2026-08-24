@@ -33,7 +33,7 @@ public:
                                           0.3 * (id / 100.0 + 0.15)));
                 auto bnrm = SGE::Math::normalMatrix(bm);
                 auto bt = Pipeline::projectObject(ball, bm,
-                    refViewProj(app.camera()), bnrm, 800, 600);
+                    refViewProj(app.camera()), bnrm, g_renderW, g_renderH);
                 const int rc = std::min(255, id * 5);
                 for(auto &t : bt){
                     ScreenVertex r0 = t.v[0], r1 = t.v[1], r2 = t.v[2];

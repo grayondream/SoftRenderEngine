@@ -49,7 +49,7 @@ public:
         auto fpm = SGE::Math::translation(0.0, -0.9, 3.0);
         auto fpnrm = SGE::Math::normalMatrix(fpm);
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,
-            vp, fpnrm, 800, 600), bricks, &ctx);
+            vp, fpnrm, g_renderW, g_renderH), bricks, &ctx);
         Object4D cube = unitCube(app);
         // reference GetCubePositions
         static const double cps[10][3] = {
@@ -62,7 +62,7 @@ public:
                 .mul(SGE::Math::rotationY(app.angle() * 0.2 * (i % 3)));
             auto cnrm = SGE::Math::normalMatrix(cm);
             tiled.drawTextured(Pipeline::projectObject(cube, cm,
-                vp, cnrm, 800, 600), wood, &ctx);
+                vp, cnrm, g_renderW, g_renderH), wood, &ctx);
         }
         for(const auto &l : ls){
             drawLamp(app, rz, Vector3DBase<double>{l.x, l.y, l.z}, 0.25);
@@ -70,13 +70,14 @@ public:
         if(m_bloomEnabled){
             // extract at half resolution then upsample-additive
             static FrameBuffer bright{400, 300};
-            static FrameBuffer brightFull{800, 600};
+            static FrameBuffer brightFull{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)};
+            if(brightFull.width() != static_cast<std::size_t>(g_renderW)){ brightFull = FrameBuffer{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)}; }
             bright.clear();
             const auto *srcPx = fb.colorData();
             for(int y = 0; y < 300; y++){
                 for(int x = 0; x < 400; x++){
                     const uint32_t c =
-                        srcPx[(y * 2) * 800 + x * 2];
+                        srcPx[(y * 2) * static_cast<std::size_t>(g_renderW) + x * 2];
                     const int lumR = (c >> 16) & 0xFF;
                     const int lumG = (c >> 8) & 0xFF;
                     const int lumB = c & 0xFF;
@@ -101,10 +102,10 @@ public:
             }
             // upsample to full res with 2x2 box
             const auto *bp = bright.colorData();
-            for(int y = 0; y < 600; y++){
-                for(int x = 0; x < 800; x++){
+            for(int y = 0; y < g_renderH; y++){
+                for(int x = 0; x < g_renderW; x++){
                     brightFull.setPixel(x, y,
-                        bp[(y / 2) * 400 + x / 2], -2.0f);
+                        bp[(static_cast<std::size_t>(y) * bright.height() / g_renderH) * bright.width() + static_cast<std::size_t>(x) * bright.width() / g_renderW], -2.0f);
                 }
             }
             SGE::Render::AdditiveBlend(fb, brightFull);

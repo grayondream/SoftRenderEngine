@@ -32,7 +32,7 @@ public:
         auto sm = SGE::Math::translation(0.0, 0.0, 0.0);
         auto snrm = SGE::Math::normalMatrix(sm);
         auto st = Pipeline::projectObject(sphere, sm,
-            refViewProj(refCamera()), snrm, 800, 600);
+            refViewProj(refCamera()), snrm, g_renderW, g_renderH);
         for(auto &tr : st){
             rz.drawTriangleTextured(tr.v[0], tr.v[1], tr.v[2], tint, &ctx);
         }

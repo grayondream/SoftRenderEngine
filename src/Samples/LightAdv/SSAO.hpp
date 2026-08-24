@@ -76,9 +76,9 @@ public:
 
         // draw room first (walls receive AO darkening near contacts)
         tiled.drawTextured(Pipeline::projectObject(room, rm,
-            vp, rnrm, 800, 600), m_gray, &ctx);
+            vp, rnrm, g_renderW, g_renderH), m_gray, &ctx);
         tiled.drawTextured(Pipeline::projectObject(m_model, mm,
-            vp, mnrm, 800, 600), m_gray, &ctx);
+            vp, mnrm, g_renderW, g_renderH), m_gray, &ctx);
 
         if(m_ssaoOn){
             // depth-contrast contact shadow approximation

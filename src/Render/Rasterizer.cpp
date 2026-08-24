@@ -404,15 +404,60 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                                    shading->viewPos, shadowFactor);
                 }
                 if(shading->iblEquirect && shading->iblEquirect->valid()){
+                    double specR = 0, specG = 0, specB = 0;
+                    if(shading->pbr){
+                        // split-sum specular: prefiltered color x BRDF(F)
+                        const Vector3DBase<double> V{
+                            shading->viewPos.x - Pw.x,
+                            shading->viewPos.y - Pw.y,
+                            shading->viewPos.z - Pw.z};
+                        const double dn = 2.0 * N.dot(V);
+                        Vector3DBase<double> R{
+                            2.0 * dn * N.x - V.x,
+                            2.0 * dn * N.y - V.y,
+                            2.0 * dn * N.z - V.z};
+                        R = R.normalize();
+                        const double rough = std::max(
+                            0.05, static_cast<double>(
+                                shading->pbr->roughness));
+                        if(shading->iblSpecMips
+                           && !shading->iblSpecMips->empty()){
+                            const int lv = std::min(
+                                static_cast<int>(
+                                    shading->iblSpecMips->size()) - 1,
+                                static_cast<int>(rough * 3.0));
+                            const auto &pm =
+                                (*shading->iblSpecMips)[
+                                    static_cast<std::size_t>(lv)];
+                            const auto pc =
+                                SGE::Render::SampleEquirectClamped(
+                                    pm, R, 1.0f);
+                            const double NoV = std::max(0.05,
+                                N.dot(V.normalize()));
+                            const double f0 = 0.04 + 0.96 *
+                                shading->pbr->metallic;
+                            const double fr = f0 + (std::max(f0,
+                                1.0 - rough) - f0)
+                                * std::pow(1.0 - NoV, 5.0);
+                            const auto sb = SGE::Render::EnvBRDFApprox(
+                                NoV, rough, f0);
+                            specR = pc.r * fr * sb.x + sb.y;
+                            specG = pc.g * fr * sb.x + sb.y;
+                            specB = pc.b * fr * sb.x + sb.y;
+                        }
+                    }
                     const auto irr = SGE::Render::SampleEquirect(
                         *shading->iblEquirect, N.normalize(), 0.35f);
                     double br = (shaded >> 16) & 0xFF;
                     double bg = (shaded >> 8) & 0xFF;
                     double bb = shaded & 0xFF;
                     const double kd = 0.55;
-                    br = std::min(255.0, br + irr.r * kd * (albedo.r / 255.0));
-                    bg = std::min(255.0, bg + irr.g * kd * (albedo.g / 255.0));
-                    bb = std::min(255.0, bb + irr.b * kd * (albedo.b / 255.0));
+                    br = std::min(255.0,
+                        br + irr.r * kd * (albedo.r / 255.0) + specR);
+                    bg = std::min(255.0,
+                        bg + irr.g * kd * (albedo.g / 255.0) + specG);
+                    bb = std::min(255.0,
+                        bb + irr.b * kd * (albedo.b / 255.0) + specB);
                     shaded = 0xFF000000u
                         | (static_cast<uint32_t>(br + 0.5) << 16)
                         | (static_cast<uint32_t>(bg + 0.5) << 8)

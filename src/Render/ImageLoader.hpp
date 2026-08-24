@@ -130,5 +130,90 @@ inline HDRImage ComputeIrradiance(const HDRImage &env,
     return out;
 }
 
+
+// Karis split-sum BRDF analytic fit (scale & bias), reference Brdf.fs equiv
+inline Vector3DBase<double> EnvBRDFApprox(double NoV, double rough,
+                                          double f0){
+    const Vector3DBase<double> c0{-1.0, -0.0275, -0.572};
+    const Vector3DBase<double> c1{1.0, 0.0325, 1.022};
+    const Vector3DBase<double> c2 = c1 + c0;
+    (void)f0;
+    const double r4 = rough * 4.0;
+    const Vector3DBase<double> a{
+        std::min(c2.x * r4 + c0.x, -1.0),
+        std::min(c2.y * r4 + c0.y, 0.0),
+        std::min(c2.z * r4 + c0.z, 1.0)};
+    const double t = a.x * a.x * NoV + a.y;
+    return Vector3DBase<double>{t * NoV + a.z, 1.0, 0.0};
+}
+
+// Builds roughness-blurred equirect mips for specular IBL
+inline std::vector<HDRImage> ComputePrefiltered(const HDRImage &env,
+                                                int levels = 3){
+    std::vector<HDRImage> out;
+    if(!env.valid()){ return out; }
+    for(int lv = 0; lv < levels; lv++){
+        const double rough = 0.15 + 0.35 * lv;
+        const int rad = std::max(1,
+            static_cast<int>(rough * env.width * 0.05));
+        HDRImage img;
+        img.width = env.width / ((lv + 1) * 2) + 2;
+        img.height = env.height / ((lv + 1) * 2) + 2;
+        img.rgb.assign(static_cast<std::size_t>(img.width)
+                       * img.height * 3, 0.0f);
+        for(int y = 0; y < img.height; y++){
+            for(int x = 0; x < img.width; x++){
+                double r = 0, g = 0, b = 0, wsum = 0;
+                const int bx = x * (env.width / img.width);
+                const int by = y * (env.height / img.height);
+                for(int oy = -rad; oy <= rad; oy++){
+                    for(int ox = -rad; ox <= rad; ox++){
+                        const int sx = std::clamp(bx + ox,
+                            0, env.width - 1);
+                        const int sy = std::clamp(by + oy,
+                            0, env.height - 1);
+                        const double wgt = std::exp(
+                            -(double)(ox * ox + oy * oy)
+                            / (2.0 * rad * rad));
+                        const std::size_t si =
+                            (static_cast<std::size_t>(sy)
+                             * env.width + sx) * 3;
+                        r += env.rgb[si] * wgt;
+                        g += env.rgb[si + 1] * wgt;
+                        b += env.rgb[si + 2] * wgt;
+                        wsum += wgt;
+                    }
+                }
+                const std::size_t di =
+                    (static_cast<std::size_t>(y) * img.width + x) * 3;
+                img.rgb[di] = static_cast<float>(r / wsum);
+                img.rgb[di + 1] = static_cast<float>(g / wsum);
+                img.rgb[di + 2] = static_cast<float>(b / wsum);
+            }
+        }
+        out.push_back(std::move(img));
+    }
+    return out;
+}
+
+inline Color3f SampleEquirectClamped(const HDRImage &hdr,
+                                     const Vector3DBase<double> &dir,
+                                     float exposure = 1.0f){
+    if(!hdr.valid()){ return {}; }
+    const double th = std::atan2(dir.z, dir.x);
+    const double ph = std::asin(std::clamp(dir.y, -1.0, 1.0));
+    const double uu = std::clamp(th / (2.0 * M_PI) + 0.5, 0.0, 0.999999);
+    const double vv = std::clamp(0.5 - ph / M_PI, 0.0, 0.999999);
+    const int hx = std::min(static_cast<int>(uu * hdr.width),
+                            hdr.width - 1);
+    const int hy = std::min(static_cast<int>(vv * hdr.height),
+                            hdr.height - 1);
+    const std::size_t idx =
+        (static_cast<std::size_t>(hy) * hdr.width + hx) * 3;
+    return {hdr.rgb[idx] * exposure * 255.0,
+            hdr.rgb[idx + 1] * exposure * 255.0,
+            hdr.rgb[idx + 2] * exposure * 255.0};
+}
+
 }
 

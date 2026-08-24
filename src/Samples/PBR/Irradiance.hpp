@@ -13,6 +13,11 @@ public:
         static SGE::Render::HDRImage env = []{
             return SGE::Render::ImageLoader::loadHdr("assets/textures/newport_loft.hdr");
         }();
+        static std::vector<SGE::Render::HDRImage> specMips = []{
+            const auto e2 = SGE::Render::ImageLoader::loadHdr(
+                "assets/textures/newport_loft.hdr");
+            return SGE::Render::ComputePrefiltered(e2);
+        }();
         // reference: cosine-weighted irradiance convolution (precomputed once)
         static SGE::Render::HDRImage irradiance = []{
             const SGE::Render::HDRImage e =
@@ -35,6 +40,7 @@ public:
         Rasterizer rz{fb};
         ShadingContext ctx{&rig2, app.camera().position};
         ctx.iblEquirect = &irradiance;
+        ctx.iblSpecMips = &specMips;
         Texture white(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
         static Object4D protoBall = SGE::Render::MakeSphere(1.0, 24, 16);
         const auto vp = refViewProj(app.camera());

@@ -9,7 +9,6 @@
 #include "Render/Texture.hpp"
 #include "Render/Camera.hpp"
 #include "Render/Light.hpp"
-#include "Render/RayTrace.hpp"
 #include "Render/Primitives.hpp"
 
 namespace SGE::Samples {
@@ -47,15 +46,11 @@ public:
     Object4D &sphere(){ return m_sphere; }
     Object4D &torus(){ return m_torus; }
     Object4D &teapot(){ return m_teapot; }
-    SGE::Render::RayScene &rtScene(){ return m_rtScene; }
-    FrameBuffer &rtBuffer(){ return m_rtBuffer; }
     float &pbrMetallic(){ return m_pbrMetallic; }
     float &pbrRoughness(){ return m_pbrRoughness; }
     float *pbrColorUi(){ return m_pbrColorUi; }
     Color32 &pbrBase(){ return m_pbrBase; }
     int &pcfRadius(){ return m_pcfRadius; }
-    float &spotConeIntensity(){ return m_spotConeIntensity; }
-    int &rtQuality(){ return m_rtQuality; }
 
 private:
     void RenderScene();
@@ -82,14 +77,10 @@ private:
     float m_fogStart{8.0f};
     float m_fogEnd{25.0f};
     LightingRig m_rig{};
-    SGE::Render::RayScene m_rtScene{};
-    FrameBuffer m_rtBuffer{200, 150};
     bool m_bracketHeld{false};
     float m_pbrMetallic{0.5f};
     float m_pbrColorUi[3]{0.78f, 0.24f, 0.24f};
     float m_pbrRoughness{0.35f};
     Color32 m_pbrBase{200, 60, 60, 255};
     int m_pcfRadius{2};
-    float m_spotConeIntensity{1.2f};
-    int m_rtQuality{1};
 };

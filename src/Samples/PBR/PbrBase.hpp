@@ -3,16 +3,16 @@
 #include "../SceneUtil.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace SGE::Samples {
 
-class ShowcasePbrScene final : public IScene {
+// GL AppType: PBR_Base — metallic × roughness sphere array with live tuning
+class PbrBaseScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        auto &cam = app.camera();
         auto rig = makeDefaultRig();
-
         fb.clear(0xFF000000u);
         Rasterizer rz{fb};
 
@@ -28,7 +28,7 @@ public:
                 mat.roughness = std::clamp(
                     1.0f - static_cast<float>(r) / (rows - 1) + app.pbrRoughness() - 0.35f,
                     0.05f, 1.0f);
-                ShadingContext pbrCtx{&rig, cam.position,
+                ShadingContext pbrCtx{&rig, app.camera().position,
                                       nullptr, nullptr, nullptr, nullptr, &mat};
                 Object4D ball = app.sphere();
                 const double bx = -4.2 + c * 1.4;
@@ -54,8 +54,8 @@ public:
             static_cast<int32_t>(app.pbrColorUi()[1] * 255.0f),
             static_cast<int32_t>(app.pbrColorUi()[2] * 255.0f), 255};
     }
-    const char *name() const override { return "Cook-Torrance PBR Sphere Array"; }
-    const char *group() const override { return "Showcase"; }
+    const char *name() const override { return "PBR Base (metal/rough array)"; }
+    const char *group() const override { return "PBR"; }
 };
 
 }

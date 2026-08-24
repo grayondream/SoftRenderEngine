@@ -3,6 +3,7 @@
 #include "../SceneUtil.hpp"
 #include "Render/ImageLoader.hpp"
 #include "Light/LightUtil.hpp"
+#include "Render/SortUtil.hpp"
 
 #include <cmath>
 

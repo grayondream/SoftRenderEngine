@@ -143,51 +143,6 @@ std::error_code Application::initalize(const ApplicationParam &param){
     m_torus.worldPos = Point4D{2.8, 0.0, 0.5, 1};
     m_teapot = SGE::Render::MakeTeapot();
     m_teapot.worldPos = Point4D{0, -1.55, 2.2, 1};
-    {
-        SGE::Render::RaySphere mirror{Vector3DBase<double>{0, 0, 0}, 1.2,
-                                      Color32{255, 60, 60, 255}, 0.6f};
-        SGE::Render::RaySphere blue{Vector3DBase<double>{-2.2, -0.4, 0.5}, 0.8,
-                                    Color32{60, 120, 255, 255}, 0.1f};
-        mirror.refractivity = 0.0f;
-        blue.refractivity = 0.0f;
-        m_rtScene.spheres.push_back(mirror);
-        m_rtScene.spheres.push_back(blue);
-    }
-    m_rtScene.triangles.push_back(
-        SGE::Render::RayTriangle{Vector3DBase<double>{-6, -1.5, 4},
-                                 Vector3DBase<double>{6, -1.5, 4},
-                                 Vector3DBase<double>{0, -1.5, -4},
-                                 Color32{180, 180, 180, 255}, 0.35f});
-    {
-        std::mt19937 rng{42u};
-        auto ur = [&](double a, double b){
-            return a + (b - a) * (static_cast<double>(rng() % 10000) / 10000.0);
-        };
-        for(int i = 0; i < 18; i++){
-            SGE::Render::RaySphere s{};
-            const int kind = i % 3;
-            s.center = Vector3DBase<double>{ur(-4.5, 4.5), ur(0.4, 2.6), ur(-2.0, 3.5)};
-            s.radius = ur(0.28, 0.62);
-            if(kind == 0){
-                s.albedo = Color32{230, 220, 200, 255};
-                s.reflectivity = 0.85f;
-            }else if(kind == 1){
-                s.albedo = Color32{140, 220, 255, 255};
-                s.refractivity = 0.9f;
-                s.ior = 1.5;
-            }else{
-                s.albedo = Color32{230, 150, 90 + (i * 7) % 100, 255};
-                s.reflectivity = 0.15f;
-            }
-            m_rtScene.spheres.push_back(s);
-        }
-        m_rtScene.cone.position = Vector3DBase<double>{4.5, 7.0, 2.0};
-        m_rtScene.cone.direction = Vector3DBase<double>{-4.0, -6.5, -1.5};
-        m_rtScene.cone.cutoffCos = 0.82;
-        m_rtScene.cone.range = 26.0;
-        m_rtScene.cone.intensity = m_spotConeIntensity;
-        m_rtScene.cone.enabled = true;
-    }
     return {};
 }
 

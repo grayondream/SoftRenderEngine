@@ -22,21 +22,35 @@ SGE_TEST_BARS=1   ./build/src/soft-game-engine        # 通道诊断色带
 
 操作：WASD/RF 平移，方向键转向；`[`/`]` 切换场景；ImGui 面板切换场景与参数。
 
-## 示例场景库（41 项，ImGui 下拉分组或 ]/[ 循环切换；`SGE_START_SCENE=N` 指定起始项）
+## 示例场景库（39 项，严格按 GraphicsAPILearn `AppType` 枚举顺序排列）
 
-对齐 GraphicsAPILearn 的 OpenGL samples 渲染效果，按组组织：
+ImGui 下拉分组或 ]/[ 循环切换；`SGE_START_SCENE=N` 指定起始项。
 
-| 组 | 场景 | 能力要点 |
-|----|------|---------|
-| Showcase (7) | 几何陈列 / Mipmap滤波 / 透明排序 / 聚光PCF / 环境反射折射 / PBR球阵 / 光锥光追 | 引擎七大综合演示 |
-| Base (5) | Triangle / TexturedRect / TexturedCube(container2) / CameraWalk / SimpleTexture | 顶点色、纹理采样、相机漫游 |
-| Light (9) | Ambient / Diffuse / Specular / Material×4 / LightMap / 方向光 / 点光衰减 / 聚光软边 / 多光源 | Blinn-Phong 全家桶 |
-| LightAdv (10) | NormalMap(brickwall) / ParallaxMap(steep) / Bloom / HDR三分屏 / Gamma / SSAO / Defer + Shadow/PCF/点光阴影 | 切线空间贴图与后处理链 |
-| Advanced (10) | DepthTest / CullFace / Blend窗排序 / Explode / NormalLine / Instancing / Saturn / Skybox(loft.hdr) / RenderToTexture / SSAA | 几何模拟与离屏渲染 |
-| PBR (2) | Cook-Torrance 球阵 / rusted_iron 五件套贴图球 / IBL漫反射(loft) | GGX/Smith/Schlick + 环境光 |
-| Model (1) | nanosuit.obj 加载旋转展示 | 自研 OBJ 加载器 |
+| # | GL AppType | 场景 | # | GL AppType | 场景 |
+|---|-----------|------|---|-----------|------|
+| 0 | Triangle | 彩色渐变三角 | 20 | SimpleGeometry | 参数化几何陈列(球/环/茶壶/锥/柱) |
+| 1 | Rect | 纹理矩形 | 21 | Explode | CPU 顶点爆炸 |
+| 2 | SimpleTexture | 基础纹理 | 22 | NormalLine | 法线线段可视化 |
+| 3 | Cube | container2 贴图立方体 | 23 | MultiInstance | 100 立方体实例化 |
+| 4 | Camera | 相机漫游 | 24 | MultiInstance_Saturn | 土星环系统 |
+| 5 | Ambient | 纯环境光 | 25 | Msaa(SSAA) | 2x 超采样抗锯齿 |
+| 6 | Diffuse | Lambert 漫反射 | 26 | BlinnPhong | Phong vs Blinn 高光对比 |
+| 7 | Specular | 镜面高光 | 27 | Gamma | gamma 校正阶梯 |
+| 8 | Material | 四材质系统 | 28 | Shadow_Map | 聚光阴影 + PCF 可调 |
+| 9 | LightMap | 漫反射贴图光照 | 29 | Shadow_PointLight | 点光六面 cube 阴影 |
+| 10 | Source_Direction | 方向光 | 30 | NormalMap | brickwall 法线贴图 |
+| 11 | Source_Point | 点光衰减 | 31 | ParallaxMap | bricks2 steep 视差 |
+| 12 | Source_Spot | 聚光软边 | 32 | Hdr | Clamp/Reinhard/ACES 三分屏 |
+| 13 | Source_Mult | 四色多光源 | 33 | Bloom | 亮度提取+高斯泛光 |
+| 14 | LoadModel | nanosuit.obj 展示 | 34 | Defer | 延迟着色 G-buffer |
+| 15 | DepthTest | 深度交叠 | 35 | SSAO | 深度对比 AO |
+| 16 | Blend | 半透明窗排序 | 36 | PBR_Base | metal×rough 球阵可调 |
+| 17 | CullFace | 背面剔除开关 | 37 | PBR_Texture | rusted_iron 五件套 |
+| 18 | FrameBuffer | 离屏渲染贴图立方体 | 38 | PBR_IBL_Irradiance | loft.hdr 环境漫反射 |
+| 19 | SkyBox | newport_loft.hdr 天空盒 | | | |
 
-已知简化：MSAA 以 2x 盒滤波超采样等效实现；IBL 为 equirect 直接采样近似（未做 cubemap 辐照度卷积/预滤波/BRDF LUT）；模型 MTL 材质暂以统一色调代替。
+跳过的纯 GL API 学习项：TemplateTest(stencil)/AdvancedGLSL/UniformBuffer/IBL_Irradiance_Conversion/IBL_Specular。
+已知简化：MSAA 以 2x 盒滤波超采样等效；IBL 为 equirect 直接采样近似；MTL 材质暂以统一色调代替。
 
 ## 质量门禁
 

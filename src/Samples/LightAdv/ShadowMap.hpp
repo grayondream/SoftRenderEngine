@@ -7,7 +7,7 @@
 
 namespace SGE::Samples {
 
-class ShowcaseShadowScene final : public IScene {
+class ShadowMapScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
@@ -58,7 +58,7 @@ public:
         {
             Rasterizer srz{shadowMap};
             auto gtris = Pipeline::projectObject(ground,
-                SGE::Math::translation(0.0, 0.0, 0.0), lightVP, nrm, 256, 256);
+                SGE::Math::translation(0.0,0.0,0.0), lightVP, nrm, 256, 256);
             for(auto &t : gtris) srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
             for(const auto &ob : obstacles){
                 auto om = SGE::Math::translation(ob.x, ob.y, ob.z)
@@ -86,7 +86,7 @@ public:
                 }
             }
             auto gtris = Pipeline::projectObject(ground,
-                SGE::Math::translation(0.0, 0.0, 0.0), viewProj, nrm, 800, 600);
+                SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, 800, 600);
             tiled.drawTextured(gtris, app.checker(), &shadCtx);
             auto ctris = Pipeline::projectObject(obstacleCube,
                 SGE::Math::translation(0.0, 0.0, 0.0).mul(sceneRot), viewProj,
@@ -97,8 +97,8 @@ public:
     void drawUi(Application &app) override {
         ImGui::SliderInt("PCF Radius", &app.pcfRadius(), 0, 4);
     }
-    const char *name() const override { return "Spot Shadow Mapping + PCF"; }
-    const char *group() const override { return "Showcase"; }
+    const char *name() const override { return "Spot Shadow Map + PCF"; }
+    const char *group() const override { return "LightAdv"; }
 };
 
 }

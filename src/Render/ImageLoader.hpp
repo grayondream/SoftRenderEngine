@@ -45,4 +45,90 @@ inline Color3f SampleEquirect(const HDRImage &hdr,
             hdr.rgb[idx + 2] * exposure * 255.0};
 }
 
+// Precomputes a low-res cosine-weighted irradiance map (equirect) by
+// integrating the hemisphere around each output direction. Mirrors the
+// reference irradiance cubemap convolution (sampleDelta-style integration).
+inline HDRImage ComputeIrradiance(const HDRImage &env,
+                                  int outW = 64, int outH = 32,
+                                  int /*samples*/ = 192){
+    HDRImage out;
+    if(!env.valid()){ return out; }
+    out.width = outW;
+    out.height = outH;
+    out.rgb.assign(static_cast<std::size_t>(outW) * outH * 3, 0.0f);
+    const double sampleDelta = 0.025;
+    for(int y = 0; y < outH; y++){
+        const double phi = M_PI * (y + 0.5) / outH;   // 0..pi
+        const double sinTheta = std::sin(phi);
+        const double cosTheta = std::cos(phi);
+        for(int x = 0; x < outW; x++){
+            const double theta = 2.0 * M_PI * (x + 0.5) / outW;
+            Vector3DBase<double> N{
+                sinTheta * std::cos(theta), cosTheta,
+                sinTheta * std::sin(theta)};
+            Vector3DBase<double> up{0, 1, 0};
+            if(std::abs(cosTheta) > 0.999){
+                up = Vector3DBase<double>{1, 0, 0};
+            }
+            Vector3DBase<double> right{up.y * N.z - up.z * N.y,
+                up.z * N.x - up.x * N.z,
+                up.x * N.y - up.y * N.x};
+            right.normalize();
+            Vector3DBase<double> fwd{N.y * right.z - N.z * right.y,
+                N.z * right.x - N.x * right.z,
+                N.x * right.y - N.y * right.x};
+            double r = 0, g = 0, b = 0, wsum = 0;
+            for(double ph = 0.0; ph < M_PI / 2; ph += sampleDelta){
+                for(double th = 0.0; th < 2.0 * M_PI;
+                    th += sampleDelta){
+                    const double sp = std::sin(ph);
+                    Vector3DBase<double> dir{
+                        (sp * std::cos(th)) * right.x
+                            + cosTheta * N.x
+                            + (sp * std::sin(th)) * fwd.x,
+                        (sp * std::cos(th)) * right.y
+                            + cosTheta * N.y
+                            + (sp * std::sin(th)) * fwd.y,
+                        (sp * std::cos(th)) * right.z
+                            + cosTheta * N.z
+                            + (sp * std::sin(th)) * fwd.z};
+                    dir = dir.normalize();
+                    // sample env equirect (reuse mapping)
+                    const double th2 = std::atan2(dir.z, dir.x);
+                    const double ph2 = std::asin(
+                        std::clamp(dir.y, -1.0, 1.0));
+                    double uu = th2 / (2.0 * M_PI) + 0.5;
+                    double vv = 0.5 - ph2 / M_PI;
+                    uu = std::clamp(uu, 0.0, 0.999999);
+                    vv = std::clamp(vv, 0.0, 0.999999);
+                    const int hx = std::min(
+                        static_cast<int>(uu * env.width),
+                        env.width - 1);
+                    const int hy = std::min(
+                        static_cast<int>(vv * env.height),
+                        env.height - 1);
+                    const std::size_t idx =
+                        (static_cast<std::size_t>(hy) * env.width
+                         + hx) * 3;
+                    const double wgt = std::cos(ph) * sp;
+                    r += env.rgb[idx] * wgt;
+                    g += env.rgb[idx + 1] * wgt;
+                    b += env.rgb[idx + 2] * wgt;
+                    wsum += wgt;
+                }
+            }
+            const std::size_t oidx =
+                (static_cast<std::size_t>(y) * outW + x) * 3;
+            const double invPi = 1.0 / M_PI;
+            out.rgb[oidx] = static_cast<float>(r / wsum * invPi);
+            out.rgb[oidx + 1] =
+                static_cast<float>(g / wsum * invPi);
+            out.rgb[oidx + 2] =
+                static_cast<float>(b / wsum * invPi);
+        }
+    }
+    return out;
 }
+
+}
+

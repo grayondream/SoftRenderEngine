@@ -93,10 +93,31 @@ public:
                 SGE::Math::normalMatrix(SGE::Math::rotationY(ang)), 800, 600);
             tiled.drawTextured(ctris, app.checker(), &shadCtx);
         }
+        if(m_viewDepth){
+            // reference ShadowMapApp: fullscreen raw depth grayscale
+            for(std::size_t y2 = 0; y2 < 600; y2++){
+                for(std::size_t x2 = 0; x2 < 800; x2++){
+                    const float d =
+                        shadowMap.depthData()[y2 * 256 + (x2 / 3)]
+                        * 255.0f;
+                    const int g = std::min(255,
+                        static_cast<int>(d));
+                    fb.setPixel(x2, y2, 0xFF000000u
+                        | (static_cast<uint32_t>(g) << 16)
+                        | (static_cast<uint32_t>(g) << 8)
+                        | static_cast<uint32_t>(g), -2.0f);
+                }
+            }
+        }
     }
     void drawUi(Application &app) override {
         ImGui::SliderInt("PCF Radius", &app.pcfRadius(), 0, 4);
+        ImGui::Checkbox("View Shadow Depth", &m_viewDepth);
+        if(m_viewDepth){
+            ImGui::Text("(reference ShadowMapApp mode)");
+        }
     }
+    bool m_viewDepth{false};
     const char *name() const override { return "Spot Shadow Map + PCF"; }
     const char *group() const override { return "LightAdv"; }
 };

@@ -13,6 +13,13 @@ public:
         static SGE::Render::HDRImage env = []{
             return SGE::Render::ImageLoader::loadHdr("assets/textures/newport_loft.hdr");
         }();
+        // reference: cosine-weighted irradiance convolution (precomputed once)
+        static SGE::Render::HDRImage irradiance = []{
+            const SGE::Render::HDRImage e =
+                SGE::Render::ImageLoader::loadHdr(
+                    "assets/textures/newport_loft.hdr");
+            return SGE::Render::ComputeIrradiance(e);
+        }();
         auto &fb = app.framebuffer();
         SGE::Render::DrawEquirectSky(fb, app.camera(), env, m_exposure);
         // reference: 25-sphere grid (col,row in [-2,2]) at z=6, albedo red ramp
@@ -27,7 +34,7 @@ public:
         }
         Rasterizer rz{fb};
         ShadingContext ctx{&rig2, app.camera().position};
-        ctx.iblEquirect = &env;
+        ctx.iblEquirect = &irradiance;
         Texture white(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
         static Object4D protoBall = SGE::Render::MakeSphere(1.0, 24, 16);
         const auto vp = refViewProj(app.camera());

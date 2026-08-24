@@ -50,7 +50,7 @@ ImGui 下拉分组或 ]/[ 循环切换；`SGE_START_SCENE=N` 指定起始项；F
 | 19 | Skybox 6-face | 六面 jpg cubemap 射线采样 | | | |
 
 跳过的纯 GL API 学习项：TemplateTest(stencil)/AdvancedGLSL/UniformBuffer/IBL_Irradiance_Conversion/IBL_Specular。
-已知简化：MSAA 以 2x/4x 盒滤波超采样等效实现（可切档）；IBL 漫反射为真实余弦加权辐照度卷积（64×32 预计算），specular 预滤波 + BRDF LUT 未做；模型 MTL diffuse 经图集渲染（法线/高光贴图未用于模型）。
+已知简化：MSAA 以 2x/4x 盒滤波超采样等效实现（可切档）；IBL 为真实 split-sum 实现（余弦加权辐照度卷积 + 三档预滤波 mip + Karis 解析 BRDF）；模型经 MTL diffuse 图集渲染（unlit，与参考一致）。
 
 ## 质量门禁
 

@@ -48,44 +48,58 @@ public:
             }
         };
         drawGbuffers();
-        // lighting pass: reference rainbow point lights (subsampled 25 of 100)
-        SGE::Render::RunPass(normalFb, fb,
-            [&](double u, double v, const FrameBuffer &norms){
-            const auto n = SGE::Render::fetchRGB(norms, u, v);
-            const auto alb = SGE::Render::fetchRGB(albedoFb, u, v);
-            if(alb.r + alb.g + alb.b < 1e-6){
-                return Color32{10, 10, 14, 255};
-            }
-            Vector3DBase<double> N{n.r / 255.0 * 2.0 - 1.0,
-                n.g / 255.0 * 2.0 - 1.0, n.b / 255.0 * 2.0 - 1.0};
+        // lighting pass: reference rainbow point lights (subsampled 16 of 100)
+        const std::size_t gw = normalFb.width();
+        const auto *npx = normalFb.colorData();
+        const auto *apx = albedoFb.colorData();
+        for(std::size_t y2 = 0; y2 < 600; y2++){
+            for(std::size_t x2 = 0; x2 < 800; x2++){
+            const uint32_t nc = npx[y2 * gw + x2];
+            const uint32_t ac = apx[y2 * gw + x2];
+            Vector3DBase<double> N{
+                ((nc >> 16) & 0xFF) / 255.0 * 2.0 - 1.0,
+                ((nc >> 8) & 0xFF) / 255.0 * 2.0 - 1.0,
+                (nc & 0xFF) / 255.0 * 2.0 - 1.0};
             N = N.normalize();
-            double or2 = 0, og = 0, ob = 0;
-            for(int gx = 0; gx < 10; gx += 3){
-                for(int gz = 0; gz < 10; gz += 3){
-                    const double lx = (gx - 4.5) * 1.0;
-                    const double lz = (gz - 4.5) * 1.0 - 2.0;
-                    const double dx = lx, dz = lz;
-                    const double d2 = dx * dx + dz * dz + 9.0;
-                    if(d2 > 60.0){ continue; }   // distance cull
-                    const double att = 1.0 / (1.0 + 0.7 * std::sqrt(d2)
-                        + 1.8 * d2 * 0.06);
-                    const float cr = std::min(1.0f,
-                        static_cast<float>(std::abs(lx) / 6.0));
-                    const float cg = 0.574f;
-                    const float cb = std::min(1.0f,
-                        static_cast<float>(std::abs(lz) / 6.0));
-                    Vector3DBase<double> L{lx, 3.0, lz};
-                    L = L.normalize();
-                    or2 += alb.r * att * cr * 30.0 * std::max(0.0, N.dot(L));
-                    og += alb.g * att * cg * 30.0 * std::max(0.0, N.dot(L));
-                    ob += alb.b * att * cb * 30.0 * std::max(0.0, N.dot(L));
+            double or2 = static_cast<double>((ac >> 16) & 0xFF) * 0.1;
+            double og = static_cast<double>((ac >> 8) & 0xFF) * 0.1;
+            double ob = static_cast<double>(ac & 0xFF) * 0.1;
+            if(or2 + og + ob > 0.5){
+                for(int gx = 0; gx < 10; gx += 3){
+                    for(int gz = 0; gz < 10; gz += 3){
+                        const double lx = (gx - 4.5) * 1.0;
+                        const double lz = (gz - 4.5) * 1.0 - 2.0;
+                        const double dx = lx, dz = lz;
+                        const double d2 = dx * dx + dz * dz + 9.0;
+                        if(d2 > 60.0){ continue; }
+                        const double att = 1.0 /
+                            (1.0 + 0.7 * std::sqrt(d2) + 1.8 * d2 * 0.06);
+                        const float cr = std::min(1.0f,
+                            static_cast<float>(std::abs(lx) / 6.0));
+                        const float cg = 0.574f;
+                        const float cb = std::min(1.0f,
+                            static_cast<float>(std::abs(lz) / 6.0));
+                        Vector3DBase<double> L{lx, 3.0, lz};
+                        L = L.normalize();
+                        const double ndl = std::max(0.0, N.dot(L));
+                        or2 += static_cast<double>(
+                            (ac >> 16) & 0xFF) / 255.0 * att * cr
+                            * 30.0 * ndl * 255.0 * 0.85;
+                        og += static_cast<double>(
+                            (ac >> 8) & 0xFF) / 255.0 * att * cg
+                            * 30.0 * ndl * 255.0 * 0.85;
+                        ob += static_cast<double>(ac & 0xFF) / 255.0
+                            * att * cb * 30.0 * ndl * 255.0 * 0.85;
+                    }
                 }
             }
-            return Color32{
-                static_cast<int32_t>(std::min(255.0, alb.r * 0.1 + or2)),
-                static_cast<int32_t>(std::min(255.0, alb.g * 0.1 + og)),
-                static_cast<int32_t>(std::min(255.0, alb.b * 0.1 + ob)), 255};
-        });
+            fb.setPixel(x2, y2,
+                0xFF000000u
+                | (static_cast<uint32_t>(std::min(255.0, or2)) << 16)
+                | (static_cast<uint32_t>(std::min(255.0, og)) << 8)
+                | static_cast<uint32_t>(std::min(255.0, ob)), -2.0f);
+            }
+        }
     }
     void drawUi(Application &) override {
         ImGui::Text("G-buffer: 100 cubes + rainbow point grid");

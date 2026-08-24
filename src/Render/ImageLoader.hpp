@@ -215,5 +215,76 @@ inline Color3f SampleEquirectClamped(const HDRImage &hdr,
             hdr.rgb[idx + 2] * exposure * 255.0};
 }
 
+
+// ---- disk cache for expensive IBL precomputation ----
+inline bool SaveHDRImage(const HDRImage &img, const std::string &path){
+    FILE *f = std::fopen(path.c_str(), "wb");
+    if(!f){ return false; }
+    const uint32_t magic = 0x49424C31;  // "IBL1"
+    std::fwrite(&magic, sizeof(magic), 1, f);
+    std::fwrite(&img.width, sizeof(int), 1, f);
+    std::fwrite(&img.height, sizeof(int), 1, f);
+    std::fwrite(img.rgb.data(), sizeof(float), img.rgb.size(), f);
+    std::fclose(f);
+    return true;
+}
+
+inline HDRImage LoadHDRImageCached(const std::string &path){
+    HDRImage img;
+    FILE *f = std::fopen(path.c_str(), "rb");
+    if(!f){ return img; }
+    uint32_t magic = 0;
+    if(std::fread(&magic, sizeof(magic), 1, f) != 1 || magic != 0x49424C31){
+        std::fclose(f);
+        return img;
+    }
+    int w = 0, h = 0;
+    if(std::fread(&w, sizeof(int), 1, f) != 1 ||
+       std::fread(&h, sizeof(int), 1, f) != 1 || w <= 0 || h <= 0){
+        std::fclose(f);
+        return img;
+    }
+    img.width = w;
+    img.height = h;
+    img.rgb.resize(static_cast<std::size_t>(w) * h * 3);
+    if(std::fread(img.rgb.data(), sizeof(float), img.rgb.size(), f)
+       != img.rgb.size()){
+        img = HDRImage{};
+    }
+    std::fclose(f);
+    return img;
+}
+
+// Convenience: compute-or-load cached irradiance
+inline HDRImage GetIrradianceCached(const HDRImage &env,
+                                    const std::string &cachePath){
+    auto cached = LoadHDRImageCached(cachePath);
+    if(cached.valid()){ return cached; }
+    auto computed = ComputeIrradiance(env);
+    SaveHDRImage(computed, cachePath);
+    return computed;
+}
+
+
+// Convenience: compute-or-load cached prefiltered mip chain
+inline std::vector<HDRImage> GetPrefilteredCached(
+    const HDRImage &env, const std::string &cacheBase){
+    std::vector<HDRImage> out;
+    bool all = true;
+    for(int i = 0; i < 3; i++){
+        auto c = LoadHDRImageCached(
+            cacheBase + "_" + std::to_string(i) + ".bin");
+        if(!c.valid()){ all = false; break; }
+        out.push_back(std::move(c));
+    }
+    if(all){ return out; }
+    out = ComputePrefiltered(env);
+    for(int i = 0; i < static_cast<int>(out.size()); i++){
+        SaveHDRImage(out[static_cast<std::size_t>(i)],
+            cacheBase + "_" + std::to_string(i) + ".bin");
+    }
+    return out;
+}
+
 }
 

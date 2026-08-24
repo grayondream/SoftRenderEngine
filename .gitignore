@@ -7,3 +7,4 @@ PROGRESS.md
 .superpowers/**
 Testing/
 imgui.ini
+assets/cache/**

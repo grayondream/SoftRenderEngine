@@ -16,14 +16,16 @@ public:
         static std::vector<SGE::Render::HDRImage> specMips = []{
             const auto e2 = SGE::Render::ImageLoader::loadHdr(
                 "assets/textures/newport_loft.hdr");
-            return SGE::Render::ComputePrefiltered(e2);
+            return SGE::Render::GetPrefilteredCached(
+                e2, "assets/cache/ibl_spec_loft");
         }();
         // reference: cosine-weighted irradiance convolution (precomputed once)
         static SGE::Render::HDRImage irradiance = []{
             const SGE::Render::HDRImage e =
                 SGE::Render::ImageLoader::loadHdr(
                     "assets/textures/newport_loft.hdr");
-            return SGE::Render::ComputeIrradiance(e);
+            return SGE::Render::GetIrradianceCached(
+                e, "assets/cache/ibl_irradiance_loft.bin");
         }();
         auto &fb = app.framebuffer();
         SGE::Render::DrawEquirectSky(fb, app.camera(), env, m_exposure);

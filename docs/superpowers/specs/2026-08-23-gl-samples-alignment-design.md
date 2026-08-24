@@ -71,3 +71,30 @@ public:
 - 46 场景全部可切换渲染，无崩溃；无头冒烟逐场景过一遍
 - 21 套件全绿 + golden 门禁保持
 - 每批提交推送 develop
+
+
+---
+
+## 交付状态（2026-08-24 完成）
+
+实际交付 **39 个场景**（原计划 46：删除 7 个 showcase 独立场景，按用户要求只保留对齐项并补齐缺口）。
+
+| 批次 | 提交 | 内容 |
+|------|------|------|
+| A | 809e463 | SampleFactory 架构 + stb/ImageLoader + 素材导入 |
+| B | d87bc55 | Base 5 + Light 9（初版） |
+| C | 8246e07 | 切线三贴图 + 背面剔除 + 几何模拟场景 |
+| D | e1170a9 | PostProcess 库 + Bloom/HDR/Gamma/Skybox |
+| E | 2bd3860 | RenderToTexture/SSAA/Defer/SSAO |
+| F | da56613 | PBR 贴图管线 + IBL diffuse + 容量守卫修复 |
+| G | 0a5922d..53eebad | 参考规格重写四批 + MTL 图集 + split-sum IBL + 缓存 + 性能优化 |
+
+### 与计划的偏差
+1. 场景组织改为 header-only hpp + RegisterScenes.cpp 显式注册（静态库注册宏会被链接器丢弃）
+2. MSAA 以 N×N 盒滤波超采样等效实现
+3. IBL 采用真实辐照度卷积 + 预滤波 mip + Karis 解析 BRDF（优于计划的"解析近似"），带磁盘缓存
+4. LoadModel 发现参考模型 19k 面超容量 → 新增分块加载器 + MTL 图集（超出原计划的能力）
+5. 用户反馈"效果对不上"后，派 agent 提取全部参考源码精确规格并重写大部分场景——这是质量关键转折
+
+### 最终验证基线
+干净构建零自有警告 · 21 套件 · 4 golden 基线 · 39 场景冒烟 · bench 4.73x tile 加速

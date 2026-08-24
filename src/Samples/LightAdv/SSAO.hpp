@@ -1,43 +1,90 @@
 #pragma once
 
 #include "../SceneUtil.hpp"
-#include "Render/PostProcess.hpp"
+#include "Render/ObjLoader.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <vector>
 
 namespace SGE::Samples {
 
 class SSAOScene final : public IScene {
 public:
+    bool m_ssaoOn{true};
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        fb.clear(0xFF101018u);
+        fb.clear(kRefClear);
         LightingRig rig{};
-        rig.ambient = 0.35f;
-        rig.specularStrength = 0.2f;
-        DirectionalLight key{};
-        key.direction = Vector3DBase<double>{-0.5, 0.7, -1.0};
-        rig.directional.push_back(key);
+        rig.ambient = 0.3f;
+        rig.specularStrength = 0.15f;
+        // reference: single bluish point light at (2,4,-2)
+        PointLight p{};
+        p.position = Vector3DBase<double>{2.0, 4.0, -2.0 + 4.0};
+        p.color = ColorFlt{0.2f, 0.2f, 0.7f};
+        p.range = 80.0;
+        rig.point.push_back(p);
+
+        Rasterizer rz{fb};
         ShadingContext ctx{&rig, app.camera().position};
-        const auto viewProj = defaultViewProj(app);
+        const auto vp = refViewProj(app.camera());
         SGE::Render::TileRenderer tiled{fb};
-        for(int i = 0; i < 4; i++){
-            Object4D cube = app.cube();
-            auto cm = SGE::Math::translation(-3.0 + i * 2.0, 0.9, 2.5)
-                .mul(SGE::Math::rotationY(app.angle() * 0.4 + i));
-            auto cnrm = SGE::Math::normalMatrix(cm);
-            auto ct = Pipeline::projectObject(cube, cm, viewProj, cnrm, 800, 600);
-            tiled.drawTextured(ct, app.checker(), &ctx);
+
+        // room box: inverted cube S15 (interior walls)
+        static Object4D room = []{
+            Object4D r{};
+            std::snprintf(r.name, sizeof(r.name), "%s", "room");
+            double s2 = 0.5;
+            Point4D v[8] = {{-s2,-s2,-s2,1},{s2,-s2,-s2,1},{s2,s2,-s2,1},
+                            {-s2,s2,-s2,1},{-s2,-s2,s2,1},{s2,-s2,s2,1},
+                            {s2,s2,s2,1},{-s2,s2,s2,1}};
+            for(int i = 0; i < 8; i++){ r.vlistLocal[i] = v[i]; }
+            struct F{ int a,b,c; };
+            const F fs[12] = {{0,3,2},{0,2,1},{4,5,6},{4,6,7},{0,1,5},{0,5,4},
+                              {3,7,6},{3,6,2},{1,2,6},{1,6,5},{0,4,7},{0,7,3}};
+            r.numVertices = 8;
+            r.numPolys = 12;
+            for(int i = 0; i < 12; i++){
+                for(int k = 0; k < 3; k++){
+                    const int vi = (k == 0 ? fs[i].a :
+                                    k == 1 ? fs[i].c : fs[i].b);
+                    r.plist[static_cast<std::size_t>(i)].vlist[k] = v[vi];
+                }
+                r.plist[static_cast<std::size_t>(i)].color =
+                    Color32{200, 200, 200, 255};
+            }
+            return r;
+        }();
+        auto rm = SGE::Math::translation(0.0, 3.0, 3.0)
+            .mul(SGE::Math::scale(9.0, 7.0, 9.0));
+        auto rnrm = SGE::Math::normalMatrix(rm);
+
+        if(!m_modelLoaded){
+            m_modelLoaded = loadObjFromFile(
+                "assets/models/nanosuit/nanosuit.obj", m_model);
+            Texture white(1, 1,
+                std::vector<uint32_t>{0xFFF2F2F2u}.data());
+            m_gray = white;
         }
+        auto mm = SGE::Math::translation(0.0, -0.8, 4.0)
+            .mul(SGE::Math::rotationY(app.angle() * 0.15))
+            .mul(SGE::Math::scale(0.55, 0.55, 0.55));
+        auto mnrm = SGE::Math::normalMatrix(mm);
+
+        // draw room first (walls receive AO darkening near contacts)
+        tiled.drawTextured(Pipeline::projectObject(room, rm,
+            vp, rnrm, 800, 600), m_gray, &ctx);
+        tiled.drawTextured(Pipeline::projectObject(m_model, mm,
+            vp, mnrm, 800, 600), m_gray, &ctx);
+
         if(m_ssaoOn){
-            // darken pixels whose neighborhood depth varies strongly
-            static std::vector<uint32_t> src(
-                fb.width() * fb.height());
-            std::copy(fb.colorData(),
-                fb.colorData() + src.size(), src.begin());
+            // depth-contrast contact shadow approximation
+            static std::vector<uint32_t> src(fb.width() * fb.height());
+            std::copy(fb.colorData(), fb.colorData() + src.size(),
+                      src.begin());
             static std::vector<float> dep(fb.width() * fb.height());
-            std::copy(fb.depthData(),
-                fb.depthData() + dep.size(), dep.begin());
+            std::copy(fb.depthData(), fb.depthData() + dep.size(),
+                      dep.begin());
             const std::size_t w = fb.width(), h = fb.height();
             for(std::size_t y = 1; y + 1 < h; y++){
                 for(std::size_t x = 1; x + 1 < w; x++){
@@ -68,10 +115,14 @@ public:
     }
     void drawUi(Application &) override {
         ImGui::Checkbox("SSAO", &m_ssaoOn);
+        ImGui::Text("room box + nanosuit, bluish light");
     }
-    bool m_ssaoOn{true};
-    const char *name() const override { return "SSAO (depth contrast)"; }
+    const char *name() const override { return "SSAO Contact Shadows"; }
     const char *group() const override { return "LightAdv"; }
+private:
+    bool m_modelLoaded{false};
+    Object4D m_model{};
+    Texture m_gray{};
 };
 
 }

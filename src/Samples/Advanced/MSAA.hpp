@@ -11,6 +11,7 @@ class MSAAScene final : public IScene {
 public:
 public:
     bool m_gray{false};
+    bool m_4x{false};
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         fb.clear(0xFF1A1A1Au);
@@ -48,6 +49,7 @@ public:
     }
     void drawUi(Application &) override {
         ImGui::Checkbox("Grayscale", &m_gray);
+        ImGui::Checkbox("4x Supersampling", &m_4x);
         ImGui::Text("watch diagonal edges (2x SSAA)");
     }
     const char *name() const override { return "Anti-aliasing (2x SSAA)"; }

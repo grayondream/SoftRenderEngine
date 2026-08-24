@@ -16,12 +16,14 @@ public:
         static Texture diffuse = SGE::Render::ImageLoader::loadTexture("assets/textures/brickwall.jpg");
         static Texture normal = SGE::Render::ImageLoader::loadTexture("assets/textures/brickwall_normal.jpg");
         LightingRig rig{};
-        rig.ambient = 0.15f;
-        rig.specularStrength = 0.25f;
+        rig.ambient = 0.1f;
+        rig.specularStrength = 0.2f;
+        rig.shininess = 32.0f;
         const double a = app.angle();
         PointLight p{};
-        p.position = Vector3DBase<double>{2.5 * std::sin(a), 2.5, -1.0 + 2.5 * std::cos(a)};
-        p.range = 20.0;
+        p.position = Vector3DBase<double>{0.0, 0.0, 1.0};
+        p.range = 30.0;
+        (void)a;
         rig.point.push_back(p);
 
         Rasterizer rz{fb};
@@ -38,7 +40,7 @@ public:
         SGE::Render::TileRenderer tiled{fb};
         auto wt = Pipeline::projectObject(wall, wm, viewProj, wnrm, 800, 600);
         tiled.drawTextured(wt, diffuse, &ctx);
-        drawLightMarker(app, rz, p.position, Color32{255, 250, 220, 255});
+        drawLamp(app, rz, p.position, 0.06);
     }
     const char *name() const override { return "Normal Mapping (brickwall)"; }
     const char *group() const override { return "LightAdv"; }

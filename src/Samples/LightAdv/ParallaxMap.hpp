@@ -17,7 +17,7 @@ public:
         static Texture normal = SGE::Render::ImageLoader::loadTexture("assets/textures/bricks2_normal.jpg");
         static Texture height = SGE::Render::ImageLoader::loadTexture("assets/textures/bricks2_disp.jpg");
         LightingRig rig{};
-        rig.ambient = 0.12f;
+        rig.ambient = 0.1f;
         rig.specularStrength = 0.2f;
         const double a = app.angle();
         PointLight p{};
@@ -31,7 +31,7 @@ public:
         ShadingContext ctx{&rig, app.camera().position};
         ctx.normalTex = &normal;
         ctx.heightTex = &height;
-        ctx.parallaxScale = 0.06;
+        ctx.parallaxScale = 0.1;
         ctx.tangentU = Vector3DBase<double>{1, 0, 0};
         ctx.tangentV = Vector3DBase<double>{0, 1, 0};
         Object4D wall = makePlane(2.6, 0.0,

@@ -71,6 +71,9 @@ private:
     std::unique_ptr<SGE::Samples::IScene> m_scene{};
     int m_sceneIndex{-1};
     bool m_sceneDirty{true};
+    int m_renderEveryN{1};
+    int m_frameCounter{0};
+    bool m_lastFrameValid{false};
     bool m_rotating{true};
     float m_rotateSpeed{0.02f};
     bool m_fogEnabled{true};

@@ -171,11 +171,19 @@ void Application::RenderScene(){
         m_scene->setup(*this);
         m_sceneDirty = false;
     }
+    // frame-skip: reuse the last rendered frame for heavy scenes
+    if(m_renderEveryN > 1 && m_lastFrameValid && !m_sceneDirty
+       && (m_frameCounter++ % m_renderEveryN) != 0){
+        BufferManager::instance()->draw(
+            reinterpret_cast<const uint8_t*>(m_framebuffer.colorData()));
+        return;
+    }
     if(m_rotating){
         m_angle += m_rotateSpeed;
     }
     m_rig = makeDefaultRigForScene();
     m_scene->render(*this);
+    m_lastFrameValid = true;
 
     BufferManager::instance()->draw(
         reinterpret_cast<const uint8_t*>(m_framebuffer.colorData()));
@@ -208,6 +216,10 @@ void Application::RenderDebugUi(){
     }
     if(m_sceneIndex >= 0 && m_sceneIndex < static_cast<int>(entries.size())){
         ImGui::Text("Current: %s", entries[m_sceneIndex].name);
+    }
+    ImGui::SliderInt("Render Every N", &m_renderEveryN, 1, 6);
+    if(m_renderEveryN > 1){
+        ImGui::Text("(~%.0f fps effective)", 60.0f / m_renderEveryN);
     }
     ImGui::Checkbox("Rotating", &m_rotating);
     ImGui::SliderFloat("Speed", &m_rotateSpeed, 0.0f, 0.3f, "%.3f");

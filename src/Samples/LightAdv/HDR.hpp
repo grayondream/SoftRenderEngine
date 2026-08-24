@@ -90,23 +90,33 @@ public:
 private:
     static void tonemapPass(FrameBuffer &fb, const FrameBuffer &src,
                             float e){
+        // 4096-entry exposure+gamma LUT replaces per-pixel exp/pow
+        static float lut[4096];
+        static float lutE = -1.0f;
+        if(std::abs(lutE - e) > 1e-4f){
+            for(int i = 0; i < 4096; i++){
+                const double ch = i / 4095.0;
+                lut[i] = static_cast<float>(
+                    std::pow(std::clamp(
+                        1.0 - std::exp(-ch * 6.0 * e), 0.0, 1.0),
+                        1.0 / 2.2) * 255.0 + 0.5);
+            }
+            lutE = e;
+        }
         const auto *px = src.colorData();
         const std::size_t w = src.width(), h = src.height();
         for(std::size_t y = 0; y < h; y++){
             for(std::size_t x = 0; x < w; x++){
                 const uint32_t c = px[y * w + x];
-                auto tm = [e](double ch){
-                    return static_cast<int32_t>(
-                        std::pow(std::clamp(1.0 - std::exp(
-                            -(ch / 255.0) * 6.0 * e), 0.0, 1.0),
-                            1.0 / 2.2) * 255.0 + 0.5);
-                };
                 fb.setPixel(x, y,
                     0xFF000000u | (static_cast<uint32_t>(
-                        tm((c >> 16) & 0xFF)) << 16)
+                        lut[std::min(4095u,
+                            ((c >> 16) & 0xFFu) * 16u)]) << 16)
                     | (static_cast<uint32_t>(
-                        tm((c >> 8) & 0xFF)) << 8)
-                    | static_cast<uint32_t>(tm(c & 0xFF)), -2.0f);
+                        lut[std::min(4095u,
+                            ((c >> 8) & 0xFFu) * 16u)]) << 8)
+                    | static_cast<uint32_t>(lut[std::min(4095u,
+                        (c & 0xFFu) * 16u)]), -2.0f);
             }
         }
     }

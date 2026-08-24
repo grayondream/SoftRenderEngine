@@ -220,6 +220,57 @@ void RenderBloom(){
 
 }
 
+
+// mode: normal_map — brickwall plane with tangent-space normal perturbation
+void RenderNormalMap(){
+    using namespace SGE::Render;
+    g_fb.clear(0xFF1A1A1Au);
+    static Texture diffuse = ImageLoader::loadTexture(
+        "assets/textures/brickwall.jpg");
+    static Texture normalTex = ImageLoader::loadTexture(
+        "assets/textures/brickwall_normal.jpg");
+    LightingRig rig{};
+    rig.ambient = 0.1f;
+    rig.specularStrength = 0.2f;
+    rig.shininess = 32.0f;
+    PointLight p{};
+    p.position = Vector3DBase<double>{0.0, 0.0, 1.0};
+    p.range = 30.0;
+    rig.point.push_back(p);
+
+    Rasterizer rz{g_fb};
+    const auto viewProj = SGE::Math::perspective(
+        M_PI / 3, 800.0 / 600.0, 0.1, 100.0)
+        .mul(SGE::Render::Camera{}.viewMatrix());
+    ShadingContext ctx{&rig, SGE::Render::Camera{}.position};
+    ctx.normalTex = &normalTex;
+    ctx.tangentU = Vector3DBase<double>{1, 0, 0};
+    ctx.tangentV = Vector3DBase<double>{0, 1, 0};
+    Object4D wall{};
+    Point4D pv[4] = {{-2.6,-1.2,2.2,1},{2.6,-1.2,2.2,1},
+                     {2.6,1.4,2.2,1},{-2.6,1.4,2.2,1}};
+    for(int i = 0; i < 4; i++){ wall.vlistLocal[i] = pv[i]; }
+    wall.numVertices = 4;
+    wall.numPolys = 2;
+    const int wi[2][3] = {{0,1,2},{0,2,3}};
+    const UV2D wuv[4] = {{0,0},{4,0},{4,4},{0,4}};
+    for(int k = 0; k < 2; k++){
+        for(int m = 0; m < 3; m++){
+            wall.plist[k].vlist[m] = pv[wi[k][m]];
+            wall.plist[k].uvlist[m] = wuv[wi[k][m]];
+            wall.plist[k].nlist[m] =
+                Vector3DBase<double>{0, 0, -1};
+        }
+        wall.plist[k].color = Color32{255,255,255,255};
+    }
+    auto wm = SGE::Math::translation(0.0, 0.0, 0.0);
+    auto wnrm = SGE::Math::normalMatrix(wm);
+    TileRenderer tiled{g_fb};
+    auto wt = Pipeline::projectObject(wall, wm,
+        viewProj, wnrm, 800, 600);
+    tiled.drawTextured(wt, diffuse, &ctx);
+}
+
 int main(int argc, char **argv){
     if(argc < 2){
         std::fprintf(stderr, "usage: golden_render <out.ppm> [mode]\n"
@@ -271,6 +322,11 @@ int main(int argc, char **argv){
     }
     if(mode == "pbr"){
         RenderPbr();
+        WritePPM(argv[1]);
+        return 0;
+    }
+    if(mode == "normal_map"){
+        RenderNormalMap();
         WritePPM(argv[1]);
         return 0;
     }

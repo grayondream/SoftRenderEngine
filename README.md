@@ -8,6 +8,8 @@ C++20 软件光栅化游戏引擎：纯 CPU 渲染（无 GPU API），SDL2 仅�
 scripts/buildandrun.sh          # 配置(如需)+构建+运行主 Demo
 # 或手动
 cmake -B build -S . && cmake --build build -j$(nproc)
+# 离线环境（gtest 拉取失败时，指向本地 googletest 源）
+cmake -B build -S . -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=<gtest-src>
 ```
 
 可选：`-DENABLE_SANITIZER=ON`（ASan+UBSan，建议配合 g++ 工具链）。

@@ -1,1 +1,0 @@
-/usr/bin/g++  -std=c++20 -fsanitize=address,undefined -Wl,--dependency-file=CMakeFiles/render_FrameBuffer.dir/link.d CMakeFiles/render_FrameBuffer.dir/render/FrameBuffer.cpp.o -o render_FrameBuffer  ../lib/libgtest.a -lpthread ../src/math/libmath.a ../src/Render/librender.a ../src/libcore.a ../src/math/libmath.a ../src/Render/librender.a -luuid ../third_party/libimgui.a -lSDL2

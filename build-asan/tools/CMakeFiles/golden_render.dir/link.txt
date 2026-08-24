@@ -1,1 +1,0 @@
-/usr/bin/g++  -std=c++20 -fsanitize=address,undefined -Wl,--dependency-file=CMakeFiles/golden_render.dir/link.d CMakeFiles/golden_render.dir/golden_render.cpp.o -o golden_render  ../src/Render/librender.a ../src/math/libmath.a ../src/libcore.a ../src/Render/librender.a -luuid ../src/math/libmath.a ../third_party/libimgui.a -lSDL2

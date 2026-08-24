@@ -1,1 +1,0 @@
-/usr/bin/g++  -std=c++20 -fsanitize=address,undefined -Wl,--dependency-file=CMakeFiles/soft-game-engine.dir/link.d "CMakeFiles/soft-game-engine.dir/main.cpp.o" -o soft-game-engine  libcore.a math/libmath.a Render/librender.a -luuid ../third_party/libimgui.a -lSDL2

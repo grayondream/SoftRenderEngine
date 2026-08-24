@@ -8,3 +8,4 @@ PROGRESS.md
 Testing/
 imgui.ini
 assets/cache/**
+build-asan/**

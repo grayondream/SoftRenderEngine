@@ -7,52 +7,66 @@
 
 namespace SGE::Samples {
 
-// GL AppType: PBR_Base — metallic × roughness sphere array with live tuning
 class PbrBaseScene final : public IScene {
 public:
+public:
+    void setup(Application &) override {
+        m_white = Texture(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
+    }
+private:
+    Texture m_white{};
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        auto rig = makeDefaultRig();
-        fb.clear(0xFF000000u);
-        Rasterizer rz{fb};
+        fb.clear(kRefClear);
 
-        SGE::Render::TileRenderer tiled{fb};
-        const int cols = 7, rows = 5;
-        for(int r = 0; r < rows; r++){
-            for(int c = 0; c < cols; c++){
+        LightingRig rig{};
+        rig.ambient = 0.03f;
+        // reference: 4 point lights (±10,±10,10)*300 with 1/d^2 falloff
+        const double lp[4][3] = {{-10,10,10},{10,10,10},{-10,-10,10},{10,-10,10}};
+        for(int i = 0; i < 4; i++){
+            PointLight p{};
+            p.position = Vector3DBase<double>{lp[i][0], lp[i][1], lp[i][2]};
+            p.range = 200.0;
+            rig.point.push_back(p);
+        }
+        Rasterizer rz{fb};
+        const auto vp = refViewProj(app.camera());
+        int idx = 0;
+        for(int row = -2; row <= 2; row++){
+            for(int col = -2; col <= 2; col++){
                 PbrMaterial mat{};
-                mat.baseColor = app.pbrBase();
-                mat.metallic = std::clamp(
-                    static_cast<float>(c) / (cols - 1) + app.pbrMetallic() - 0.5f,
-                    0.0f, 1.0f);
-                mat.roughness = std::clamp(
-                    1.0f - static_cast<float>(r) / (rows - 1) + app.pbrRoughness() - 0.35f,
-                    0.05f, 1.0f);
-                ShadingContext pbrCtx{&rig, app.camera().position,
-                                      nullptr, nullptr, nullptr, nullptr, &mat};
-                Object4D ball = app.sphere();
-                const double bx = -4.2 + c * 1.4;
-                const double by = -0.6 + r * 1.15;
-                ball.worldPos = Point4D{bx, by, 3.0, 1};
-                auto bm = SGE::Math::translation(bx, by, 3.0);
+                // reference albedo ramp: vec3(i/25, 0, 0)
+                const int rr = std::min(255, idx * 255 / 25);
+                mat.baseColor = Color32{rr, 0, 0, 255};
+                mat.metallic = app.pbrMetallic();
+                mat.roughness = std::max(0.05f, app.pbrRoughness());
+                ShadingContext ctx{&rig, app.camera().position,
+                    nullptr, nullptr, nullptr, nullptr, &mat};
+                static Object4D protoBall = SGE::Render::MakeSphere(1.0, 24, 16);
+                Object4D ball = protoBall;
+                const double sc = 0.4;
+                for(int vi = 0; vi < static_cast<int>(ball.numVertices); vi++){
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].x *= sc;
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].y *= sc;
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].z *= sc;
+                }
+                auto bm = SGE::Math::translation(
+                    static_cast<double>(col) * 1.0,
+                    static_cast<double>(row) * 1.0, 6.0);
                 auto bnrm = SGE::Math::normalMatrix(bm);
-                auto bt = Pipeline::projectObject(ball, bm,
-                    defaultViewProj(app), bnrm, 800, 600);
+                auto bt = Pipeline::projectObject(ball, bm, vp, bnrm, 800, 600);
                 for(auto &t : bt){
                     rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
-                                            app.checker(), &pbrCtx);
+                                            m_white, &ctx);
                 }
+                idx++;
             }
         }
     }
     void drawUi(Application &app) override {
         ImGui::SliderFloat("Metallic", &app.pbrMetallic(), 0.0f, 1.0f);
         ImGui::SliderFloat("Roughness", &app.pbrRoughness(), 0.05f, 1.0f);
-        ImGui::ColorEdit3("Base Color", app.pbrColorUi());
-        app.pbrBase() = Color32{
-            static_cast<int32_t>(app.pbrColorUi()[0] * 255.0f),
-            static_cast<int32_t>(app.pbrColorUi()[1] * 255.0f),
-            static_cast<int32_t>(app.pbrColorUi()[2] * 255.0f), 255};
+        ImGui::Text("albedo ramps red across 25 spheres");
     }
     const char *name() const override { return "PBR Base (metal/rough array)"; }
     const char *group() const override { return "PBR"; }

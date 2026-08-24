@@ -15,27 +15,45 @@ public:
         }();
         auto &fb = app.framebuffer();
         SGE::Render::DrawEquirectSky(fb, app.camera(), env, m_exposure);
-        LightingRig rig{};
-        rig.ambient = 0.05f;
-        rig.specularStrength = 0.1f;
-        DirectionalLight key{};
-        key.direction = Vector3DBase<double>{-0.3, 0.8, -0.9};
-        key.color = ColorFlt{0.35f, 0.35f, 0.35f};
-        rig.directional.push_back(key);
-
+        // reference: 25-sphere grid (col,row in [-2,2]) at z=6, albedo red ramp
+        LightingRig rig2{};
+        rig2.ambient = 0.03f;
+        const double lp[4][3] = {{-10,10,10},{10,10,10},{-10,-10,10},{10,-10,10}};
+        for(int li = 0; li < 4; li++){
+            PointLight p{};
+            p.position = Vector3DBase<double>{lp[li][0], lp[li][1], lp[li][2]};
+            p.range = 200.0;
+            rig2.point.push_back(p);
+        }
         Rasterizer rz{fb};
-        ShadingContext ctx{&rig, app.camera().position};
+        ShadingContext ctx{&rig2, app.camera().position};
         ctx.iblEquirect = &env;
-        const auto viewProj = defaultViewProj(app);
-        // row of white spheres lit by the environment
-        for(int i = 0; i < 5; i++){
-            Object4D sphere = SGE::Render::MakeSphere(0.55, 24, 16);
-            Texture white(1, 1, std::vector<uint32_t>{0xFFF0F0F0u}.data());
-            auto sm = SGE::Math::translation(-3.2 + i * 1.6, 1.1, 3.0);
-            auto snrm = SGE::Math::normalMatrix(sm);
-            auto st = Pipeline::projectObject(sphere, sm, viewProj, snrm, 800, 600);
-            SGE::Render::TileRenderer tiled{fb};
-            tiled.drawTextured(st, white, &ctx);
+        Texture white(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
+        static Object4D protoBall = SGE::Render::MakeSphere(1.0, 24, 16);
+        const auto vp = refViewProj(app.camera());
+        for(int row = -2; row <= 2; row++){
+            for(int col = -2; col <= 2; col++){
+                PbrMaterial mat{};
+                mat.metallic = app.pbrMetallic();
+                mat.roughness = std::max(0.05f, app.pbrRoughness());
+                ctx.pbr = &mat;
+                Object4D ball = protoBall;
+                const double sc = 0.4;
+                for(int vi = 0; vi < static_cast<int>(ball.numVertices); vi++){
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].x *= sc;
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].y *= sc;
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].z *= sc;
+                }
+                auto bm = SGE::Math::translation(
+                    static_cast<double>(col) * 1.0,
+                    static_cast<double>(row) * 1.0, 6.0);
+                auto bnrm = SGE::Math::normalMatrix(bm);
+                auto bt = Pipeline::projectObject(ball, bm, vp, bnrm, 800, 600);
+                for(auto &t : bt){
+                    rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
+                                            white, &ctx);
+                }
+            }
         }
     }
     void drawUi(Application &) override {

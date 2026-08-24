@@ -1,9 +1,10 @@
 #pragma once
 
 #include "../SceneUtil.hpp"
-#include "Render/PostProcess.hpp"
+#include "Render/ImageLoader.hpp"
 
 #include <cmath>
+#include <vector>
 
 namespace SGE::Samples {
 
@@ -11,48 +12,43 @@ class GammaScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        fb.clear(0xFF101018u);
-        // grayscale steps
-        static FrameBuffer steps{800, 600};
-        steps.clear();
-        const int n = 12;
-        for(int i = 0; i < n; i++){
-            const int v = static_cast<int>(255.0 * i / (n - 1));
-            const int x0 = i * 800 / n;
-            const int x1 = (i + 1) * 800 / n;
-            for(int y = 100; y < 500; y++){
-                for(int x = x0; x < x1; x++){
-                    const Color32 cc{v, v, v, 255};
-                    steps.setPixel(x, y,
-                        (static_cast<uint32_t>(cc.a) << 24)
-                            | (static_cast<uint32_t>(cc.r) << 16)
-                            | (static_cast<uint32_t>(cc.g) << 8)
-                            | static_cast<uint32_t>(cc.b), -2.0f);
-                }
-            }
+        fb.clear(kRefClear);
+        static Texture wood = SGE::Render::ImageLoader::loadTexture(
+            "assets/textures/wood.png");
+        Rasterizer rz{fb};
+        LightingRig rig{};
+        rig.ambient = 0.02f;
+        rig.specularStrength = 0.0f;
+        // reference: 5 point lights along x at y=0: red green white blue yellow
+        static const ColorFlt cols[5] = {
+            ColorFlt{1,0,0}, ColorFlt{0,1,0}, ColorFlt{1,1,1},
+            ColorFlt{0,0,1}, ColorFlt{1,1,0}};
+        for(int i = 0; i < 5; i++){
+            PointLight p{};
+            p.position = Vector3DBase<double>{-2.0 + i * 1.0, 0.0, 0.0};
+            p.color = cols[i];
+            p.range = 30.0;
+            rig.point.push_back(p);
         }
-        if(m_gammaOn){
-            SGE::Render::RunPass(steps, fb, [](double u, double v, const FrameBuffer &s){
-                const auto c = SGE::Render::fetchRGB(s, u, v);
-                auto gam = [](double ch){
-                    return static_cast<int32_t>(
-                        std::pow(ch / 255.0, 1.0 / 2.2) * 255.0 + 0.5);
-                };
-                return Color32{gam(c.r), gam(c.g), gam(c.b), 255};
-            });
-        }else{
-            SGE::Render::RunPass(steps, fb, [](double u, double v, const FrameBuffer &s){
-                const auto c = SGE::Render::fetchRGB(s, u, v);
-                return Color32{static_cast<int32_t>(c.r),
-                               static_cast<int32_t>(c.g),
-                               static_cast<int32_t>(c.b), 255};
-            });
+        ShadingContext ctx{&rig, app.camera().position};
+        auto fpv = refPlane(Color32{120,120,120,255});
+        auto fpm = SGE::Math::translation(0.0, 0.5, 2.0);
+        auto fpnrm = SGE::Math::normalMatrix(fpm);
+        SGE::Render::TileRenderer tiled{fb};
+        tiled.drawTextured(Pipeline::projectObject(fpv, fpm,
+            refViewProj(app.camera()), fpnrm, 800, 600), wood, &ctx);
+        for(int i = 0; i < 5; i++){
+            drawLamp(app, rz,
+                Vector3DBase<double>{-2.0 + i * 1.0, 0.5, 2.0},
+                0.05, Color32{
+                    static_cast<int32_t>(cols[i].r * 255),
+                    static_cast<int32_t>(cols[i].g * 255),
+                    static_cast<int32_t>(cols[i].b * 255), 255});
         }
     }
     void drawUi(Application &) override {
-        ImGui::Checkbox("Gamma Correct (1/2.2)", &m_gammaOn);
+        ImGui::Text("5 colored lights on wood floor");
     }
-    bool m_gammaOn{true};
     const char *name() const override { return "Gamma Correction"; }
     const char *group() const override { return "LightAdv"; }
 };

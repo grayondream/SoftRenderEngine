@@ -172,3 +172,164 @@ bool loadObjFromFile(const std::string &path, Object4D &out){
     std::snprintf(out.name, sizeof(out.name), "%s", "obj");
     return true;
 }
+
+// ---- multi-material chunked loader ----
+bool loadObjMultiMaterial(const std::string &path,
+                          std::vector<Object4D> &chunks,
+                          std::vector<int> &faceMaterial,
+                          ObjMaterialInfo &materials){
+    chunks.clear();
+    faceMaterial.clear();
+    materials.names.clear();
+    materials.diffuseMap.clear();
+    {
+        const std::size_t slash = path.find_last_of('/');
+        materials.mtlDir = slash == std::string::npos
+            ? std::string(".") : path.substr(0, slash);
+    }
+
+    std::ifstream file(path);
+    if(!file.is_open()){
+        return false;
+    }
+
+    std::vector<Point4D> verts;
+    std::vector<UV2D> uvs;
+    std::vector<Vector3DBase<double>> normals;
+
+    Object4D current{};
+    current.numVertices = 0;
+    current.numPolys = 0;
+    int currentMtl = 0;
+    bool any = false;
+
+    auto flushChunk = [&](){
+        if(current.numPolys == 0){ return; }
+        current.numVertices = static_cast<int>(verts.size());
+        if(current.numVertices > kObject4vListLen){
+            current.numVertices = kObject4vListLen;
+        }
+        for(int i = 0; i < current.numVertices; i++){
+            current.vlistLocal[i] =
+                verts[static_cast<std::size_t>(i)];
+        }
+        std::snprintf(current.name, sizeof(current.name), "%s", "obj");
+        chunks.push_back(current);
+        current = Object4D{};
+        any = true;
+    };
+
+    std::string line;
+    while(std::getline(file, line)){
+        if(!line.empty() && line.back() == '\r') line.pop_back();
+        std::istringstream ss(line);
+        std::string tag;
+        if(!(ss >> tag)) continue;
+
+        if(tag == "v"){
+            double x = 0, y = 0, z = 0;
+            if(!(ss >> x >> y >> z)) return false;
+            verts.push_back(Point4D{x, y, z, 1});
+        }else if(tag == "vt"){
+            double u = 0, v = 0;
+            if(!(ss >> u >> v)) return false;
+            uvs.push_back(UV2D{u, v});
+        }else if(tag == "vn"){
+            double x = 0, y = 0, z = 0;
+            if(!(ss >> x >> y >> z)) return false;
+            normals.push_back(Vector3DBase<double>{x, y, z});
+        }else if(tag == "mtllib"){
+            std::string mtlName;
+            ss >> mtlName;
+            std::ifstream mtlFile(materials.mtlDir + "/" + mtlName);
+            std::string cur;
+            while(mtlFile.good()){
+                std::string mline;
+                std::getline(mtlFile, mline);
+                if(!mline.empty() && mline.back() == '\r') mline.pop_back();
+                std::istringstream mss(mline);
+                std::string mt;
+                if(!(mss >> mt)) continue;
+                if(mt == "newmtl"){
+                    mss >> cur;
+                    materials.names.push_back(cur);
+                    materials.diffuseMap.emplace_back();
+                }else if(mt == "map_Kd" && !cur.empty()){
+                    std::string mp;
+                    mss >> mp;
+                    materials.diffuseMap.back() = mp;
+                }
+            }
+        }else if(tag == "usemtl"){
+            std::string nm;
+            ss >> nm;
+            for(std::size_t i = 0; i < materials.names.size(); i++){
+                if(materials.names[i] == nm){
+                    currentMtl = static_cast<int>(i);
+                }
+            }
+        }else if(tag == "f"){
+            std::vector<ObjVertexRef> refs{};
+            std::string tok;
+            while(ss >> tok){
+                ObjVertexRef ref{};
+                if(!ParseVertexRef(tok, ref)) return false;
+                refs.push_back(ref);
+            }
+            if(refs.size() < 3) continue;
+            for(std::size_t i = 1; i + 1 < refs.size(); i++){
+                if(current.numPolys >= 900){
+                    flushChunk();
+                }
+                PolyF4D &poly =
+                    current.plist[current.numPolys++];
+                poly.color = Color32{255, 255, 255, 255};
+                const ObjVertexRef tri[3] = {refs[0], refs[i], refs[i + 1]};
+                Point4D p[3]{};
+                bool hasN = true;
+                for(int k = 0; k < 3; k++){
+                    int vi2 = -1;
+                    if(!ResolveIndex(tri[k].v, verts.size(), vi2)){
+                        return false;
+                    }
+                    p[k] = verts[vi2];
+                    poly.vlist[k] = p[k];
+                    int ui = -1;
+                    if(tri[k].vt != 0){
+                        if(!ResolveIndex(tri[k].vt, uvs.size(), ui)){
+                            return false;
+                        }
+                        poly.uvlist[k] = uvs[ui];
+                    }
+                    int ni = -1;
+                    if(tri[k].vn != 0){
+                        if(!ResolveIndex(tri[k].vn, normals.size(), ni)){
+                            return false;
+                        }
+                        poly.nlist[k] = normals[ni];
+                    }else{
+                        hasN = false;
+                    }
+                }
+                if(!hasN){
+                    const Vector3DBase<double> e1{
+                        p[1].x - p[0].x, p[1].y - p[0].y,
+                        p[1].z - p[0].z};
+                    const Vector3DBase<double> e2{
+                        p[2].x - p[0].x, p[2].y - p[0].y,
+                        p[2].z - p[0].z};
+                    auto n = e1.mul(e2);
+                    if(n.length() > 1e-12){
+                        n = n.normalize();
+                        poly.nlist[0] = n;
+                        poly.nlist[1] = n;
+                        poly.nlist[2] = n;
+                    }
+                }
+                faceMaterial.push_back(currentMtl);
+            }
+        }
+    }
+    flushChunk();
+    return any;
+}

@@ -17,29 +17,20 @@ public:
     }
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        fb.clear(0xFF101018u);
-        LightingRig rig{};
-        rig.ambient = 0.28f;
-        rig.specularStrength = 0.65f;
-        rig.shininess = 32.0f;
-        DirectionalLight key{};
-        key.direction = Vector3DBase<double>{-0.45, 0.75, -1.0};
-        key.color = ColorFlt{1, 1, 1};
-        rig.directional.push_back(key);
-        PointLight rim{};
-        rim.position = Vector3DBase<double>{2.5 * std::sin(app.angle() + 1.0),
-            2.0, -1.5 + 2.5 * std::cos(app.angle() + 1.0)};
-        rim.color = ColorFlt{0.85f, 0.9f, 1.0f};
-        rim.range = 25.0;
-        rig.point.push_back(rim);
-
-        ShadingContext ctx{&rig, app.camera().position};
-        const auto viewProj = defaultViewProj(app);
+        fb.clear(kRefClear);
+        if(!m_modelLoaded){
+            m_modelLoaded = loadObjFromFile(
+                "assets/models/nanosuit/nanosuit.obj", m_model);
+        }
+        // reference: no lights, unlit texture direct out; camera at z=6
+        ShadingContext ctx{};
+        auto cam = refCamera(0, 0, 6);
+        const auto vp = refViewProj(cam);
         auto model2 = SGE::Math::translation(0.0, -1.2, 4.5)
-            .mul(SGE::Math::rotationY(app.angle()));
+            .mul(SGE::Math::rotationY(app.angle() * 0.3));
         auto mnrm = SGE::Math::normalMatrix(model2);
         SGE::Render::TileRenderer tiled{fb};
-        auto mt = Pipeline::projectObject(m_model, model2, viewProj, mnrm, 800, 600);
+        auto mt = Pipeline::projectObject(m_model, model2, vp, mnrm, 800, 600);
         tiled.drawTextured(mt, m_metal, &ctx);
     }
     void drawUi(Application &) override {

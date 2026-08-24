@@ -3,31 +3,51 @@
 #include "../SceneUtil.hpp"
 #include "Render/ImageLoader.hpp"
 
+#include <cmath>
+
 namespace SGE::Samples {
 
 class CubeTextureScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        auto rig = makeDefaultRig();
-        fb.clear(0xFF101018u);
+        fb.clear(kRefClear);
         Rasterizer rz{fb};
-        static Texture container = SGE::Render::ImageLoader::loadTexture("assets/textures/container2.jpg");
-        const double ang = app.angle();
-
-        auto model = SGE::Math::translation(0.0, 1.6, 3.5)
-            .mul(SGE::Math::rotationY(ang))
-            .mul(SGE::Math::rotationX(0.4));
-        auto nrm = SGE::Math::normalMatrix(model);
-        ShadingContext shading{&rig, app.camera().position};
-        auto tris = Pipeline::projectObject(app.cube(), model,
-            defaultViewProj(app), nrm, 800, 600);
-        for(auto &t : tris){
-            rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
-                                    container, &shading);
+        static Texture dog = SGE::Render::ImageLoader::loadTexture(
+            "assets/textures/dog.jpg");
+        static const double cubePos[10][3] = {
+            {0.0, 0.0, 0.0},      {2.0, 5.0, -15.0},
+            {-1.5, -2.2, -2.5},   {-3.8, -2.0, -12.3},
+            {2.4, -0.4, -3.5},    {-1.7, 3.0, -7.5},
+            {1.3, -2.0, -2.5},    {1.5, 2.0, -2.5},
+            {1.5, 0.2, -1.5},     {-1.3, 1.0, -1.5}};
+        // reference: view = translate(0,0,-3), projection fov 45
+        auto view = SGE::Math::translation(0.0, 0.0, -3.0);
+        auto proj = SGE::Math::perspective(45.0 * M_PI / 180.0,
+                                           800.0 / 600.0, 0.1, 100.0);
+        const auto vp = proj.mul(view);
+        for(int i = 0; i < 10; i++){
+            Object4D cube = unitCube(app);
+            const double angDeg = 20.0 * (i + 1) * app.angle();
+            const double a = angDeg * M_PI / 180.0;
+            auto rotAxis = SGE::Math::rotationY(a)
+                .mul(SGE::Math::rotationX(a * 0.3))
+                .mul(SGE::Math::rotationZ(a * 0.5));
+            auto m = SGE::Math::translation(cubePos[i][0], cubePos[i][1],
+                                            cubePos[i][2]).mul(rotAxis);
+            auto nrm = SGE::Math::normalMatrix(m);
+            auto tris = Pipeline::projectObject(cube, m, vp, nrm, 800, 600);
+            for(auto &t : tris){
+                rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
+                                        dog, nullptr, TextureFilter::Bilinear,
+                                        TextureWrap::Clamp);
+            }
         }
     }
-    const char *name() const override { return "Textured Cube (container2)"; }
+    void drawUi(Application &) override {
+        ImGui::Text("10 spinning dog cubes (fov45)");
+    }
+    const char *name() const override { return "Textured Cubes (dog)"; }
     const char *group() const override { return "Base"; }
 };
 

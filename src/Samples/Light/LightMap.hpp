@@ -11,36 +11,39 @@ class LightMapScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        fb.clear(0xFF101018u);
-        static Texture diffuse = SGE::Render::ImageLoader::loadTexture("assets/textures/container2.jpg");
+        fb.clear(kRefClear);
+        Rasterizer rz{fb};
+        static Texture diffuse = SGE::Render::ImageLoader::loadTexture(
+            "assets/textures/container2.jpg");
+        static Texture specular = SGE::Render::ImageLoader::loadTexture(
+            "assets/textures/container2_specular.jpg");
+        const double t = app.angle();
+        const Vector3DBase<double> lp{5.0 * std::sin(t), 0.0, 5.0 * std::cos(t)};
         LightingRig rig{};
         rig.ambient = 0.12f;
-        rig.specularStrength = 0.9f;
-        rig.shininess = 48.0f;
-        DirectionalLight key{};
-        key.direction = Vector3DBase<double>{-0.4, 0.6, -1.0};
-        rig.directional.push_back(key);
+        rig.specularStrength = 0.6f;
+        rig.shininess = 1.0f;
         PointLight p{};
-        p.position = Vector3DBase<double>{1.5 * std::sin(app.angle()),
-            3.0, -3.0 + 1.5 * std::cos(app.angle())};
-        p.range = 30.0;
+        p.position = lp;
+        p.range = 100.0;
         rig.point.push_back(p);
-
-        Rasterizer rz{fb};
-        const auto viewProj = defaultViewProj(app);
-        Object4D cube = app.cube();
-        auto cm = SGE::Math::translation(0.0, 1.6, 3.5)
-            .mul(SGE::Math::rotationY(app.angle()))
-            .mul(SGE::Math::rotationX(0.4));
+        ShadingContext ctx{&rig, refCamera().position};
+        ctx.specTex = &specular;
+        Object4D cube = unitCube(app);
+        auto cm = SGE::Math::translation(1.0, 0.0, 0.0);
         auto cnrm = SGE::Math::normalMatrix(cm);
-        ShadingContext ctx{&rig, app.camera().position};
-        auto ct = Pipeline::projectObject(cube, cm, viewProj, cnrm, 800, 600);
-        SGE::Render::TileRenderer tiled{fb};
-        tiled.drawTextured(ct, diffuse, &ctx);
-
-        drawLightMarker(app, rz, p.position, Color32{255, 250, 220, 255});
+        auto ct = Pipeline::projectObject(cube, cm,
+            refViewProj(refCamera()), cnrm, 800, 600);
+        for(auto &tr : ct){
+            rz.drawTriangleTextured(tr.v[0], tr.v[1], tr.v[2],
+                                    diffuse, &ctx);
+        }
+        drawLamp(app, rz, lp);
     }
-    const char *name() const override { return "Light Maps (diffuse tex)"; }
+    void drawUi(Application &) override {
+        ImGui::Text("diffuse + specular map cube");
+    }
+    const char *name() const override { return "Light Map (container2)"; }
     const char *group() const override { return "Light"; }
 };
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../SceneUtil.hpp"
-#include "LightUtil.hpp"
+#include "Render/ImageLoader.hpp"
 
 #include <cmath>
 #include <vector>
@@ -12,40 +12,75 @@ class MultiLightsScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        fb.clear(0xFF101018u);
-        LightingRig rig{};
-        rig.ambient = 0.03f;
-        rig.specularStrength = 0.55f;
-        const double a = app.angle();
-        const ColorFlt cols[4] = {
-            ColorFlt{1.0f, 0.35f, 0.30f}, ColorFlt{0.35f, 1.0f, 0.40f},
-            ColorFlt{0.35f, 0.50f, 1.00f}, ColorFlt{1.00f, 0.90f, 0.30f}};
-        std::vector<Vector3DBase<double>> lpos;
-        for(int i = 0; i < 4; i++){
-            const double th = a + i * M_PI / 2;
-            PointLight p{};
-            p.position = Vector3DBase<double>{
-                3.2 * std::sin(th), 2.6, 2.0 + 3.2 * std::cos(th)};
-            p.color = cols[i];
-            p.range = 16.0;
-            rig.point.push_back(p);
-            lpos.push_back(p.position);
-        }
+        fb.clear(kRefClear);
         Rasterizer rz{fb};
-        drawLitCubeWall(app, rig, rz, app.angle());
+        static Texture diffuse = SGE::Render::ImageLoader::loadTexture(
+            "assets/textures/container2.jpg");
+        static Texture specular = SGE::Render::ImageLoader::loadTexture(
+            "assets/textures/container2_specular.jpg");
+        Object4D cubeProto = unitCube(app);
+        const double t = app.angle();
+        LightingRig rig{};
+        // dir + 4 points + spot (reference LightSourceMult)
+        rig.ambient = 0.05f;
+        rig.specularStrength = 1.0f;
+        rig.shininess = 1.0f;
+        DirectionalLight key{};
+        key.direction = Vector3DBase<double>{-0.2, -1.0, -0.3};
+        key.color = ColorFlt{1, 1, 1};
+        rig.directional.push_back(key);
+        const double pts[4][3] = {{0,0,-7},{2,2,-10},{-2,-2,-8},{1,0,-9}};
         for(int i = 0; i < 4; i++){
-            const auto &c = cols[i];
-            drawLightMarker(app, rz, lpos[i], Color32{
-                static_cast<int32_t>(c.r * 255),
-                static_cast<int32_t>(c.g * 255),
-                static_cast<int32_t>(c.b * 255), 255});
+            PointLight p{};
+            p.position = Vector3DBase<double>{pts[i][0], pts[i][1], pts[i][2]};
+            p.color = ColorFlt{1, 1, 1};
+            p.range = 30.0;
+            rig.point.push_back(p);
         }
+        SpotLight spot{};
+        spot.position = Vector3DBase<double>{0, 0, -5};
+        spot.direction = Vector3DBase<double>{0, 0, -1};
+        spot.cutoffCos = std::cos(12.5 * M_PI / 180.0);
+        spot.range = 40.0;
+        rig.spot.push_back(spot);
+        ShadingContext ctx{&rig, refCamera().position};
+        ctx.specTex = &specular;
+        SGE::Render::TileRenderer tiled{fb};
+        const auto vp = refViewProj(refCamera());
+        const double rotA = t;  // radians(20 * time)
+        int drawn = 0;
+        for(int gi = 0; gi < 5 && drawn < m_count; gi++){
+            for(int gj = 0; gj < 5 && drawn < m_count; gj++){
+                for(int gk = 0; gk < 5 && drawn < m_count; gk++){
+                    const double px = (gi - 2) * 2.0;
+                    const double py = (gj - 2) * 2.0;
+                    const double pz = (gk - 2) * 2.0 - 10.0;
+                    auto cm = SGE::Math::translation(px, py, pz)
+                        .mul(SGE::Math::rotationY(rotA))
+                        .mul(SGE::Math::rotationX(rotA * 0.3))
+                        .mul(SGE::Math::rotationZ(rotA * 0.5));
+                    auto cnrm = SGE::Math::normalMatrix(cm);
+                    auto ct = Pipeline::projectObject(cubeProto, cm,
+                        vp, cnrm, 800, 600);
+                    tiled.drawTextured(ct, diffuse, &ctx);
+                    drawn++;
+                }
+            }
+        }
+        drawLamp(app, rz, Vector3DBase<double>{0, 0, -5});
+        drawLamp(app, rz, Vector3DBase<double>{0, 0, -7});
+        drawLamp(app, rz, Vector3DBase<double>{2, 2, -10});
+        drawLamp(app, rz, Vector3DBase<double>{-2, -2, -8});
+        drawLamp(app, rz, Vector3DBase<double>{1, 0, -9});
     }
     void drawUi(Application &) override {
-        ImGui::Text("4 colored point lights orbiting");
+        ImGui::SliderInt("Cube Count", &m_count, 1, 125);
+        ImGui::Text("dir + 4 point + spot lights");
     }
-    const char *name() const override { return "Multiple Lights"; }
+    const char *name() const override { return "Multiple Light Sources"; }
     const char *group() const override { return "Light"; }
+private:
+    int m_count{125};
 };
 
 }

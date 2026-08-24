@@ -4,6 +4,7 @@
 #include "Render/ImageLoader.hpp"
 
 #include <cmath>
+#include <vector>
 
 namespace SGE::Samples {
 
@@ -11,43 +12,52 @@ class SaturnScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        fb.clear(0xFF06060Cu);
+        fb.clear(kRefClear);
         LightingRig rig{};
-        rig.ambient = 0.10f;
-        rig.specularStrength = 0.5f;
-        DirectionalLight sun{};
-        sun.direction = Vector3DBase<double>{-0.6, 0.4, -0.8};
-        rig.directional.push_back(sun);
+        rig.ambient = 0.35f;
+        rig.specularStrength = 0.3f;
+        DirectionalLight key{};
+        key.direction = Vector3DBase<double>{-0.5, 0.6, -1.0};
+        rig.directional.push_back(key);
         Rasterizer rz{fb};
-        const auto viewProj = defaultViewProj(app);
-        SGE::Render::TileRenderer tiled{fb};
         ShadingContext ctx{&rig, app.camera().position};
-
-        Object4D planet = SGE::Render::MakeSphere(1.3, 28, 18);
-        auto pm = SGE::Math::translation(0.0, 1.2, 3.0)
-            .mul(SGE::Math::rotationY(app.angle() * 0.8));
+        const auto vp = refViewProj(app.camera());
+        // planet at origin-ish center (reference T(0,0,-3) S0.3 of big mesh)
+        static Object4D planet = SGE::Render::MakeSphere(1.0, 28, 18);
+        Texture tint(1, 1, std::vector<uint32_t>{0xFFC8A05A}.data());
+        const double spin = app.angle() * 0.6;
+        auto pm = SGE::Math::translation(0.0, 0.0, -3.0 + 3.0)
+            .mul(SGE::Math::translation(0.0, 0.9, 0.0))
+            .mul(SGE::Math::rotationY(spin));
         auto pnrm = SGE::Math::normalMatrix(pm);
-        auto pt = Pipeline::projectObject(planet, pm, viewProj, pnrm, 800, 600);
-        tiled.drawTextured(pt, app.checker(), &ctx);
-
-        // ring of orbiting cubes
-        static Object4D rock = SGE::Render::MakeSphere(0.09, 10, 7);
-        const double tilt = 0.42;
-        for(int i = 0; i < 64; i++){
-            const double th = app.angle() * 1.4 + i * M_PI / 32;
-            const double rr = (i % 2 == 0) ? 2.05 : 2.45;
-            double lx = std::cos(th) * rr;
-            double lz = std::sin(th) * rr;
-            double ly = -lz * tilt;
-            lz = lz * std::cos(tilt);
-            auto rm = SGE::Math::translation(lx, 1.2 + ly, 3.0 + lz);
+        SGE::Render::TileRenderer tiled{fb};
+        tiled.drawTextured(Pipeline::projectObject(planet, pm,
+            vp, pnrm, 800, 600), tint, &ctx);
+        // rock ring: radius 20->scaled 4, y*0.4, slow orbit
+        static Object4D rock = SGE::Render::MakeSphere(1.0, 8, 5);
+        constexpr int kRocks = 240;
+        for(int i = 0; i < kRocks; i++){
+            const double angle = i * 360.0 / kRocks;
+            const double disp = ((i * 37) % 200) / 10.0 - 10.0;
+            const double rad = angle * M_PI / 180.0;
+            const double rr = 4.0;
+            double x = std::sin(rad) * rr + disp * 0.08;
+            double y = disp * 0.032;
+            double z = std::cos(rad) * rr + disp * 0.08;
+            const double sc = ((i * 13) % 20) / 100.0 + 0.05;
+            const double orbit = app.angle() / 10.0;
+            const double cx = std::cos(orbit), sy2 = std::sin(orbit);
+            const double wx = x * cx - z * sy2;
+            const double wz = x * sy2 + z * cx;
+            auto rm = SGE::Math::translation(wx, y + 0.9, wz - 0.0)
+                .mul(SGE::Math::scale(sc, sc, sc));
             auto rnrm = SGE::Math::normalMatrix(rm);
-            auto rt = Pipeline::projectObject(rock, rm, viewProj, rnrm, 800, 600);
-            tiled.drawTextured(rt, app.checker(), &ctx);
+            tiled.drawTextured(Pipeline::projectObject(rock, rm,
+                vp, rnrm, 800, 600), tint, &ctx);
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("Planet with tilted debris ring");
+        ImGui::Text("planet with orbiting debris ring");
     }
     const char *name() const override { return "Saturn Ring System"; }
     const char *group() const override { return "Advanced"; }

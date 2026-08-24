@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../SceneUtil.hpp"
+#include "../Light/LightUtil.hpp"
 #include "Render/Shadow.hpp"
 
 #include <cmath>

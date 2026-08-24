@@ -2,9 +2,9 @@
 
 #include "../SceneUtil.hpp"
 #include "Render/ImageLoader.hpp"
-#include "Light/LightUtil.hpp"
 
 #include <cmath>
+#include <vector>
 
 namespace SGE::Samples {
 
@@ -12,37 +12,61 @@ class ExplodeScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        fb.clear(0xFF101018u);
-        LightingRig rig{};
-        rig.ambient = 0.25f;
-        rig.specularStrength = 0.4f;
-        DirectionalLight key{};
-        key.direction = Vector3DBase<double>{-0.4, 0.7, -1.0};
-        rig.directional.push_back(key);
+        fb.clear(kRefClear);
         Rasterizer rz{fb};
-        const auto viewProj = defaultViewProj(app);
-        Object4D cube = app.cube();
-        const double t = app.angle() * 2.0;
-        const double k = 0.45 * std::sin(t);
-        for(int i = 0; i < static_cast<int>(cube.numVertices); i++){
-            const auto &v = cube.vlistLocal[i];
-            Vector3DBase<double> n{v.x, v.y, v.z};
-            if(n.length() > 1e-9){ n = n.normalize(); }
-            cube.vlistLocal[i] = Point4D{
-                v.x + n.x * k, v.y + n.y * k, v.z + n.z * k, 1};
+        // gradient vertex-color sphere (reference: color from local coords)
+        static Object4D sphere = SGE::Render::MakeSphere(1.0, 30, 18);
+        // bake vertex colors into polys
+        for(int pi2 = 0; pi2 < static_cast<int>(sphere.numPolys); pi2++){
+            auto &poly = sphere.plist[static_cast<std::size_t>(pi2)];
+            for(int k = 0; k < 3; k++){
+                const auto &v = poly.vlist[k];
+                poly.color = Color32{
+                    static_cast<int32_t>((v.x / 2.0 + 0.5) * 255.0),
+                    static_cast<int32_t>((v.y / 2.0 + 0.5) * 255.0),
+                    static_cast<int32_t>((v.z / 4.0 + 0.25) * 255.0), 255};
+            }
         }
-        auto cm = SGE::Math::translation(0.0, 1.6, 3.0)
-            .mul(SGE::Math::rotationY(t * 0.4));
-        auto cnrm = SGE::Math::normalMatrix(cm);
-        ShadingContext ctx{&rig, app.camera().position};
-        SGE::Render::TileRenderer tiled{fb};
-        auto ct = Pipeline::projectObject(cube, cm, viewProj, cnrm, 800, 600);
-        tiled.drawTextured(ct, app.checker(), &ctx);
+        const double mag = 2.0 * ((std::sin(app.angle()) + 1.0) / 2.0);
+        Object4D boom = sphere;
+        // push each triangle out along its own normal
+        std::snprintf(boom.name, sizeof(boom.name), "%s", "boom");
+        for(int pi2 = 0; pi2 < static_cast<int>(boom.numPolys); pi2++){
+            auto &poly = boom.plist[static_cast<std::size_t>(pi2)];
+            Vector3DBase<double> e1{poly.vlist[1].x - poly.vlist[0].x,
+                poly.vlist[1].y - poly.vlist[0].y,
+                poly.vlist[1].z - poly.vlist[0].z};
+            Vector3DBase<double> e2{poly.vlist[2].x - poly.vlist[0].x,
+                poly.vlist[2].y - poly.vlist[0].y,
+                poly.vlist[2].z - poly.vlist[0].z};
+            Vector3DBase<double> n{e1.y * e2.z - e2.y * e1.z,
+                e2.x * e1.z - e1.x * e2.z,
+                e1.x * e2.y - e2.x * e1.y};
+            if(n.length() > 1e-12){
+                n = n.normalize();
+                n = Vector3DBase<double>{n.x * mag, n.y * mag, n.z * mag};
+                for(int k = 0; k < 3; k++){
+                    poly.vlist[k].x += n.x;
+                    poly.vlist[k].y += n.y;
+                    poly.vlist[k].z += n.z;
+                }
+            }
+        }
+        auto sm = SGE::Math::translation(0.0, 0.0, -3.0)
+            .mul(SGE::Math::translation(0.0, 0.0, 3.0))
+            .mul(SGE::Math::translation(0.0, 0.8, 0.0))
+            .mul(SGE::Math::scale(2.0, 2.0, 2.0));
+        auto snrm = SGE::Math::normalMatrix(sm);
+        auto st = Pipeline::projectObject(boom, sm,
+            refViewProj(app.camera()), snrm, 800, 600);
+        for(auto &t : st){
+            rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+        }
     }
     void drawUi(Application &) override {
-        ImGui::Text("Vertices pushed along normals (CPU explode)");
+        ImGui::Text("breathing explosion (sin)");
     }
-    const char *name() const override { return "Explode (CPU vertex offset)"; }
+    const char *name() const override { return "Explode (face normals)"; }
     const char *group() const override { return "Advanced"; }
 };
 

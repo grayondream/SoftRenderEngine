@@ -2,9 +2,9 @@
 
 #include "../SceneUtil.hpp"
 #include "Render/ImageLoader.hpp"
-#include "Light/LightUtil.hpp"
 
 #include <cmath>
+#include <vector>
 
 namespace SGE::Samples {
 
@@ -12,41 +12,41 @@ class MultiInstanceScene final : public IScene {
 public:
     void render(Application &app) override {
         auto &fb = app.framebuffer();
-        auto fog = defaultFog(app);
-        fb.clear(0xFF101018u);
-        LightingRig rig{};
-        rig.ambient = 0.18f;
-        rig.specularStrength = 0.3f;
-        DirectionalLight key{};
-        key.direction = Vector3DBase<double>{-0.5, 0.7, -1.0};
-        rig.directional.push_back(key);
+        fb.clear(kRefClear);
         Rasterizer rz{fb};
-        ShadingContext ctx{&rig, app.camera().position,
-            app.fogEnabled() ? &fog : nullptr};
-        const auto viewProj = defaultViewProj(app);
-        const int grid = 10;
-        int drawn = 0;
-        SGE::Render::TileRenderer tiled{fb};
-        for(int gx = 0; gx < grid; gx++){
-            for(int gz = 0; gz < grid; gz++){
-                Object4D cube = app.cube();
-                const double cx = (gx - grid / 2.0 + 0.5) * 1.1;
-                const double cz = 2.5 + (gz - grid / 2.0 + 0.5) * 1.1;
-                auto cm = SGE::Math::translation(cx, -1.6, cz)
-                    .mul(SGE::Math::rotationY(app.angle() + gx + gz));
-                auto cnrm = SGE::Math::normalMatrix(cm);
-                auto ct = Pipeline::projectObject(cube, cm, viewProj, cnrm, 800, 600);
-                tiled.drawTextured(ct, app.checker(), &ctx);
-                drawn++;
+        static Object4D proto = SGE::Render::MakeSphere(1.0, 12, 8);
+        // reference: offsets {-18,-14..14}^2 gap4, size grows with id,
+        // red channel rises with id; model T(0,0,-3) scale 0.3
+        int id = 0;
+        for(int ox = -18; ox <= 14; ox += 4){
+            for(int oy = -18; oy <= 14; oy += 4){
+                if(id >= 100){ break; }
+                Object4D ball = proto;
+                auto bm = SGE::Math::translation(
+                    static_cast<double>(ox) * 0.3 + 1.0,
+                    static_cast<double>(oy) * 0.3 - 2.5, -3.0)
+                    .mul(SGE::Math::scale(0.3 * (id / 100.0 + 0.15),
+                                          0.3 * (id / 100.0 + 0.15),
+                                          0.3 * (id / 100.0 + 0.15)));
+                auto bnrm = SGE::Math::normalMatrix(bm);
+                auto bt = Pipeline::projectObject(ball, bm,
+                    refViewProj(app.camera()), bnrm, 800, 600);
+                const int rc = std::min(255, id * 5);
+                for(auto &t : bt){
+                    ScreenVertex r0 = t.v[0], r1 = t.v[1], r2 = t.v[2];
+                    r0.color = Color32{rc, 0, 0, 255};
+                    r1.color = Color32{rc, 0, 0, 255};
+                    r2.color = Color32{rc, 0, 0, 255};
+                    rz.drawTriangleWireframe(r0, r1, r2);
+                }
+                id++;
             }
         }
-        m_count = drawn;
     }
     void drawUi(Application &) override {
-        ImGui::Text("%d cubes reusing one mesh", m_count);
+        ImGui::Text("100 wireframe spheres, growing & reddening");
     }
-    int m_count{0};
-    const char *name() const override { return "100 Cubes Instancing"; }
+    const char *name() const override { return "Instanced Sphere Grid"; }
     const char *group() const override { return "Advanced"; }
 };
 

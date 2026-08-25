@@ -9,6 +9,7 @@ namespace SGE::Samples {
 
 class AmbientLightScene final : public IScene {
 public:
+    float m_lightColor[3]{1.0f, 1.0f, 1.0f};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
     }
@@ -18,9 +19,11 @@ public:
         Rasterizer rz{fb};
         // reference: FragColor = 0.2 * lightColor * objectColor (copper)
         static Object4D sphere = SGE::Render::MakeSphere(1.0, 36, 18);
-        Texture tint(1, 1, std::vector<uint32_t>{0xFF314D80}.data());
+        Texture tint(1, 1, std::vector<uint32_t>{0xFFFF7F4F}.data());
         LightingRig rig{};
         rig.ambient = 0.2f;
+        rig.ambientColor = ColorFlt{m_lightColor[0], m_lightColor[1],
+                                    m_lightColor[2], 1.0f};
         rig.directional.clear();
         rig.point.clear();
         ShadingContext ctx{&rig, refCamera().position};
@@ -34,7 +37,8 @@ public:
         drawLamp(app, rz, Vector3DBase<double>{1, 1, 1});
     }
     void drawUi(Application &) override {
-        ImGui::Text("0.2 * white * copper sphere");
+        ImGui::ColorEdit3("Light Color", m_lightColor);
+        ImGui::Text("0.2 * lightColor * copper sphere");
     }
     const char *name() const override { return "Ambient Light"; }
     const char *group() const override { return "Light"; }

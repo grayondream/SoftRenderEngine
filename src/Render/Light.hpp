@@ -25,6 +25,7 @@ struct SpotLight{
 
 struct LightingRig{
     float ambient{0.15f};
+    ColorFlt ambientColor{1.0f, 1.0f, 1.0f, 1.0f};
     float shininess{32.0f};
     float specularStrength{0.5f};
     std::vector<DirectionalLight> directional{};

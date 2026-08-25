@@ -26,7 +26,9 @@ uint32_t shade(const LightingRig &rig,
     const Vector3DBase<double> N = Nn.normalize();
     const Vector3DBase<double> V = Sub(viewPos, P).normalize();
 
-    double diffR = rig.ambient, diffG = rig.ambient, diffB = rig.ambient;
+    double diffR = rig.ambient * rig.ambientColor.r,
+        diffG = rig.ambient * rig.ambientColor.g,
+        diffB = rig.ambient * rig.ambientColor.b;
     double specR = 0, specG = 0, specB = 0;
 
     auto accum = [&](const Vector3DBase<double> &L, const ColorFlt &lc, double atten){

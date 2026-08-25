@@ -56,7 +56,7 @@ public:
         static Texture dog = SGE::Render::ImageLoader::loadTexture(
             "assets/textures/dog.jpg");
         Object4D cube = app.cube();
-        auto cm = SGE::Math::translation(0.0, 0.0, -4.0 + 4.0)
+        auto cm = SGE::Math::translation(0.0, 0.0, 0.0)
             .mul(SGE::Math::rotationY(M_PI / 4));
         auto cnrm = SGE::Math::normalMatrix(cm);
         auto ct = Pipeline::projectObject(cube, cm,

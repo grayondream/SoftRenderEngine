@@ -13,7 +13,7 @@ namespace SGE::Samples {
 class LoadModelScene final : public IScene {
 public:
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 0.5, 6.0, 0.0, -0.12);
+        resetCamera(app, 0.0, 0.5, 6.0, 3.14159265358979, -0.12);
         m_loaded = loadObjMultiMaterial(
             "assets/models/nanosuit/nanosuit.obj",
             m_chunks, m_faceMtl, m_mats);

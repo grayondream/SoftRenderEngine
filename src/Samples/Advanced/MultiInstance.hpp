@@ -25,12 +25,11 @@ public:
             for(int oy = -18; oy <= 14; oy += 4){
                 if(id >= 100){ break; }
                 Object4D ball = proto;
+                const double sc = 0.3 * id / 100.0;
                 auto bm = SGE::Math::translation(
-                    static_cast<double>(ox) * 0.3 + 1.0,
-                    static_cast<double>(oy) * 0.3 - 2.5, -3.0)
-                    .mul(SGE::Math::scale(0.3 * (id / 100.0 + 0.15),
-                                          0.3 * (id / 100.0 + 0.15),
-                                          0.3 * (id / 100.0 + 0.15)));
+                    static_cast<double>(ox), static_cast<double>(oy),
+                    -3.0)
+                    .mul(SGE::Math::scale(sc, sc, sc));
                 auto bnrm = SGE::Math::normalMatrix(bm);
                 auto bt = Pipeline::projectObject(ball, bm,
                     refViewProj(app.camera()), bnrm, g_renderW, g_renderH);

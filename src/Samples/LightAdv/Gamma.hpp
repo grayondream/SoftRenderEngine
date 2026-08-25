@@ -10,6 +10,7 @@ namespace SGE::Samples {
 
 class GammaScene final : public IScene {
 public:
+    bool m_gammaOn{true};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
     }
@@ -21,8 +22,8 @@ public:
             "assets/textures/wood.png");
         Rasterizer rz{fb};
         LightingRig rig{};
-        rig.ambient = 0.02f;
-        rig.specularStrength = 0.0f;
+        rig.ambient = 0.0f;
+        rig.specularStrength = m_gammaOn ? 1.0f : 1.0f;
         // reference: 5 point lights along x at y=0: red green white blue yellow
         static const ColorFlt cols[5] = {
             ColorFlt{1,0,0}, ColorFlt{0,1,0}, ColorFlt{1,1,1},
@@ -35,6 +36,7 @@ public:
             rig.point.push_back(p);
         }
         ShadingContext ctx{&rig, app.camera().position};
+        ctx.gammaValue = m_gammaOn ? 2.2 : 1.0;
         auto fpv = refPlane(Color32{120,120,120,255});
         auto fpm = SGE::Math::translation(0.0, 0.5, 2.0);
         auto fpnrm = SGE::Math::normalMatrix(fpm);

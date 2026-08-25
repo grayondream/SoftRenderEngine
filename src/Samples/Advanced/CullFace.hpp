@@ -22,7 +22,7 @@ public:
         rz.cullBackface = m_cull;
         // reference: T(0,0,-4) RotX45 RotY45 scale 2
         Object4D cube = app.cube();
-        auto cm = SGE::Math::translation(0.0, 0.0, -4.0 + 3.0)
+        auto cm = SGE::Math::translation(0.0, 0.0, -4.0)
             .mul(SGE::Math::rotationX(M_PI / 4))
             .mul(SGE::Math::rotationY(M_PI / 4));
         auto cnrm = SGE::Math::normalMatrix(cm);

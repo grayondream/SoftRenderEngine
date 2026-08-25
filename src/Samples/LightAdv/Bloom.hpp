@@ -35,9 +35,9 @@ public:
         for(const auto &l : ls){
             PointLight p{};
             p.position = Vector3DBase<double>{l.x, l.y, l.z};
-            p.color = ColorFlt{std::min(10.0f, l.r) / 8,
-                               std::min(10.0f, l.g) / 8,
-                               std::min(10.0f, l.b) / 8};
+            p.color = ColorFlt{std::min(15.0f, l.r) / 5,
+                               std::min(15.0f, l.g) / 5,
+                               std::min(15.0f, l.b) / 5};
             p.range = 60.0;
             rig.point.push_back(p);
         }
@@ -64,8 +64,24 @@ public:
             tiled.drawTextured(Pipeline::projectObject(cube, cm,
                 vp, cnrm, g_renderW, g_renderH), wood, &ctx);
         }
-        for(const auto &l : ls){
-            drawLamp(app, rz, Vector3DBase<double>{l.x, l.y, l.z}, 0.25);
+        {
+            Object4D lampCube = unitCube(app);
+            for(const auto &l : ls){
+                auto lm = SGE::Math::translation(l.x, l.y, l.z)
+                    .mul(SGE::Math::scale(0.25, 0.25, 0.25));
+                auto ln = SGE::Math::normalMatrix(lm);
+                auto lt = Pipeline::projectObject(lampCube, lm,
+                    vp, ln, g_renderW, g_renderH);
+                const Color32 lc{
+                    static_cast<int32_t>(std::min(255.0f, l.r * 40)),
+                    static_cast<int32_t>(std::min(255.0f, l.g * 40)),
+                    static_cast<int32_t>(std::min(255.0f, l.b * 40)), 255};
+                for(auto &t : lt){
+                    t.v[0].color = lc; t.v[1].color = lc;
+                    t.v[2].color = lc;
+                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
+                }
+            }
         }
         if(m_bloomEnabled){
             // extract at half resolution then upsample-additive
@@ -109,6 +125,22 @@ public:
                 }
             }
             SGE::Render::AdditiveBlend(fb, brightFull);
+        }
+        // reference Final.fs: 1-exp(-c*exposure) then gamma
+        for(std::size_t y2 = 0; y2 < static_cast<std::size_t>(g_renderH); y2++){
+            for(std::size_t x2 = 0; x2 < static_cast<std::size_t>(g_renderW); x2++){
+                const uint32_t c =
+                    fb.colorData()[y2 * static_cast<std::size_t>(g_renderW) + x2];
+                auto tm = [](double ch){
+                    return static_cast<uint32_t>(
+                        std::pow(std::clamp(
+                            1.0 - std::exp(-(ch / 255.0)), 0.0, 1.0),
+                            1.0 / 2.2) * 255.0 + 0.5);
+                };
+                fb.setPixel(x2, y2,
+                    0xFF000000u | (tm((c >> 16) & 0xFF) << 16)
+                    | (tm((c >> 8) & 0xFF) << 8) | tm(c & 0xFF), -2.0f);
+            }
         }
     }
     void drawUi(Application &) override {

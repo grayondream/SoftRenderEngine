@@ -138,6 +138,47 @@ uint32_t pbrShade(const LightingRig &rig,
         lb += dl.color.b * kd * NoL * shadowFactor;
     }
 
+    // point lights: radiance = color / d^2 (reference PBR.fs)
+    for(const auto &pl : rig.point){
+        const Vector3DBase<double> Lv{pl.position.x - P.x,
+            pl.position.y - P.y, pl.position.z - P.z};
+        const double dist2 = Lv.dot(Lv);
+        if(dist2 < 1e-6 || dist2 > pl.range * pl.range) continue;
+        const double dist = std::sqrt(dist2);
+        const Vector3DBase<double> L = Scale(Lv, 1.0 / dist);
+        const double NoL = std::max(0.0, N.dot(L));
+        if(NoL <= 0) continue;
+        const auto Hv = Vector3DBase<double>{L.x+V.x, L.y+V.y,
+            L.z+V.z}.normalize();
+        const double NoH = std::max(0.0, N.dot(Hv));
+        const double VoH = std::max(0.0, V.dot(Hv));
+
+        const double F0m = 0.04;
+        double Fr = F0m + (mat.baseColor.r / 255.0 - F0m) * mat.metallic;
+        double Fg = F0m + (mat.baseColor.g / 255.0 - F0m) * mat.metallic;
+        double Fb = F0m + (mat.baseColor.b / 255.0 - F0m) * mat.metallic;
+
+        const double D = D_GGX(NoH, a);
+        const double G = G_Smith(NoV, NoL, a);
+        // Schlick fresnel with VoH (reference fresnelSchlick)
+                Fr = F0m + (Fr - F0m) * std::pow(1.0 - VoH, 5.0);
+        Fg = F0m + (Fg - F0m) * std::pow(1.0 - VoH, 5.0);
+        Fb = F0m + (Fb - F0m) * std::pow(1.0 - VoH, 5.0);
+        const double radiance =
+            static_cast<double>(pl.color.r + pl.color.g + pl.color.b)
+            / 3.0 / dist2;
+        specR += radiance * shadowFactor * D * G
+               / std::max(1e-6, 4.0 * NoV * NoL) * Fr;
+        specG += radiance * shadowFactor * D * G
+               / std::max(1e-6, 4.0 * NoV * NoL) * Fg;
+        specB += radiance * shadowFactor * D * G
+               / std::max(1e-6, 4.0 * NoV * NoL) * Fb;
+        const double kd = (1.0 - mat.metallic) * (1.0 - Fr);
+        lr += pl.color.r / 255.0 * radiance * kd * NoL * shadowFactor;
+        lg += pl.color.g / 255.0 * radiance * kd * NoL * shadowFactor;
+        lb += pl.color.b / 255.0 * radiance * kd * NoL * shadowFactor;
+    }
+
     // analytic image-based approximation: hemispheric irradiance + roughened specular
     const Color32 skyN = SGE::Render::SampleEnvironment(N);
     const double ambKd = (1.0 - mat.metallic);
@@ -148,16 +189,17 @@ uint32_t pbrShade(const LightingRig &rig,
     specG += skyN.g / 255.0 * mat.metallic * (1.0 - a) * rig.ambient;
     specB += skyN.b / 255.0 * mat.metallic * (1.0 - a) * rig.ambient;
 
-    auto chBase = [&](int baseC, double lightSum){
-        double s = baseC / 255.0 * lightSum;
-        s *= 255.0;
-        if(!(s >= 0)) s = 0;
-        else if(s > 255) s = 255;
-        return static_cast<uint32_t>(s);
+    // reference: linear HDR-ish sum then Reinhard tonemap + gamma 2.2
+    auto chFinal = [&](int baseC, double lightSum, double specSum){
+        double lin = baseC / 255.0 * lightSum + specSum;
+        lin = lin / (lin + 1.0);                       // Reinhard
+        lin = std::pow(std::clamp(lin, 0.0, 1.0), 1.0 / 2.2);
+        return static_cast<uint32_t>(std::min(
+            255.0, std::max(0.0, lin * 255.0)));
     };
-    const uint32_t outR = chBase(mat.baseColor.r, lr) + static_cast<uint32_t>(std::min(255.0, specR * 255.0));
-    const uint32_t outG = chBase(mat.baseColor.g, lg) + static_cast<uint32_t>(std::min(255.0, specG * 255.0));
-    const uint32_t outB = chBase(mat.baseColor.b, lb) + static_cast<uint32_t>(std::min(255.0, specB * 255.0));
+    const uint32_t outR = chFinal(mat.baseColor.r, lr, specR);
+    const uint32_t outG = chFinal(mat.baseColor.g, lg, specG);
+    const uint32_t outB = chFinal(mat.baseColor.b, lb, specB);
     return 0xFF000000u | (std::min(outR, 255u) << 16) |
            (std::min(outG, 255u) << 8) | std::min(outB, 255u);
 }

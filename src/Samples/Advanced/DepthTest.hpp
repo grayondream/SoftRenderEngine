@@ -62,8 +62,7 @@ public:
                 }
             }
         }
-        // reference: output is linearized depth grayscale
-        if(!m_depthView){ return; }
+
     }
     void drawUi(Application &) override {
         ImGui::Checkbox("Depth Grayscale", &m_depthView);

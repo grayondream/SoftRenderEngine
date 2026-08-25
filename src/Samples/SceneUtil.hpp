@@ -101,7 +101,8 @@ inline Object4D makePlane(double halfSize, double y,
 inline constexpr uint32_t kRefClear = 0xFF1A1A1Au;  // (0.1,0.1,0.1)
 
 inline SGE::Render::Camera refCamera(double x = 0, double y = 0, double z = 3,
-                                     double yaw = 0, double pitch = 0){
+                                     double yaw = 3.14159265358979,
+                                     double pitch = 0){
     SGE::Render::Camera cam{};
     cam.position = Vector3DBase<double>{x, y, z};
     cam.yaw = yaw;
@@ -112,7 +113,8 @@ inline SGE::Render::Camera refCamera(double x = 0, double y = 0, double z = 3,
 // Reset the global (user-controlled) camera to a reference pose on scene
 // switch, mirroring how each GL sample initializes its own camera.
 inline void resetCamera(Application &app, double x = 0, double y = 0,
-                        double z = 3, double yaw = 0, double pitch = 0){
+                        double z = 3, double yaw = 3.14159265358979,
+                        double pitch = 0){
     app.camera().position = Vector3DBase<double>{x, y, z};
     app.camera().yaw = yaw;
     app.camera().pitch = pitch;

@@ -52,7 +52,10 @@ public:
         const auto vp = refViewProj(app.camera());
         for(int row = -2; row <= 2; row++){
             for(int col = -2; col <= 2; col++){
+                int idx = (row + 2) * 5 + (col + 2);
                 PbrMaterial mat{};
+                const int rr = std::min(255, idx * 255 / 25);
+                mat.baseColor = Color32{rr, 0, 0, 255};
                 mat.metallic = app.pbrMetallic();
                 mat.roughness = std::max(0.05f, app.pbrRoughness());
                 ctx.pbr = &mat;

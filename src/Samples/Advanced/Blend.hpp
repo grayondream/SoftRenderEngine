@@ -49,7 +49,7 @@ private:
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,
             vp, fpnrm, g_renderW, g_renderH), metal, &ctx);
         for(const auto &c : cubes){
-            auto cm = SGE::Math::translation(c.x, c.y + 0.5, c.z);
+            auto cm = SGE::Math::translation(c.x, c.y, c.z);
             auto cnrm = SGE::Math::normalMatrix(cm);
             tiled.drawTextured(Pipeline::projectObject(cube, cm,
                 vp, cnrm, g_renderW, g_renderH), marble, &ctx);
@@ -61,7 +61,7 @@ private:
         struct Win{ double x, y, z; };
         std::vector<Win> ws;
         for(int i = 0; i < m_winCount; i++){
-            ws.push_back(Win{wins[i][0], wins[i][1] + 0.5, wins[i][2]});
+            ws.push_back(Win{wins[i][0], wins[i][1], wins[i][2]});
         }
         const auto eye = app.camera().position;
         std::sort(ws.begin(), ws.end(), [&](const Win &a, const Win &b){

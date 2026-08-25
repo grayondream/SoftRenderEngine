@@ -532,6 +532,16 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                     shaded = 0xFF000000u | (outR << 16) | (outG << 8) | outB;
                 }
             }
+            if(shading && shading->gammaValue > 1.001){
+                const double gInv = 1.0 / shading->gammaValue;
+                auto ga = [gInv](uint32_t ch){
+                    return static_cast<uint32_t>(
+                        std::pow(ch / 255.0, gInv) * 255.0 + 0.5);
+                };
+                shaded = 0xFF000000u | (ga((shaded >> 16) & 0xFF) << 16)
+                    | (ga((shaded >> 8) & 0xFF) << 8)
+                    | ga(shaded & 0xFF);
+            }
             m_fb.blendPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
                             shaded, zNdc);
         }

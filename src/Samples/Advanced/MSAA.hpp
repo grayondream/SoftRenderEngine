@@ -22,7 +22,7 @@ public:
             "assets/textures/dog.jpg");
         Rasterizer rz{fb};
         Object4D cube = app.cube();
-        auto cm = SGE::Math::translation(0.0, 0.0, -4.0 + 4.0)
+        auto cm = SGE::Math::translation(0.0, 0.0, 0.0)
             .mul(SGE::Math::rotationX(M_PI / 4))
             .mul(SGE::Math::rotationY(M_PI / 4));
         auto cnrm = SGE::Math::normalMatrix(cm);

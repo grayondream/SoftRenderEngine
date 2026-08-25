@@ -18,7 +18,7 @@ public:
         fb.clear(kRefClear);
         Rasterizer rz{fb};
         static Object4D sphere = SGE::Render::MakeSphere(1.0, 20, 12);
-        auto sm = SGE::Math::translation(0.0, 0.8, -3.0 + 3.0)
+        auto sm = SGE::Math::translation(0.0, 0.0, -3.0)
             .mul(SGE::Math::scale(2.0, 2.0, 2.0));
         auto snrm = SGE::Math::normalMatrix(sm);
         const auto vp = refViewProj(app.camera());

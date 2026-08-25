@@ -28,9 +28,9 @@ public:
         const double off = 0.2;   // house half-size in NDC
         for(int i = 0; i < 4; i++){
             const auto [cxn, cyn] = ndc(pts[i][0], pts[i][1]);
-            const double ox = off * 800.0;
-            const double oy = off * 600.0;
-            const double roof = 0.2 * oy;
+            const double ox = off * 400.0;
+            const double oy = off * 300.0;
+            const double roof = off * 300.0;
             ScreenVertex bl{cxn - ox, cyn + oy, 0.5f, 1};
             ScreenVertex br{cxn + ox, cyn + oy, 0.5f, 1};
             ScreenVertex tl{cxn - ox, cyn - oy, 0.5f, 1};

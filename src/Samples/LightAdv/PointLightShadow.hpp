@@ -48,7 +48,7 @@ private:
         auto &fb = app.framebuffer();
         auto rig = makeDefaultRig();
         rig.ambient = 0.3f;
-        rig.specularStrength = 0.4f;
+        rig.specularStrength = 1.0f;
         rig.shininess = 64.0f;
         const double ang = app.angle();
 
@@ -72,21 +72,21 @@ private:
 
         // point light oscillates along z (reference z = sin(t) * 10)
         const Vector3DBase<double> lightPos{0.0, 1.2,
-            2.5 + 4.0 * std::sin(ang)};
+            2.5 + 10.0 * std::sin(ang)};
         PointLight pl{};
         pl.position = lightPos;
-        pl.color = ColorFlt{1.0f, 0.96f, 0.88f};
-        pl.range = 60.0;
+        pl.color = ColorFlt{1.0f, 1.0f, 1.0f};
+        pl.range = 100.0;
         rig.point.push_back(pl);
 
         struct Obstacle{ double x, y, z, s; };
         // reference cube array
         static const Obstacle obs[5] = {
-            {4.0 * 0.35, -3.5 * 0.25 + 1.6, 0.0 + 2.5, 0.5},
-            {2.0 * 0.35, 3.0 * 0.25 + 1.6, 1.0 + 2.5, 0.75},
-            {-3.0 * 0.35, -1.0 * 0.25 + 1.6, 0.0 + 2.5, 0.5},
-            {-1.5 * 0.35, 1.0 * 0.25 + 1.6, 1.5 + 2.5, 0.5},
-            {-1.5 * 0.35, 2.0 * 0.25 + 1.6, -3.0 + 2.5, 0.75}};
+            {4.0, -3.5, 2.5, 0.5},
+            {2.0, 3.0, 3.5, 0.75},
+            {-3.0, -1.0, 2.5, 0.5},
+            {-1.5, 1.0, 4.0, 0.5},
+            {-1.5, 2.0, -0.5, 0.75}};
 
         static FrameBuffer faces[6] = {
             FrameBuffer{256, 256}, FrameBuffer{256, 256},

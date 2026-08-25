@@ -56,6 +56,7 @@ struct ShadingContext{
     Vector3DBase<double> tangentV{0, 1, 0};
     const SGE::Render::HDRImage *iblEquirect{};
     const std::vector<SGE::Render::HDRImage> *iblSpecMips{};
+    double gammaValue{1.0};
 };
 
 struct ScreenRect{

@@ -189,7 +189,7 @@ inline void drawLamp(Application &app, Rasterizer &rz,
     auto lm = SGE::Math::translation(pos.x, pos.y, pos.z);
     auto lnrm = SGE::Math::normalMatrix(lm);
     auto lt = Pipeline::projectObject(lamp, lm,
-        defaultViewProj(app), lnrm, 800, 600);
+        defaultViewProj(app), lnrm, g_renderW, g_renderH);
     for(auto &t : lt){
         if(emissiveWhite){
             t.v[0].color = color; t.v[1].color = color; t.v[2].color = color;

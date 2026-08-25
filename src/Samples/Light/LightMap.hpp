@@ -28,6 +28,7 @@ public:
         rig.shininess = 1.0f;
         PointLight p{};
         p.position = lp;
+        p.color = ColorFlt{0.6f, 0.6f, 0.6f, 1.0f};
         p.range = 100.0;
         rig.point.push_back(p);
         ShadingContext ctx{&rig, refCamera().position};

@@ -30,7 +30,7 @@ public:
         rig.shininess = 32.0f;
         DirectionalLight key{};
         key.direction = Vector3DBase<double>{-0.2, -1.0, -0.3};
-        key.color = ColorFlt{1, 1, 1};
+        key.color = ColorFlt{0.5f, 0.5f, 0.5f, 1.0f};
         rig.directional.push_back(key);
         ShadingContext ctx{&rig, refCamera().position};
         ctx.specTex = &specular;

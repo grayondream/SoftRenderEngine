@@ -51,9 +51,16 @@ uint32_t shade(const LightingRig &rig,
         accum(dl.direction.normalize(), dl.color, 1.0);
     }
     for(const auto &pl : rig.point){
-        if(pl.range <= 0) continue;
         const Vector3DBase<double> diff = Sub(pl.position, P);
-        const double atten = Clamp01(1.0 - diff.length() / pl.range);
+        const double dist = diff.length();
+        double atten;
+        if(pl.quadratic > 0 || pl.linear > 0){
+            // reference constant(1)/linear/quadratic attenuation
+            atten = 1.0 / (1.0 + pl.linear * dist + pl.quadratic * dist * dist);
+        }else{
+            if(pl.range <= 0) continue;
+            atten = Clamp01(1.0 - dist / pl.range);
+        }
         if(atten <= 0) continue;
         accum(diff.normalize(), pl.color, atten);
     }
@@ -61,14 +68,28 @@ uint32_t shade(const LightingRig &rig,
     for(const auto &sl : rig.spot){
         const Vector3DBase<double> diff = Sub(sl.position, P);
         const double dist = diff.length();
-        if(dist > sl.range || dist < 1e-9) continue;
-        const double atten = Clamp01(1.0 - dist / sl.range);
+        if(dist < 1e-9) continue;
+        double atten;
+        if(sl.outerCutoffCos > -0.999 || sl.range <= 0){
+            // reference constant(1)/linear/quadratic falloff
+            atten = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+        }else{
+            atten = Clamp01(1.0 - dist / sl.range);
+        }
         if(atten <= 0) continue;
         const Vector3DBase<double> L = Scale(diff, 1.0 / dist);
         const double cosAng = L.dot(Scale(sl.direction.normalize(), -1.0));
-        if(cosAng < sl.cutoffCos) continue;
-        const double edge = Clamp01((cosAng - sl.cutoffCos) / std::max(1e-4, 1.0 - sl.cutoffCos));
-        accum(L, sl.color, atten * edge * edge);
+        double edge;
+        if(sl.outerCutoffCos > -0.999 && sl.outerCutoffCos > sl.cutoffCos){
+            // smooth falloff between inner and outer cone
+            edge = Clamp01((cosAng - sl.outerCutoffCos)
+                / std::max(1e-4, sl.cutoffCos - sl.outerCutoffCos));
+        }else{
+            if(cosAng < sl.cutoffCos) continue;
+            edge = Clamp01((cosAng - sl.cutoffCos)
+                / std::max(1e-4, 1.0 - sl.cutoffCos));
+        }
+        accum(L, sl.color, atten * (edge * (2.0 - edge)));
     }
 
     auto ch = [](double albedoC, double lightSum, double specSum) -> uint32_t {

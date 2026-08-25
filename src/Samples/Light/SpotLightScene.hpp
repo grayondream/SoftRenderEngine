@@ -33,6 +33,8 @@ public:
         spot.position = lp;
         spot.direction = Vector3DBase<double>{0.0, 0.0, -1.0};
         spot.cutoffCos = std::cos(12.5 * M_PI / 180.0);
+        spot.outerCutoffCos = std::cos(17.5 * M_PI / 180.0);
+        spot.color = ColorFlt{0.5f, 0.5f, 0.5f, 1.0f};
         spot.range = 60.0;
         rig.spot.push_back(spot);
         ShadingContext ctx{&rig, refCamera().position};

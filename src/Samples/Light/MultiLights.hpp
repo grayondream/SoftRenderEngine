@@ -26,17 +26,19 @@ public:
         LightingRig rig{};
         // dir + 4 points + spot (reference LightSourceMult)
         rig.ambient = 0.05f;
-        rig.specularStrength = 1.0f;
+        rig.specularStrength = 0.5f;
         rig.shininess = 1.0f;
         DirectionalLight key{};
         key.direction = Vector3DBase<double>{-0.2, -1.0, -0.3};
-        key.color = ColorFlt{1, 1, 1};
+        key.color = ColorFlt{0.4f, 0.4f, 0.4f, 1.0f};
         rig.directional.push_back(key);
         const double pts[4][3] = {{0,0,-7},{2,2,-10},{-2,-2,-8},{1,0,-9}};
         for(int i = 0; i < 4; i++){
             PointLight p{};
             p.position = Vector3DBase<double>{pts[i][0], pts[i][1], pts[i][2]};
-            p.color = ColorFlt{1, 1, 1};
+            p.color = ColorFlt{0.8f, 0.8f, 0.8f, 1.0f};
+            p.linear = 0.09;
+            p.quadratic = 0.032;
             p.range = 30.0;
             rig.point.push_back(p);
         }
@@ -44,6 +46,7 @@ public:
         spot.position = Vector3DBase<double>{0, 0, -5};
         spot.direction = Vector3DBase<double>{0, 0, -1};
         spot.cutoffCos = std::cos(12.5 * M_PI / 180.0);
+        spot.outerCutoffCos = std::cos(15.0 * M_PI / 180.0);
         spot.range = 40.0;
         rig.spot.push_back(spot);
         ShadingContext ctx{&rig, refCamera().position};

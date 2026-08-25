@@ -17,7 +17,7 @@ public:
         fb.clear(kRefClear);
         Rasterizer rz{fb};
         static Object4D sphere = SGE::Render::MakeSphere(1.0, 36, 18);
-        Texture tint(1, 1, std::vector<uint32_t>{0xFF314D80}.data());
+        Texture tint(1, 1, std::vector<uint32_t>{0xFFFF7F4F}.data());
         const Vector3DBase<double> lp{1.0, 1.0, 1.5};
         LightingRig rig{};
         rig.ambient = 0.3f;

@@ -6,21 +6,24 @@
 
 struct DirectionalLight{
     Vector3DBase<double> direction;
-    ColorFlt color;
+    ColorFlt color{1.0f, 1.0f, 1.0f, 1.0f};
 };
 
 struct PointLight{
     Vector3DBase<double> position;
-    ColorFlt color;
+    ColorFlt color{1.0f, 1.0f, 1.0f, 1.0f};
+    double linear{0.0};
+    double quadratic{0.0};
     double range{10.0};
 };
 
 struct SpotLight{
     Vector3DBase<double> position;
     Vector3DBase<double> direction;
-    ColorFlt color;
+    ColorFlt color{1.0f, 1.0f, 1.0f, 1.0f};
     double range{12.0};
     double cutoffCos{0.85};
+    double outerCutoffCos{-1.0};
 };
 
 struct LightingRig{

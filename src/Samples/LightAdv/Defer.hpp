@@ -32,24 +32,51 @@ public:
             {
                 Rasterizer arz{albedoFb};
                 Rasterizer nrz{normalFb};
+                auto drawBoth = [&](const std::vector<Pipeline::ScreenTriangle> &tris,
+                                    const Color32 &albedo){
+                    for(auto &t : tris){
+                        ScreenVertex a = t.v[0], b2 = t.v[1],
+                                     c2 = t.v[2];
+                        a.color = albedo; b2.color = albedo;
+                        c2.color = albedo;
+                        arz.drawTriangleSolid(a, b2, c2);
+                        auto enc = [](const ScreenVertex &sv){
+                            return Color32{
+                                static_cast<int32_t>(
+                                    (sv.nx * 0.5 + 0.5) * 255),
+                                static_cast<int32_t>(
+                                    (sv.ny * 0.5 + 0.5) * 255),
+                                static_cast<int32_t>(
+                                    (sv.nz * 0.5 + 0.5) * 255), 255};
+                        };
+                        a.color = enc(t.v[0]);
+                        b2.color = enc(t.v[1]);
+                        c2.color = enc(t.v[2]);
+                        nrz.drawTriangleSolid(a, b2, c2);
+                    }
+                };
+                // brick floor
+                Object4D ground = refPlane(
+                    Color32{150, 90, 60, 255});
+                std::snprintf(ground.name, sizeof(ground.name),
+                              "%s", "ground");
                 auto gm = SGE::Math::translation(0.0, -0.5, -2.0);
                 auto gnrm = SGE::Math::normalMatrix(gm);
-                auto gt = Pipeline::projectObject(ground, gm,
-                    vp, gnrm, g_renderW, g_renderH);
-                for(auto &t : gt){
-                    ScreenVertex a = t.v[0], b2 = t.v[1], c2 = t.v[2];
-                    a.color = Color32{150, 90, 60, 255};
-                    b2.color = a.color; c2.color = a.color;
-                    arz.drawTriangleSolid(a, b2, c2);
-                    auto enc = [](const ScreenVertex &sv){
-                        return Color32{
-                            static_cast<int32_t>((sv.nx * 0.5 + 0.5) * 255),
-                            static_cast<int32_t>((sv.ny * 0.5 + 0.5) * 255),
-                            static_cast<int32_t>((sv.nz * 0.5 + 0.5) * 255),
-                            255};
-                    };
-                    a.color = enc(a); b2.color = enc(b2); c2.color = enc(c2);
-                    nrz.drawTriangleSolid(a, b2, c2);
+                drawBoth(Pipeline::projectObject(ground, gm,
+                    vp, gnrm, g_renderW, g_renderH),
+                    Color32{150, 90, 60, 255});
+                // reference: 100 wood cubes 10x10 gap1 S0.1
+                Object4D cubeProto = unitCube(app);
+                for(int cx2 = 0; cx2 < 10; cx2++){
+                    for(int cz2 = 0; cz2 < 10; cz2++){
+                        auto cm = SGE::Math::translation(
+                            cx2 - 4.5, 0.5, cz2 - 4.5 - 2.0)
+                            .mul(SGE::Math::scale(0.1, 0.1, 0.1));
+                        auto cnrm = SGE::Math::normalMatrix(cm);
+                        drawBoth(Pipeline::projectObject(cubeProto,
+                            cm, vp, cnrm, g_renderW, g_renderH),
+                            Color32{180, 140, 90, 255});
+                    }
                 }
             }
         };

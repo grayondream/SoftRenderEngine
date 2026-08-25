@@ -25,9 +25,10 @@ public:
             for(int k = 0; k < 3; k++){
                 const auto &v = poly.vlist[k];
                 poly.color = Color32{
-                    static_cast<int32_t>((v.x / 2.0 + 0.5) * 255.0),
-                    static_cast<int32_t>((v.y / 2.0 + 0.5) * 255.0),
-                    static_cast<int32_t>((v.z / 4.0 + 0.25) * 255.0), 255};
+                    static_cast<int32_t>(((v.x / 2.0) / 2.0 + 0.5) * 255.0),
+                    static_cast<int32_t>(((v.y / 2.0) / 2.0 + 0.5) * 255.0),
+                    static_cast<int32_t>(((v.z / 2.0) / 2.0 + 0.5) * 255.0),
+                    255};
             }
         }
         const double mag = 2.0 * ((std::sin(app.angle()) + 1.0) / 2.0);

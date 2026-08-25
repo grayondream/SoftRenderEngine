@@ -110,8 +110,14 @@ void Rasterizer::drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v
     bool tl1 = IsTopLeftEdge(v2.x,v2.y, v0.x,v0.y);
     bool tl2 = IsTopLeftEdge(v0.x,v0.y, v1.x,v1.y);
 
-    uint32_t packed = PackBGRA(v0.color);
     constexpr double eps = 1e-9;
+    const auto c0 = v0.color;
+    const auto c1 = v1.color;
+    const auto c2 = v2.color;
+    const bool flatColor =
+        c0.r == c1.r && c0.g == c1.g && c0.b == c1.b &&
+        c1.r == c2.r && c1.g == c2.g && c1.b == c2.b;
+    const uint32_t packedFlat = PackBGRA(c0);
 
     for(int y = y0; y <= y1; y++){
         for(int x = x0; x <= x1; x++){
@@ -130,6 +136,23 @@ void Rasterizer::drawTriangleSolid(const ScreenVertex &v0, const ScreenVertex &v
             if(iw <= 0) continue;
             float zNdc = static_cast<float>(
                 (w0*v0.z/v0.w + w1*v1.z/v1.w + w2*v2.z/v2.w) / iw);
+
+            uint32_t packed = packedFlat;
+            if(!flatColor){
+                // screen-space affine vertex-color interpolation
+                const int ir = std::min(255, std::max(0,
+                    static_cast<int>(w0 * c0.r + w1 * c1.r + w2 * c2.r)));
+                const int ig = std::min(255, std::max(0,
+                    static_cast<int>(w0 * c0.g + w1 * c1.g + w2 * c2.g)));
+                const int ib = std::min(255, std::max(0,
+                    static_cast<int>(w0 * c0.b + w1 * c1.b + w2 * c2.b)));
+                const int ia = std::min(255, std::max(0,
+                    static_cast<int>(w0 * c0.a + w1 * c1.a + w2 * c2.a)));
+                packed = (static_cast<uint32_t>(ia) << 24)
+                    | (static_cast<uint32_t>(ir) << 16)
+                    | (static_cast<uint32_t>(ig) << 8)
+                    | static_cast<uint32_t>(ib);
+            }
 
             m_fb.blendPixel(static_cast<std::size_t>(x), static_cast<std::size_t>(y),
                             packed, zNdc);

@@ -3,8 +3,6 @@
 #include "../SceneUtil.hpp"
 #include "Render/ImageLoader.hpp"
 
-#include <cmath>
-
 namespace SGE::Samples {
 
 class SimpleTextureScene final : public IScene {
@@ -15,34 +13,28 @@ public:
         Rasterizer rz{fb};
         static Texture dog = SGE::Render::ImageLoader::loadTexture(
             "assets/textures/dog.jpg");
-        // fullscreen-center quad via NDC rect with flipped V (image loaded top-down)
-        Object4D plane{};
-        std::snprintf(plane.name, sizeof(plane.name), "%s", "quad");
-        Point4D pv[4] = {{-0.475,-0.633,0,1},{0.475,-0.633,0,1},
-                         {0.475,0.633,0,1},{-0.475,0.633,0,1}};
-        for(int i = 0; i < 4; i++){ plane.vlistLocal[i] = pv[i]; }
-        plane.numVertices = 4;
-        plane.numPolys = 2;
-        const int idx[2][3] = {{0,1,2},{0,2,3}};
-        const UV2D uvq[4] = {{0,1},{1,1},{1,0},{0,0}};
-        for(int k = 0; k < 2; k++){
-            for(int m = 0; m < 3; m++){
-                plane.plist[k].vlist[m] = pv[idx[k][m]];
-                plane.plist[k].uvlist[m] = uvq[idx[k][m]];
-                plane.plist[k].nlist[m] = Vector3DBase<double>{0, 0, -1};
-            }
-            plane.plist[k].color = Color32{255,255,255,255};
-        }
-        auto pm = SGE::Math::translation(0.0, 0.0, 0.0);
-        auto pt = Pipeline::projectObject(plane, pm,
-            SGE::Math::perspective(M_PI / 3, static_cast<double>(g_renderW) / g_renderH, 0.01, 10.0)
-                .mul(refCamera().viewMatrix()),
-            SGE::Math::normalMatrix(pm), g_renderW, g_renderH);
-        for(auto &t : pt){
-            rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
-                                    dog, nullptr, TextureFilter::Bilinear,
-                                    TextureWrap::Clamp);
-        }
+        // reference: NDC quad drawn directly (no projection), centered,
+        // spanning most of the viewport, image upright
+        const double hw = g_renderW * 0.42;
+        const double hh = g_renderH * 0.42;
+        const double cx = g_renderW * 0.5;
+        const double cy = g_renderH * 0.5;
+        ScreenVertex TR{cx + hw, cy - hh, 0.5f, 1};
+        ScreenVertex BR{cx + hw, cy + hh, 0.5f, 1};
+        ScreenVertex BL{cx - hw, cy + hh, 0.5f, 1};
+        ScreenVertex TL{cx - hw, cy - hh, 0.5f, 1};
+        // UV: top-left of image at TL (flip V because loader stores top-down)
+        TR.u = 1; TR.v = 1;
+        BR.u = 1; BR.v = 0;
+        BL.u = 0; BL.v = 0;
+        TL.u = 0; TL.v = 1;
+        const Color32 white{255, 255, 255, 255};
+        TR.color = white; BR.color = white;
+        BL.color = white; TL.color = white;
+        rz.drawTriangleTextured(TL, BL, BR, dog, nullptr,
+                                TextureFilter::Bilinear, TextureWrap::Clamp);
+        rz.drawTriangleTextured(BR, TL, BL, dog, nullptr,
+                                TextureFilter::Bilinear, TextureWrap::Clamp);
     }
     void drawUi(Application &) override {
         ImGui::Text("dog.jpg centered, unlit");

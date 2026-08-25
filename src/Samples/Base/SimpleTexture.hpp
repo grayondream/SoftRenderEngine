@@ -33,7 +33,7 @@ public:
         BL.color = white; TL.color = white;
         rz.drawTriangleTextured(TL, BL, BR, dog, nullptr,
                                 TextureFilter::Bilinear, TextureWrap::Clamp);
-        rz.drawTriangleTextured(BR, TL, BL, dog, nullptr,
+        rz.drawTriangleTextured(BR, TR, TL, dog, nullptr,
                                 TextureFilter::Bilinear, TextureWrap::Clamp);
     }
     void drawUi(Application &) override {

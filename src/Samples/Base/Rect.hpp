@@ -31,7 +31,7 @@ public:
         BL.color = Color32{0, 255, 0, 255};
         TL.color = Color32{255, 255, 255, 255};
         rz.drawTriangleSolid(TR, BR, BL);
-        rz.drawTriangleSolid(BR, TL, BL);
+        rz.drawTriangleSolid(TR, BL, TL);
     }
     void drawUi(Application &) override {
         ImGui::Text("four-corner gradient quad");

@@ -20,7 +20,7 @@ public:
         const int count = 5;
         const double t = app.angle();
         const Vector3DBase<double> lp{5.0 * std::sin(t), 0.0, 5.0 * std::cos(t)};
-        auto cam = refCamera(0, 0, 6);
+        const auto &cam = app.camera();
         const auto vp = refViewProj(cam);
         Texture tint(1, 1, std::vector<uint32_t>{0xFFFF7F4F}.data());
         for(int i = 0; i < count; i++){

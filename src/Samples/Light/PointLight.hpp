@@ -36,10 +36,10 @@ public:
         p.quadratic = 0.032;
         p.range = 40.0;
         rig.point.push_back(p);
-        ShadingContext ctx{&rig, refCamera().position};
+        ShadingContext ctx{&rig, app.camera().position};
         ctx.specTex = &specular;
         SGE::Render::TileRenderer tiled{fb};
-        const auto vp = refViewProj(refCamera());
+        const auto vp = refViewProj(app.camera());
         const double rotA = t;  // radians(20 * time)
         int drawn = 0;
         for(int gi = 0; gi < 5 && drawn < m_count; gi++){

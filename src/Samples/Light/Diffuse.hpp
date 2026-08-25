@@ -26,11 +26,11 @@ public:
         p.position = lp;
         p.range = 100.0;
         rig.point.push_back(p);
-        ShadingContext ctx{&rig, refCamera().position};
+        ShadingContext ctx{&rig, app.camera().position};
         auto sm = SGE::Math::translation(0.0, 0.0, 0.0);
         auto snrm = SGE::Math::normalMatrix(sm);
         auto st = Pipeline::projectObject(sphere, sm,
-            refViewProj(refCamera()), snrm, g_renderW, g_renderH);
+            refViewProj(app.camera()), snrm, g_renderW, g_renderH);
         for(auto &t : st){
             rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2], tint, &ctx);
         }

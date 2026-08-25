@@ -122,7 +122,8 @@ inline void resetCamera(Application &app, double x = 0, double y = 0,
 
 inline Matrix4DBase<double> refViewProj(const SGE::Render::Camera &cam){
     auto view = cam.viewMatrix();
-    auto proj = SGE::Math::perspective(M_PI / 3, 800.0 / 600.0, 0.1, 100.0);
+    auto proj = SGE::Math::perspective(M_PI / 3,
+        static_cast<double>(g_renderW) / g_renderH, 0.1, 100.0);
     return proj.mul(view);
 }
 

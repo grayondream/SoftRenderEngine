@@ -32,10 +32,10 @@ public:
         key.direction = Vector3DBase<double>{-0.2, -1.0, -0.3};
         key.color = ColorFlt{0.5f, 0.5f, 0.5f, 1.0f};
         rig.directional.push_back(key);
-        ShadingContext ctx{&rig, refCamera().position};
+        ShadingContext ctx{&rig, app.camera().position};
         ctx.specTex = &specular;
         SGE::Render::TileRenderer tiled{fb};
-        const auto vp = refViewProj(refCamera());
+        const auto vp = refViewProj(app.camera());
         const double rotA = t;  // radians(20 * time)
         int drawn = 0;
         for(int gi = 0; gi < 5 && drawn < m_count; gi++){

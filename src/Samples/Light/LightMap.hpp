@@ -31,13 +31,13 @@ public:
         p.color = ColorFlt{0.6f, 0.6f, 0.6f, 1.0f};
         p.range = 100.0;
         rig.point.push_back(p);
-        ShadingContext ctx{&rig, refCamera().position};
+        ShadingContext ctx{&rig, app.camera().position};
         ctx.specTex = &specular;
         Object4D cube = unitCube(app);
         auto cm = SGE::Math::translation(1.0, 0.0, 0.0);
         auto cnrm = SGE::Math::normalMatrix(cm);
         auto ct = Pipeline::projectObject(cube, cm,
-            refViewProj(refCamera()), cnrm, g_renderW, g_renderH);
+            refViewProj(app.camera()), cnrm, g_renderW, g_renderH);
         for(auto &tr : ct){
             rz.drawTriangleTextured(tr.v[0], tr.v[1], tr.v[2],
                                     diffuse, &ctx);

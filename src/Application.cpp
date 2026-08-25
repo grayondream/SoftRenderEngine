@@ -314,6 +314,25 @@ std::error_code Application::run(){
     BufferManager::instance()->clear(GenerateColor());
     while(!m_bQuit){
         if(g_stopRequested || (maxFrames > 0 && cycleCount >= maxFrames)){
+            const char *shotPath = std::getenv("SGE_SHOT_PATH");
+            if(shotPath && cycleCount >= maxFrames){
+                FILE *out = std::fopen(shotPath, "wb");
+                if(out){
+                    std::fprintf(out, "P6\n%zu %zu\n255\n",
+                        m_framebuffer.width(), m_framebuffer.height());
+                    const auto *px = m_framebuffer.colorData();
+                    for(std::size_t i = 0;
+                        i < m_framebuffer.width() * m_framebuffer.height(); i++){
+                        const unsigned char bgr[3] = {
+                            static_cast<unsigned char>(px[i] & 0xFF),
+                            static_cast<unsigned char>((px[i] >> 8) & 0xFF),
+                            static_cast<unsigned char>((px[i] >> 16) & 0xFF)};
+                        std::fwrite(bgr, 1, 3, out);
+                    }
+                    std::fclose(out);
+                    LOGI("[shot] saved {}", shotPath);
+                }
+            }
             SDL_Event quit{};
             quit.type = SDL_QUIT;
             SDL_PushEvent(&quit);

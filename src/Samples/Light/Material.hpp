@@ -31,6 +31,10 @@ public:
             rig.shininess = 1.0f;
             PointLight p{};
             p.position = lp;
+            // reference: diffuseColor = lightColor * (3v)
+            p.color = ColorFlt{static_cast<float>(3.0 * v),
+                                static_cast<float>(3.0 * v),
+                                static_cast<float>(3.0 * v), 1.0f};
             p.range = 100.0;
             rig.point.push_back(p);
             ShadingContext ctx{&rig, cam.position};

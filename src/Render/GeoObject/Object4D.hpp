@@ -5,7 +5,9 @@
 
 constexpr static const int kObject4vNameLen = 64;
 constexpr static const int kObject4vListLen = 1024;
-constexpr static const int kPolyListLen = 1024;
+// 1536: fits MakeSphere(36,18)=1224 and (30,18)=1044; keep stack-local
+// Object4D usage in mind (~600 KB per object after this change)
+constexpr static const int kPolyListLen = 1536;
 
 
 class Object4D{

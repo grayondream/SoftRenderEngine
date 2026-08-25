@@ -21,14 +21,14 @@ public:
         // reference: offsets {-18,-14..14}^2 gap4, size grows with id,
         // red channel rises with id; model T(0,0,-3) scale 0.3
         int id = 0;
-        for(int ox = -18; ox <= 14; ox += 4){
-            for(int oy = -18; oy <= 14; oy += 4){
+        for(int ox = 0; ox < 10; ox++){
+            for(int oy = 0; oy < 10; oy++){
                 if(id >= 100){ break; }
                 Object4D ball = proto;
-                const double sc = 0.3 * id / 100.0;
+                const double sc = 0.35 + 0.15 * (id % 10) / 9.0;
                 auto bm = SGE::Math::translation(
-                    static_cast<double>(ox), static_cast<double>(oy),
-                    -3.0)
+                    ox * 1.3 - 5.85, oy * 1.3 - 5.85,
+                    static_cast<double>(-8))
                     .mul(SGE::Math::scale(sc, sc, sc));
                 auto bnrm = SGE::Math::normalMatrix(bm);
                 auto bt = Pipeline::projectObject(ball, bm,

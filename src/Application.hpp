@@ -82,7 +82,7 @@ private:
     float m_fogEnd{25.0f};
     LightingRig m_rig{};
     bool m_bracketHeld{false};
-    float m_pbrMetallic{0.5f};
+    float m_pbrMetallic{0.0f};
     float m_pbrColorUi[3]{0.78f, 0.24f, 0.24f};
     float m_pbrRoughness{0.35f};
     Color32 m_pbrBase{200, 60, 60, 255};

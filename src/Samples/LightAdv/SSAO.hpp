@@ -13,7 +13,7 @@ class SSAOScene final : public IScene {
 public:
     bool m_ssaoOn{true};
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 1.2, -4.0);
+        resetCamera(app, 0.0, 1.2, 4.6);
     }
     void render(Application &app) override {
         auto &fb = app.framebuffer();
@@ -50,7 +50,7 @@ public:
             for(int i = 0; i < 12; i++){
                 for(int k = 0; k < 3; k++){
                     const int vi = (k == 0 ? fs[i].a :
-                                    k == 1 ? fs[i].c : fs[i].b);
+                                    k == 1 ? fs[i].b : fs[i].c);
                     r.plist[static_cast<std::size_t>(i)].vlist[k] = v[vi];
                 }
                 r.plist[static_cast<std::size_t>(i)].color =
@@ -63,22 +63,56 @@ public:
         auto rnrm = SGE::Math::normalMatrix(rm);
 
         if(!m_modelLoaded){
-            m_modelLoaded = loadObjFromFile(
-                "assets/models/nanosuit/nanosuit.obj", m_model);
+            m_modelChunks.clear();
+            ObjMaterialInfo mats;
+            m_modelLoaded = loadObjMultiMaterial(
+                "assets/models/nanosuit/nanosuit.obj",
+                m_modelChunks, m_faceMtl, mats);
+            // mats used directly below
+            if(m_modelLoaded){
+                m_atlas = SGE::Render::BuildDiffuseAtlas(mats);
+                int face = 0;
+                for(auto &c : m_modelChunks){
+                    for(int pi2 = 0;
+                        pi2 < static_cast<int>(c.numPolys);
+                        pi2++, face++){
+                        const int mi =
+                            face < static_cast<int>(m_faceMtl.size())
+                            ? m_faceMtl[static_cast<std::size_t>(face)]
+                            : 0;
+                        if(mi >= static_cast<int>(m_atlas.tiles.size())){
+                            continue;
+                        }
+                        const auto &t = m_atlas.tiles[
+                            static_cast<std::size_t>(mi)];
+                        auto &poly =
+                            c.plist[static_cast<std::size_t>(pi2)];
+                        for(int k = 0; k < 3; k++){
+                            poly.uvlist[k].u = t.u0 +
+                                poly.uvlist[k].u * (t.u1 - t.u0);
+                            poly.uvlist[k].v = t.v0 +
+                                poly.uvlist[k].v * (t.v1 - t.v0);
+                        }
+                    }
+                }
+            }
             Texture white(1, 1,
                 std::vector<uint32_t>{0xFFF2F2F2u}.data());
             m_gray = white;
         }
-        auto mm = SGE::Math::translation(0.0, -0.8, 4.0)
+        auto mm = SGE::Math::translation(0.0, -0.8, 0.0)
             .mul(SGE::Math::rotationY(app.angle() * 0.15))
             .mul(SGE::Math::scale(0.55, 0.55, 0.55));
         auto mnrm = SGE::Math::normalMatrix(mm);
 
         // draw room first (walls receive AO darkening near contacts)
         tiled.drawTextured(Pipeline::projectObject(room, rm,
-            vp, rnrm, g_renderW, g_renderH), m_gray, &ctx);
-        tiled.drawTextured(Pipeline::projectObject(m_model, mm,
-            vp, mnrm, g_renderW, g_renderH), m_gray, &ctx);
+            vp, rnrm, g_renderW, g_renderH, &app.camera().position),
+            m_gray, &ctx);
+        for(auto &c : m_modelChunks){
+            tiled.drawTextured(Pipeline::projectObject(c, mm,
+                vp, mnrm, g_renderW, g_renderH), m_atlas.texture, &ctx);
+        }
 
         if(m_ssaoOn){
             // depth-contrast contact shadow approximation
@@ -124,7 +158,9 @@ public:
     const char *group() const override { return "LightAdv"; }
 private:
     bool m_modelLoaded{false};
-    Object4D m_model{};
+    std::vector<Object4D> m_modelChunks{};
+    std::vector<int> m_faceMtl{};
+    SGE::Render::DiffuseAtlas m_atlas{};
     Texture m_gray{};
 };
 

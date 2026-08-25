@@ -7,7 +7,7 @@ namespace Pipeline{
 // outward-facing triangles have NEGATIVE screen-space signed area.
 bool isBackFacing(const ScreenVertex &a, const ScreenVertex &b, const ScreenVertex &c){
     double area = (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
-    return area > 0;
+    return area < 0;
 }
 
 namespace{
@@ -77,7 +77,8 @@ std::vector<ScreenTriangle> projectObject(const Object4D &obj,
                                           const Matrix4DBase<double> &model,
                                           const Matrix4DBase<double> &viewProj,
                                           const Matrix3DBase<double> &normalMat,
-                                          std::size_t screenW, std::size_t screenH){
+                                          std::size_t screenW, std::size_t screenH,
+                                          const Vector3DBase<double> *viewPos){
     std::vector<ScreenTriangle> result{};
     result.reserve(obj.numPolys * 2);
     for(int p = 0; p < obj.numPolys; p++){
@@ -117,6 +118,42 @@ std::vector<ScreenTriangle> projectObject(const Object4D &obj,
             }
         }
         if(skip) continue;
+
+        // fallback: zero normals (hand-built boxes without nlist) get a
+        // geometric face normal so per-pixel lighting stays usable
+        if(std::abs(sv[0].nx) + std::abs(sv[0].ny) + std::abs(sv[0].nz)
+            + std::abs(sv[1].nx) + std::abs(sv[1].ny) + std::abs(sv[1].nz)
+            + std::abs(sv[2].nx) + std::abs(sv[2].ny) + std::abs(sv[2].nz)
+            < 1e-9){
+            const double e1x = sv[1].wx - sv[0].wx,
+                e1y = sv[1].wy - sv[0].wy, e1z = sv[1].wz - sv[0].wz;
+            const double e2x = sv[2].wx - sv[0].wx,
+                e2y = sv[2].wy - sv[0].wy, e2z = sv[2].wz - sv[0].wz;
+            double fnx = e1y * e2z - e1z * e2y;
+            double fny = e1z * e2x - e1x * e2z;
+            double fnz = e1x * e2y - e1y * e2x;
+            const double fl =
+                std::sqrt(fnx*fnx + fny*fny + fnz*fnz);
+            if(fl > 1e-12){
+                // orient toward the viewer (two-sided lighting for boxes)
+                const Vector3DBase<double> eye =
+                    viewPos ? *viewPos
+                        : Vector3DBase<double>{0, 0, 0};
+                const double vx = eye.x - (sv[0].wx + sv[1].wx
+                    + sv[2].wx) / 3.0;
+                const double vy = eye.y - (sv[0].wy + sv[1].wy
+                    + sv[2].wy) / 3.0;
+                const double vz = eye.z - (sv[0].wz + sv[1].wz
+                    + sv[2].wz) / 3.0;
+                if(fnx*vx + fny*vy + fnz*vz < 0){
+                    fnx = -fnx; fny = -fny; fnz = -fnz;
+                }
+                fnx /= fl; fny /= fl; fnz /= fl;
+                for(int q = 0; q < 3; q++){
+                    sv[q].nx = fnx; sv[q].ny = fny; sv[q].nz = fnz;
+                }
+            }
+        }
 
         auto clipped = clipTriangle(sv);
         for(auto &t : clipped){

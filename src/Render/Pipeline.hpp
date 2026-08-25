@@ -17,6 +17,7 @@ std::vector<ScreenTriangle> projectObject(const Object4D &obj,
                                           const Matrix4DBase<double> &model,
                                           const Matrix4DBase<double> &viewProj,
                                           const Matrix3DBase<double> &normalMat,
-                                          std::size_t screenW, std::size_t screenH);
+                                          std::size_t screenW, std::size_t screenH,
+                                          const Vector3DBase<double> *viewPos = nullptr);
 
 }

@@ -10,8 +10,9 @@ namespace SGE::Samples {
 class PbrBaseScene final : public IScene {
 public:
 public:
-    void setup(Application &) override {
+    void setup(Application &app) override {
         m_white = Texture(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
+        resetCamera(app, 0.0, 0.0, 4.5);
     }
 private:
     Texture m_white{};
@@ -46,13 +47,16 @@ private:
                 Object4D ball = protoBall;
                 const double sc = 0.4;
                 for(int vi = 0; vi < static_cast<int>(ball.numVertices); vi++){
-                    ball.vlistLocal[static_cast<std::size_t>(vi)].x *= sc;
-                    ball.vlistLocal[static_cast<std::size_t>(vi)].y *= sc;
-                    ball.vlistLocal[static_cast<std::size_t>(vi)].z *= sc;
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].x =
+                        protoBall.vlistLocal[static_cast<std::size_t>(vi)].x * sc;
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].y =
+                        protoBall.vlistLocal[static_cast<std::size_t>(vi)].y * sc;
+                    ball.vlistLocal[static_cast<std::size_t>(vi)].z =
+                        protoBall.vlistLocal[static_cast<std::size_t>(vi)].z * sc;
                 }
                 auto bm = SGE::Math::translation(
                     static_cast<double>(col) * 1.0,
-                    static_cast<double>(row) * 1.0, 6.0);
+                    static_cast<double>(row) * 1.05, 0.0);
                 auto bnrm = SGE::Math::normalMatrix(bm);
                 auto bt = Pipeline::projectObject(ball, bm, vp, bnrm, g_renderW, g_renderH);
                 for(auto &t : bt){

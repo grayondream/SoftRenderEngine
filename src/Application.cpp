@@ -323,11 +323,11 @@ std::error_code Application::run(){
                     const auto *px = m_framebuffer.colorData();
                     for(std::size_t i = 0;
                         i < m_framebuffer.width() * m_framebuffer.height(); i++){
-                        const unsigned char bgr[3] = {
-                            static_cast<unsigned char>(px[i] & 0xFF),
+                        const unsigned char rgb[3] = {
+                            static_cast<unsigned char>((px[i] >> 16) & 0xFF),
                             static_cast<unsigned char>((px[i] >> 8) & 0xFF),
-                            static_cast<unsigned char>((px[i] >> 16) & 0xFF)};
-                        std::fwrite(bgr, 1, 3, out);
+                            static_cast<unsigned char>(px[i] & 0xFF)};
+                        std::fwrite(rgb, 1, 3, out);
                     }
                     std::fclose(out);
                     LOGI("[shot] saved {}", shotPath);
@@ -362,11 +362,11 @@ std::error_code Application::run(){
                 std::fprintf(out, "P6\n%zu %zu\n255\n", m_framebuffer.width(), m_framebuffer.height());
                 const auto *px = m_framebuffer.colorData();
                 for(std::size_t i = 0; i < m_framebuffer.width() * m_framebuffer.height(); i++){
-                    const unsigned char bgr[3] = {
-                        static_cast<unsigned char>(px[i] & 0xFF),
+                    const unsigned char rgb[3] = {
+                        static_cast<unsigned char>((px[i] >> 16) & 0xFF),
                         static_cast<unsigned char>((px[i] >> 8) & 0xFF),
-                        static_cast<unsigned char>((px[i] >> 16) & 0xFF)};
-                    std::fwrite(bgr, 1, 3, out);
+                        static_cast<unsigned char>(px[i] & 0xFF)};
+                    std::fwrite(rgb, 1, 3, out);
                 }
                 std::fclose(out);
                 LOGI("[shot] saved {}", path);

@@ -64,6 +64,8 @@ inline Matrix4DBase<double> defaultViewProj(Application &app){
     return proj.mul(view);
 }
 
+#include <array>
+
 inline Object4D makePlane(double halfSize, double y,
     const Vector3DBase<double> &normal, const Color32 &color,
     double uvRepeat = 1.0){
@@ -84,7 +86,12 @@ inline Object4D makePlane(double halfSize, double y,
     for(int i = 0; i < 4; i++){ plane.vlistLocal[i] = pv[i]; }
     plane.numVertices = 4;
     plane.numPolys = 2;
-    const int idx[2][3] = {{0,1,2},{0,2,3}};
+    // vertical-wall branch must wind CW in screen space (front=POS after
+    // the y flip); floor branch already matches
+    const bool isFloor = std::fabs(normal.y) > 0.5;
+    const int idxA[2][3] = {{0,1,2},{0,2,3}};
+    const int idxB[2][3] = {{0,2,1},{0,3,2}};
+    const auto &idx = isFloor ? idxA : idxB;
     const UV2D uvq[4] = {{0,0},{uvRepeat,0},{uvRepeat,uvRepeat},{0,uvRepeat}};
     for(int k = 0; k < 2; k++){
         for(int m = 0; m < 3; m++){

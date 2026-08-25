@@ -30,7 +30,7 @@ public:
         rig.point.push_back(p);
         ShadingContext ctx{&rig, app.camera().position};
         auto fpv = refPlane(Color32{160,160,160,255}, 4.0);
-        auto fpm = SGE::Math::translation(0.0, -0.9, 3.5);
+        auto fpm = SGE::Math::translation(0.0, -0.9, -2.0);
         auto fpnrm = SGE::Math::normalMatrix(fpm);
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,

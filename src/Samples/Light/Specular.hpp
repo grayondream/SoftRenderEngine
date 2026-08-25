@@ -21,9 +21,11 @@ public:
         fb.clear(kRefClear);
         Rasterizer rz{fb};
         static Object4D sphere = SGE::Render::MakeSphere(1.0, 36, 18);
-        Texture tint(1, 1, std::vector<uint32_t>{0xFFFF7F4F}.data());
-        const double t = app.angle();
-        const Vector3DBase<double> lp{5.0 * std::sin(t), 0.0, 5.0 * std::cos(t)};
+        Texture tint(1, 1, std::vector<uint32_t>{0xFFD50E56}.data());
+        // fixed key light in front-right-top of the sphere so the lit side
+        // and specular highlight always face the viewer (orbiting lamps kept
+        // crossing behind the camera and looked like inverted lighting)
+        const Vector3DBase<double> lp{1.2, 1.0, 2.0};
         LightingRig rig{};
         rig.ambient = m_ambient;
         rig.specularStrength = m_specular;
@@ -48,6 +50,7 @@ public:
         ImGui::SliderFloat("Specular", &m_specular, 0.0f, 1.0f);
         ImGui::SliderFloat("Diffuse", &m_diffuse, 0.0f, 1.0f);
         ImGui::SliderInt("Pow Times", &m_powTimes, 0, 512);
+        ImGui::Text("key light fixed at (1.2, 1.0, 2.0)");
     }
     const char *name() const override { return "Specular Light"; }
     const char *group() const override { return "Light"; }

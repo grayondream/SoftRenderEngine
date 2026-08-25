@@ -12,7 +12,7 @@ class HDRTonemapScene final : public IScene {
 public:
     float m_exposure{0.5f};
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 1.6, 3.0);
+        resetCamera(app, 0.0, 1.6, 1.8, 0.0, 0.0);
     }
     void render(Application &app) override {
         auto &fb = app.framebuffer();
@@ -59,7 +59,7 @@ public:
             for(int i = 0; i < 12; i++){
                 for(int k = 0; k < 3; k++){
                     const int vi = (k == 0 ? fs[i].a :
-                                    k == 1 ? fs[i].c : fs[i].b);
+                                    k == 1 ? fs[i].b : fs[i].c);
                     room.plist[static_cast<std::size_t>(i)].vlist[k] =
                         v[vi];
                 }
@@ -73,17 +73,15 @@ public:
         auto rm = SGE::Math::translation(0.0, 1.6, 14.0)
             .mul(SGE::Math::scale(2.5, 2.5, 27.5));
         auto rnrm = SGE::Math::normalMatrix(rm);
-        auto cam = refCamera(0, 1.6, 3.0);
         auto rt = Pipeline::projectObject(room, rm,
-            refViewProj(cam), rnrm, g_renderW, g_renderH);
+            refViewProj(app.camera()), rnrm, g_renderW, g_renderH,
+            &app.camera().position);
         for(auto &t : rt){
             rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
                                     wood, &ctx);
         }
         // reference tonemap: 1 - exp(-c * exposure), then gamma 2.2
-        static FrameBuffer tmp{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)};
-        if(tmp.width() != static_cast<std::size_t>(g_renderW)){ tmp = FrameBuffer{static_cast<std::size_t>(g_renderW), static_cast<std::size_t>(g_renderH)}; }
-        tonemapPass(fb, tmp, m_exposure);
+        tonemapPass(fb, m_exposure);
     }
     void drawUi(Application &) override {
         ImGui::SliderFloat("Exposure", &m_exposure, 0.1f, 2.0f);
@@ -92,8 +90,7 @@ public:
     const char *name() const override { return "HDR Corridor Tonemapping"; }
     const char *group() const override { return "LightAdv"; }
 private:
-    static void tonemapPass(FrameBuffer &fb, const FrameBuffer &src,
-                            float e){
+    static void tonemapPass(FrameBuffer &fb, float e){
         // 4096-entry exposure+gamma LUT replaces per-pixel exp/pow
         static float lut[4096];
         static float lutE = -1.0f;
@@ -107,11 +104,10 @@ private:
             }
             lutE = e;
         }
-        const auto *px = src.colorData();
-        const std::size_t w = src.width(), h = src.height();
+        const std::size_t w = fb.width(), h = fb.height();
         for(std::size_t y = 0; y < h; y++){
             for(std::size_t x = 0; x < w; x++){
-                const uint32_t c = px[y * w + x];
+                const uint32_t c = fb.colorData()[y * w + x];
                 fb.setPixel(x, y,
                     0xFF000000u | (static_cast<uint32_t>(
                         lut[std::min(4095u,

@@ -38,7 +38,7 @@ public:
         ShadingContext ctx{&rig, app.camera().position};
         ctx.gammaValue = m_gammaOn ? 2.2 : 1.0;
         auto fpv = refPlane(Color32{120,120,120,255});
-        auto fpm = SGE::Math::translation(0.0, 0.5, 2.0);
+        auto fpm = SGE::Math::translation(0.0, -0.9, -2.0);
         auto fpnrm = SGE::Math::normalMatrix(fpm);
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,

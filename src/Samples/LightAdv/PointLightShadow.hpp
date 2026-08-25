@@ -27,22 +27,18 @@ private:
         cube.numVertices = 8;
         cube.numPolys = 12;
         for(int i = 0; i < 12; i++){
-            // flipped winding -> inward faces
             cube.plist[static_cast<std::size_t>(i)].vlist[0] =
                 v[fs[i].a];
             cube.plist[static_cast<std::size_t>(i)].vlist[1] =
-                v[fs[i].c];
-            cube.plist[static_cast<std::size_t>(i)].vlist[2] =
                 v[fs[i].b];
-            Vector3DBase<double> fn{-fs[i].a * 0.0 - fs[i].b * 0.0,
-                0, 0};
-            (void)fn;
+            cube.plist[static_cast<std::size_t>(i)].vlist[2] =
+                v[fs[i].c];
         }
         return cube;
     }
 
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 0.8, -4.2);
+        resetCamera(app, 0.0, 0.8, 4.2);
     }
     void render(Application &app) override {
         auto &fb = app.framebuffer();

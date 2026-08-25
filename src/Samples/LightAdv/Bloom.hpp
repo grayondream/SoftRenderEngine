@@ -46,7 +46,7 @@ public:
         const auto vp = refViewProj(app.camera());
         SGE::Render::TileRenderer tiled{fb};
         auto fpv = refPlane(Color32{255,255,255,255});
-        auto fpm = SGE::Math::translation(0.0, -0.9, 3.0);
+        auto fpm = SGE::Math::translation(0.0, -0.9, -2.0);
         auto fpnrm = SGE::Math::normalMatrix(fpm);
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,
             vp, fpnrm, g_renderW, g_renderH), bricks, &ctx);
@@ -58,7 +58,7 @@ public:
             {1.5,2,-2.5},{1.5,0.2,-1.5},{-1.3,1,-1.5}};
         for(int i = 0; i < 10; i++){
             auto cm = SGE::Math::translation(cps[i][0],
-                cps[i][1] + 2.0, cps[i][2] + 6.0)
+                cps[i][1] + 2.0, cps[i][2] - 6.0)
                 .mul(SGE::Math::rotationY(app.angle() * 0.2 * (i % 3)));
             auto cnrm = SGE::Math::normalMatrix(cm);
             tiled.drawTextured(Pipeline::projectObject(cube, cm,

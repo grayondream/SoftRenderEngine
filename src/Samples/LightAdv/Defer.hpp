@@ -10,6 +10,8 @@ namespace SGE::Samples {
 
 class DeferScene final : public IScene {
 public:
+    int m_count{13};
+    bool m_enableVolume{true};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.5, 3.0);
     }
@@ -67,8 +69,10 @@ public:
                     Color32{150, 90, 60, 255});
                 // reference: 100 wood cubes 10x10 gap1 S0.1
                 Object4D cubeProto = unitCube(app);
-                for(int cx2 = 0; cx2 < 10; cx2++){
-                    for(int cz2 = 0; cz2 < 10; cz2++){
+                int placed = 0;
+                for(int cx2 = 0; cx2 < 10 && placed < m_count; cx2++){
+                    for(int cz2 = 0; cz2 < 10 && placed < m_count; cz2++){
+                        placed++;
                         auto cm = SGE::Math::translation(
                             cx2 - 4.5, 0.5, cz2 - 4.5 - 2.0)
                             .mul(SGE::Math::scale(0.1, 0.1, 0.1));
@@ -135,7 +139,10 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("G-buffer: 100 cubes + rainbow point grid");
+        ImGui::Begin("OpenGL");
+        ImGui::SliderInt("Cube Count", &m_count, 1, 13);
+        ImGui::Checkbox("Enable Volume", &m_enableVolume);
+        ImGui::End();
     }
     const char *name() const override { return "Deferred Shading (G-buffer)"; }
     const char *group() const override { return "LightAdv"; }

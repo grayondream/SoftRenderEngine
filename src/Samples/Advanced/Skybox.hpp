@@ -10,6 +10,8 @@ namespace SGE::Samples {
 
 class SkyboxScene final : public IScene {
 public:
+    bool m_enableReflect{false};
+    bool m_enableRefract{false};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
         static const char *files[6] = {
@@ -61,14 +63,39 @@ public:
         auto cnrm = SGE::Math::normalMatrix(cm);
         auto ct = Pipeline::projectObject(cube, cm,
             refViewProj(cam), cnrm, g_renderW, g_renderH);
-        for(auto &t : ct){
-            rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
-                                    dog, nullptr, TextureFilter::Bilinear,
-                                    TextureWrap::Clamp);
+        if(m_enableReflect || m_enableRefract){
+            // reflection/refraction pass: sample the skybox along the
+            // reflected (or refracted) view ray per pixel of the cube
+            LightingRig rig{};
+            rig.ambient = 0.15f;
+            ShadingContext ctx{&rig, cam.position};
+            EnvParams ep{};
+            ep.enabled = true;
+            ep.reflectivity = m_enableReflect ? 1.0 : 0.0;
+            ep.refractivity = m_enableRefract ? 1.0f : 0.0f;
+            ep.ior = 0.917f;
+            ctx.env = &ep;
+            for(auto &t : ct){
+                rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
+                                        dog, &ctx);
+            }
+        }else{
+            for(auto &t : ct){
+                rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],
+                                        dog, nullptr, TextureFilter::Bilinear,
+                                        TextureWrap::Clamp);
+            }
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("6-face skybox + dog cube");
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable Reflection", &m_enableReflect);
+        ImGui::Checkbox("Enable Refraction", &m_enableRefract);
+        if(m_enableReflect && m_enableRefract){
+            m_enableReflect = false;
+            m_enableRefract = false;
+        }
+        ImGui::End();
     }
     const char *name() const override { return "Skybox (6-face cubemap)"; }
     const char *group() const override { return "Advanced"; }

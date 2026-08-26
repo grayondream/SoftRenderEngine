@@ -8,6 +8,16 @@
 namespace SGE::Samples {
 
 class MaterialScene final : public IScene {
+    float m_lightColor[4]{1.0f, 1.0f, 1.0f, 1.0f};
+    void tintRig(LightingRig &rig){
+        const ColorFlt t{m_lightColor[0], m_lightColor[1],
+                         m_lightColor[2], 1.0f};
+        for(auto &dl : rig.directional){ dl.color = dl.color * t; }
+        for(auto &pl : rig.point){ pl.color = pl.color * t; }
+        for(auto &sl : rig.spot){ sl.color = sl.color * t; }
+        rig.ambientColor = ColorFlt{rig.ambientColor.r * t.r,
+            rig.ambientColor.g * t.g, rig.ambientColor.b * t.b, 1.0f};
+    }
 public:
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 6.0);
@@ -37,7 +47,8 @@ public:
                                 static_cast<float>(3.0 * v), 1.0f};
             p.range = 100.0;
             rig.point.push_back(p);
-            ShadingContext ctx{&rig, cam.position};
+            tintRig(rig);
+        ShadingContext ctx{&rig, cam.position};
             const double x = (i - count / 2.0) * 2.5;
             auto sm = SGE::Math::translation(x, 0.0, 0.0);
             auto snrm = SGE::Math::normalMatrix(sm);
@@ -50,7 +61,10 @@ public:
         drawLamp(app, rz, lp);
     }
     void drawUi(Application &) override {
-        ImGui::Text("brightness ramp x5 (cam z=6)");
+        ImGui::Begin("OpenGL");
+        ImGui::Text("Color Picker with Alpha:");
+        ImGui::ColorEdit4("Color with Alpha", m_lightColor);
+        ImGui::End();
     }
     const char *name() const override { return "Material Strength Ramp"; }
     const char *group() const override { return "Light"; }

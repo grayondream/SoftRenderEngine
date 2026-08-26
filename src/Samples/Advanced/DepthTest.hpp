@@ -65,9 +65,8 @@ public:
 
     }
     void drawUi(Application &) override {
-        ImGui::Checkbox("Depth Grayscale", &m_depthView);
-        ImGui::Text("marble cubes grid");
-
+        ImGui::Begin("OpenGL");
+        ImGui::End();
     }
     const char *name() const override { return "Depth Test Grid"; }
     const char *group() const override { return "Advanced"; }

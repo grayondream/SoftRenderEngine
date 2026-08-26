@@ -12,6 +12,10 @@ public:
         this->a = a;
     }
 
+    Color operator*(const Color &o) const{
+        return Color{r * o.r, g * o.g, b * o.b, a * o.a};
+    }
+
 public:
     union{
         T color[4]{};

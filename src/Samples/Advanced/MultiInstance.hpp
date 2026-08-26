@@ -46,7 +46,8 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("100 wireframe spheres, growing & reddening");
+        ImGui::Begin("OpenGL");
+        ImGui::End();
     }
     const char *name() const override { return "Instanced Sphere Grid"; }
     const char *group() const override { return "Advanced"; }

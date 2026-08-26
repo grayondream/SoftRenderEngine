@@ -68,7 +68,8 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("breathing explosion (sin)");
+        ImGui::Begin("OpenGL");
+        ImGui::End();
     }
     const char *name() const override { return "Explode (face normals)"; }
     const char *group() const override { return "Advanced"; }

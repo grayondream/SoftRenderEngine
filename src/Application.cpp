@@ -229,63 +229,11 @@ void Application::RenderDebugUi(){
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("SoftEngine Debug");
-    SGE::Samples::registerBuiltinScenes();
-    auto &entries = SGE::Samples::SceneRegistry::instance().entries();
-    static std::vector<std::string> labels;
-    static std::vector<const char*> labelPtrs;
-    if(labels.size() != entries.size()){
-        labels.clear();
-        labelPtrs.clear();
-        for(const auto &e : entries){
-            std::string label = std::string("[") + e.group + "] " + e.name;
-            labels.push_back(label);
-        }
-        for(auto &l : labels){ labelPtrs.push_back(l.c_str()); }
-    }
-    if(ImGui::Combo("Scene", &m_sceneIndex,
-                    labelPtrs.data(), static_cast<int>(labelPtrs.size()))){
-        LOGI("[UI] scene -> {} via ImGui", m_sceneIndex);
-        m_framebuffer.clearDepth();
-        m_sceneDirty = true;
-    }
-    if(m_sceneIndex >= 0 && m_sceneIndex < static_cast<int>(entries.size())){
-        ImGui::Text("Current: %s", entries[m_sceneIndex].name);
-    }
-    const char *resOpts[] = {"100%", "75%", "50%"};
-    const int resVals[3] = {100, 75, 50};
-    int resIdx = 0;
-    for(int ri = 0; ri < 3; ri++){
-        if(resVals[ri] == m_renderScalePct){ resIdx = ri; }
-    }
-    if(ImGui::Combo("Render Resolution", &resIdx, resOpts, 3)){
-        m_renderScalePct = resVals[resIdx];
-        m_lastFrameValid = false;
-    }
-    ImGui::SliderInt("Render Every N", &m_renderEveryN, 1, 6);
-    if(m_renderEveryN > 1){
-        ImGui::Text("(~%.0f fps effective)", 60.0f / m_renderEveryN);
-    }
-    ImGui::Checkbox("Rotating", &m_rotating);
-    ImGui::SliderFloat("Speed", &m_rotateSpeed, 0.0f, 0.3f, "%.3f");
-    ImGui::Separator();
-    ImGui::Checkbox("Fog", &m_fogEnabled);
-    if(m_fogEnabled){
-        float startEnd[2] = {m_fogStart, m_fogEnd};
-        if(ImGui::SliderFloat2("Fog Range", startEnd, 0.0f, 60.0f, "%.1f")){
-            m_fogStart = std::min(startEnd[0], startEnd[1] - 0.5f);
-            m_fogEnd = std::max(startEnd[1], startEnd[0] + 0.5f);
-        }
-    }
-    ImGui::Separator();
+    // reference parity: each sample owns its own "OpenGL" window;
+    // scene switching stays on the [ / ] keys
     if(m_scene){
         m_scene->drawUi(*this);
     }
-    ImGui::Separator();
-    ImGui::Text("Camera: WASD move / RF up-down");
-    ImGui::Text("pos=(%.1f, %.1f, %.1f)",
-                m_camera.position.x, m_camera.position.y, m_camera.position.z);
-    ImGui::End();
 
     ImGui::Render();
 }

@@ -17,18 +17,18 @@ Matrix3DBase<double> IdentityNormal(){
 }
 
 TEST(PipelineBackfaceTest, SignConvention){
-    // Derived numerically end-to-end (lookAt + perspective + y-flip viewport):
-    // an OUTWARD-facing (visible) triangle yields NEGATIVE screen-space area,
-    // because lookAt facing +Z makes camera-right = world -X.
-    // => area > 0 means back-facing; area <= 0 means front/degenerate.
+    // projectObject flips NDC Y into screen space (y grows downward),
+    // so a triangle that is CCW in math coords becomes CW on screen and
+    // the EdgeFunction area of a VISIBLE (front) triangle is POSITIVE.
+    // => area > 0 means front-facing; area < 0 means back-facing.
     ScreenVertex a{}, b{}, c{};
     a.x = 0; a.y = 0;
     b.x = 4; b.y = 0;
     c.x = 0; c.y = 4;
-    // area(a,b,c) = +16 -> back-facing
-    EXPECT_TRUE(Pipeline::isBackFacing(a, b, c));
-    // reversed winding: area = -16 -> front-facing
-    EXPECT_FALSE(Pipeline::isBackFacing(a, c, b));
+    // area(a,b,c) = +16 -> front-facing
+    EXPECT_FALSE(Pipeline::isBackFacing(a, b, c));
+    // reversed winding: area = -16 -> back-facing
+    EXPECT_TRUE(Pipeline::isBackFacing(a, c, b));
 }
 
 TEST(PipelineClipTest, FrustumFullyInsideKeepsOne){
@@ -188,11 +188,11 @@ TEST(PipelineProjectTest, UvPassthrough){
     for(int i = 0; i < 4; i++) obj.vlistLocal[i] = v[i];
     obj.numPolys = 1;
     obj.plist[0].vlist[0] = v[0];
-    obj.plist[0].vlist[1] = v[3];
-    obj.plist[0].vlist[2] = v[2];
+    obj.plist[0].vlist[1] = v[2];
+    obj.plist[0].vlist[2] = v[3];
     obj.plist[0].uvlist[0] = {0.0, 0.0};
-    obj.plist[0].uvlist[1] = {0.25, 0.5};
-    obj.plist[0].uvlist[2] = {1.0, 1.0};
+    obj.plist[0].uvlist[1] = {1.0, 1.0};
+    obj.plist[0].uvlist[2] = {0.25, 0.5};
 
     Matrix4DBase<double> view = SGE::Math::lookAt(
         Vector3DBase<double>{0, 0, -5}, Vector3DBase<double>{0, 0, 0},
@@ -204,10 +204,10 @@ TEST(PipelineProjectTest, UvPassthrough){
     ASSERT_EQ(tris.size(), 1u);
     EXPECT_FLOAT_EQ(tris[0].v[0].u, 0.0f);
     EXPECT_FLOAT_EQ(tris[0].v[0].v, 0.0f);
-    EXPECT_FLOAT_EQ(tris[0].v[1].u, 0.25f);
-    EXPECT_FLOAT_EQ(tris[0].v[1].v, 0.5f);
-    EXPECT_FLOAT_EQ(tris[0].v[2].u, 1.0f);
-    EXPECT_FLOAT_EQ(tris[0].v[2].v, 1.0f);
+    EXPECT_FLOAT_EQ(tris[0].v[1].u, 1.0f);
+    EXPECT_FLOAT_EQ(tris[0].v[1].v, 1.0f);
+    EXPECT_FLOAT_EQ(tris[0].v[2].u, 0.25f);
+    EXPECT_FLOAT_EQ(tris[0].v[2].v, 0.5f);
 }
 
 TEST(PipelineProjectTest, NormalWorldPassthrough){
@@ -217,8 +217,8 @@ TEST(PipelineProjectTest, NormalWorldPassthrough){
     for(int i = 0; i < 4; i++) cube.vlistLocal[i] = v[i];
     cube.numPolys = 1;
     cube.plist[0].vlist[0] = v[0];
-    cube.plist[0].vlist[1] = v[3];
-    cube.plist[0].vlist[2] = v[2];
+    cube.plist[0].vlist[1] = v[2];
+    cube.plist[0].vlist[2] = v[3];
     cube.plist[0].nlist[0] = Vector3DBase<double>{0, 0, -1};
     cube.plist[0].nlist[1] = Vector3DBase<double>{0, 0, -1};
     cube.plist[0].nlist[2] = Vector3DBase<double>{0, 0, -1};
@@ -239,8 +239,8 @@ TEST(PipelineProjectTest, NormalWorldPassthrough){
     EXPECT_DOUBLE_EQ(tris[0].v[0].wx, -1.0);
     EXPECT_DOUBLE_EQ(tris[0].v[0].wy, -1.0);
     EXPECT_DOUBLE_EQ(tris[0].v[0].wz, -1.0);
-    EXPECT_DOUBLE_EQ(tris[0].v[2].wx, 1.0);
-    EXPECT_DOUBLE_EQ(tris[0].v[2].wy, 1.0);
+    EXPECT_DOUBLE_EQ(tris[0].v[1].wx, 1.0);
+    EXPECT_DOUBLE_EQ(tris[0].v[1].wy, 1.0);
 }
 
 TEST(PipelineClipTest, FrustumClipInterpolatesAttributes){

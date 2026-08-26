@@ -10,6 +10,10 @@ namespace SGE::Samples {
 
 class ParallaxMapScene final : public IScene {
 public:
+    bool m_enableDisp{true};
+    bool m_enableSteep{true};
+    bool m_enableOcclusion{false};
+    float m_heightScale{0.1f};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 1.4, 3.0);
     }
@@ -33,9 +37,9 @@ public:
         Rasterizer rz{fb};
         const auto viewProj = defaultViewProj(app);
         ShadingContext ctx{&rig, app.camera().position};
-        ctx.normalTex = &normal;
-        ctx.heightTex = &height;
-        ctx.parallaxScale = 0.1;
+        ctx.normalTex = m_enableDisp ? &normal : nullptr;
+        ctx.heightTex = (m_enableDisp && m_enableSteep) ? &height : nullptr;
+        ctx.parallaxScale = static_cast<double>(m_heightScale);
         ctx.tangentU = Vector3DBase<double>{1, 0, 0};
         ctx.tangentV = Vector3DBase<double>{0, 1, 0};
         Object4D wall = makePlane(2.6, 0.0,
@@ -49,7 +53,12 @@ public:
         drawLightMarker(app, rz, p.position, Color32{255, 250, 220, 255});
     }
     void drawUi(Application &) override {
-        ImGui::Text("Steep parallax, 8 steps");
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable Normal Map", &m_enableDisp);
+        ImGui::Checkbox("Enable Steep", &m_enableSteep);
+        ImGui::Checkbox("Enable Occlusion", &m_enableOcclusion);
+        ImGui::InputFloat("Height Scale", &m_heightScale, 0.1f, 1.0f, "%.2f");
+        ImGui::End();
     }
     const char *name() const override { return "Parallax Mapping (steep)"; }
     const char *group() const override { return "LightAdv"; }

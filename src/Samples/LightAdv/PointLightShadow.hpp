@@ -11,6 +11,9 @@ namespace SGE::Samples {
 
 class PointLightShadowScene final : public IScene {
 public:
+    bool m_enablePcf{true};
+    Vector3DBase<double> m_camPos{0.0, 0.8, 4.2};
+    Vector3DBase<double> m_lightPos{0.0, 1.2, 0.0};
     bool m_shadows{true};
 private:
     static Object4D MakeCubeRef(){
@@ -67,10 +70,10 @@ private:
         auto rnrm = SGE::Math::normalMatrix(rm);
 
         // point light oscillates along z (reference z = sin(t) * 10)
-        const Vector3DBase<double> lightPos{0.0, 1.2,
+        m_lightPos = Vector3DBase<double>{0.0, 1.2,
             2.5 + 10.0 * std::sin(ang)};
         PointLight pl{};
-        pl.position = lightPos;
+        pl.position = m_lightPos;
         pl.color = ColorFlt{1.0f, 1.0f, 1.0f};
         pl.range = 100.0;
         rig.point.push_back(pl);
@@ -91,7 +94,7 @@ private:
         for(int f = 0; f < 6; f++){
             faces[f].clear();
             Rasterizer srz{faces[f]};
-            const auto vp = SGE::Render::cubeFaceVP(lightPos, f);
+            const auto vp = SGE::Render::cubeFaceVP(m_lightPos, f);
             for(const auto &ob : obs){
                 Object4D c = unitCube(app);
                 auto om = SGE::Math::translation(ob.x, ob.y, ob.z)
@@ -107,7 +110,7 @@ private:
         }
 
         SGE::Render::CubeShadowData cs{};
-        cs.lightPos = lightPos;
+        cs.lightPos = m_lightPos;
         cs.farPlane = 25.0;
         cs.bias = 0.008;
         for(int f = 0; f < 6; f++){ cs.faces[f] = &faces[f]; }
@@ -116,7 +119,7 @@ private:
                 nullptr, nullptr, &cs}
             : ShadingContext{&rig, app.camera().position};
 
-        drawLamp(app, rz, lightPos, 0.1);
+        drawLamp(app, rz, m_lightPos, 0.1);
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(room, rm, viewProj, rnrm,
             g_renderW, g_renderH), wood, &ctx);
@@ -130,8 +133,14 @@ private:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Checkbox("Shadows", &m_shadows);
-        ImGui::Text("light oscillates along z");
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable PCF", &m_enablePcf);
+        ImGui::Checkbox("Enable Shadow", &m_shadows);
+        const auto &cp = m_camPos;
+        ImGui::Text("Camera Pos: (%.2f, %.2f, %.2f)", cp.x, cp.y, cp.z);
+        const auto &lp2 = m_lightPos;
+        ImGui::Text("Light Pos: (%.2f, %.2f, %.2f)", lp2.x, lp2.y, lp2.z);
+        ImGui::End();
     }
     const char *name() const override { return "Point Light Cube Shadow"; }
     const char *group() const override { return "LightAdv"; }

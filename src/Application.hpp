@@ -48,6 +48,7 @@ public:
     Object4D &teapot(){ return m_teapot; }
     float &pbrMetallic(){ return m_pbrMetallic; }
     float &pbrRoughness(){ return m_pbrRoughness; }
+    float &pbrAo(){ return m_pbrAo; }
     float *pbrColorUi(){ return m_pbrColorUi; }
     Color32 &pbrBase(){ return m_pbrBase; }
     int &pcfRadius(){ return m_pcfRadius; }
@@ -85,6 +86,7 @@ private:
     float m_pbrMetallic{0.0f};
     float m_pbrColorUi[3]{0.78f, 0.24f, 0.24f};
     float m_pbrRoughness{0.35f};
+    float m_pbrAo{1.0f};
     Color32 m_pbrBase{200, 60, 60, 255};
     int m_pcfRadius{2};
 };

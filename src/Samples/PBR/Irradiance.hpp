@@ -79,10 +79,18 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::SliderFloat("Exposure", &m_exposure, 0.3f, 2.5f);
-        ImGui::Text("Diffuse IBL from equirect env");
+        ImGui::Begin("OpenGL");
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+            1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::SliderFloat("Roughness", &m_roughness, 0.0f, 1.0f);
+        ImGui::SliderFloat("Metallic", &m_metallic, 0.0f, 1.0f);
+        ImGui::SliderFloat("AO", &m_ao, 0.0f, 1.0f);
+        ImGui::End();
     }
     float m_exposure{1.0f};
+    float m_roughness{0.5f};
+    float m_metallic{0.5f};
+    float m_ao{1.0f};
     const char *name() const override { return "IBL Diffuse Irradiance (loft)"; }
     const char *group() const override { return "PBR"; }
 };

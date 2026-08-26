@@ -12,6 +12,7 @@ class BloomScene final : public IScene {
 public:
     bool m_bloomEnabled{true};
     float m_threshold{0.75f};
+    float m_expose{0.75f};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
     }
@@ -99,8 +100,9 @@ public:
                     const int lumB = c & 0xFF;
                     const double lum = 0.2126 * lumR
                         + 0.7152 * lumG + 0.0722 * lumB;
-                    if(lum > m_threshold * 255.0){
-                        const double k = (lum - m_threshold * 255.0)
+                    const double thr = m_expose;
+                    if(lum > thr * 255.0){
+                        const double k = (lum - thr * 255.0)
                             / std::max(1e-3, lum);
                         bright.setPixel(x, y,
                             0xFF000000u
@@ -144,9 +146,10 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Checkbox("Bloom", &m_bloomEnabled);
-        ImGui::SliderFloat("Threshold", &m_threshold, 0.3f, 0.95f);
-        ImGui::Text("wood cubes + 4 colored lamps");
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable Bloom", &m_bloomEnabled);
+        ImGui::SliderFloat("Expose Value", &m_expose, 0.0f, 1.0f);
+        ImGui::End();
     }
     const char *name() const override { return "Bloom (colored lamp array)"; }
     const char *group() const override { return "LightAdv"; }

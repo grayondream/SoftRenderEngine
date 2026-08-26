@@ -51,9 +51,11 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Checkbox("Grayscale", &m_gray);
-        ImGui::Checkbox("4x Supersampling", &m_4x);
-        ImGui::Text("watch diagonal edges (2x SSAA)");
+        ImGui::Begin("OpenGL");
+        ImGui::SetNextItemWidth(200);
+        ImGui::Checkbox("Enable MSSA", &m_gray);
+        ImGui::Checkbox("Enable FrameBuffer MSSA", &m_4x);
+        ImGui::End();
     }
     const char *name() const override { return "Anti-aliasing (2x SSAA)"; }
     const char *group() const override { return "Advanced"; }

@@ -11,10 +11,13 @@ namespace SGE::Samples {
 class HDRTonemapScene final : public IScene {
 public:
     float m_exposure{0.5f};
+    bool m_enableHdr{true};
+    Vector3DBase<double> m_camPos{0.0, 1.6, 1.8};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 1.6, 1.8, 0.0, 0.0);
     }
     void render(Application &app) override {
+        m_camPos = app.camera().position;
         auto &fb = app.framebuffer();
         fb.clear(kRefClear);
         static Texture wood = SGE::Render::ImageLoader::loadTexture(
@@ -81,11 +84,15 @@ public:
                                     wood, &ctx);
         }
         // reference tonemap: 1 - exp(-c * exposure), then gamma 2.2
-        tonemapPass(fb, m_exposure);
+        if(m_enableHdr){ tonemapPass(fb, m_exposure); }
     }
     void drawUi(Application &) override {
-        ImGui::SliderFloat("Exposure", &m_exposure, 0.1f, 2.0f);
-        ImGui::Text("dark wood corridor");
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable Hdr", &m_enableHdr);
+        ImGui::InputFloat("Exposure", &m_exposure, 0.1f, 4.0f, "%.2f");
+        const auto &cp = m_camPos;
+        ImGui::Text("Camera Pos: (%.2f, %.2f, %.2f)", cp.x, cp.y, cp.z);
+        ImGui::End();
     }
     const char *name() const override { return "HDR Corridor Tonemapping"; }
     const char *group() const override { return "LightAdv"; }

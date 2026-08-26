@@ -9,7 +9,7 @@ namespace SGE::Samples {
 
 class AmbientLightScene final : public IScene {
 public:
-    float m_lightColor[3]{1.0f, 1.0f, 1.0f};
+    float m_lightColor[4]{1.0f, 1.0f, 1.0f, 1.0f};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
     }
@@ -48,8 +48,10 @@ public:
         drawLamp(app, rz, Vector3DBase<double>{1, 1, 1});
     }
     void drawUi(Application &) override {
-        ImGui::ColorEdit3("Light Color", m_lightColor);
-        ImGui::Text("0.2*lightColor*copper + lambert from lamp (1,1,1)");
+        ImGui::Begin("OpenGL");
+        ImGui::Text("Color Picker with Alpha:");
+        ImGui::ColorEdit4("Color with Alpha", m_lightColor);
+        ImGui::End();
     }
     const char *name() const override { return "Ambient Light"; }
     const char *group() const override { return "Light"; }

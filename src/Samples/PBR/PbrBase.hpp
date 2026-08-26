@@ -68,9 +68,13 @@ private:
         }
     }
     void drawUi(Application &app) override {
+        ImGui::Begin("OpenGL");
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+            1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::SliderFloat("Roughness", &app.pbrRoughness(), 0.0f, 1.0f);
         ImGui::SliderFloat("Metallic", &app.pbrMetallic(), 0.0f, 1.0f);
-        ImGui::SliderFloat("Roughness", &app.pbrRoughness(), 0.05f, 1.0f);
-        ImGui::Text("albedo ramps red across 25 spheres");
+        ImGui::SliderFloat("AO", &app.pbrAo(), 0.0f, 1.0f);
+        ImGui::End();
     }
     const char *name() const override { return "PBR Base (metal/rough array)"; }
     const char *group() const override { return "PBR"; }

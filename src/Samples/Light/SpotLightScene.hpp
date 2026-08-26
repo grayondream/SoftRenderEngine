@@ -10,6 +10,16 @@ namespace SGE::Samples {
 
 class SpotLightScene final : public IScene {
 public:
+    float m_lightColor[4]{1.0f, 1.0f, 1.0f, 1.0f};
+    void tintRig(LightingRig &rig){
+        const ColorFlt t{m_lightColor[0], m_lightColor[1],
+                         m_lightColor[2], 1.0f};
+        for(auto &dl : rig.directional){ dl.color = dl.color * t; }
+        for(auto &pl : rig.point){ pl.color = pl.color * t; }
+        for(auto &sl : rig.spot){ sl.color = sl.color * t; }
+        rig.ambientColor = ColorFlt{rig.ambientColor.r * t.r,
+            rig.ambientColor.g * t.g, rig.ambientColor.b * t.b, 1.0f};
+    }
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
     }
@@ -37,6 +47,7 @@ public:
         spot.color = ColorFlt{0.5f, 0.5f, 0.5f, 1.0f};
         spot.range = 60.0;
         rig.spot.push_back(spot);
+        tintRig(rig);
         ShadingContext ctx{&rig, app.camera().position};
         ctx.specTex = &specular;
         SGE::Render::TileRenderer tiled{fb};
@@ -64,8 +75,13 @@ public:
         drawLamp(app, rz, lp);
     }
     void drawUi(Application &) override {
-        ImGui::SliderInt("Cube Count", &m_count, 1, 125);
-        ImGui::Text("orbiting spotlight (12.5/17.5 deg)");
+        ImGui::Begin("OpenGL");
+        ImGui::Text("Color Picker with Alpha:");
+        ImGui::ColorEdit4("Color with Alpha", m_lightColor);
+        ImGui::SetNextItemWidth(200);
+        int cnt = 125;
+        ImGui::SliderInt("Cube Count", &m_count, 1, cnt);
+        ImGui::End();
     }
     const char *name() const override { return "Spot Light Casters"; }
     const char *group() const override { return "Light"; }

@@ -87,7 +87,10 @@ private:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("marble cubes behind sorted glass windows");
+        ImGui::Begin("OpenGL");
+        ImGui::SetNextItemWidth(200);
+        ImGui::SliderInt("Window Count", &m_winCount, 1, 5);
+        ImGui::End();
     }
     const char *name() const override { return "Alpha Blend Windows"; }
     const char *group() const override { return "Advanced"; }

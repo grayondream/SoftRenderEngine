@@ -10,6 +10,7 @@ namespace SGE::Samples {
 
 class NormalMapScene final : public IScene {
 public:
+    bool m_enableNormalMap{true};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 1.4, 3.0);
     }
@@ -34,7 +35,7 @@ public:
         const auto viewProj = defaultViewProj(app);
         // wall facing camera: N=(0,0,-1) T=(1,0,0) B=(0,1,0)
         ShadingContext ctx{&rig, app.camera().position};
-        ctx.normalTex = &normal;
+        ctx.normalTex = m_enableNormalMap ? &normal : nullptr;
         ctx.tangentU = Vector3DBase<double>{1, 0, 0};
         ctx.tangentV = Vector3DBase<double>{0, 1, 0};
         Object4D wall = makePlane(2.6, 0.0,
@@ -45,6 +46,11 @@ public:
         auto wt = Pipeline::projectObject(wall, wm, viewProj, wnrm, g_renderW, g_renderH);
         tiled.drawTextured(wt, diffuse, &ctx);
         drawLamp(app, rz, p.position, 0.06);
+    }
+    void drawUi(Application &) override {
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable Normal Map", &m_enableNormalMap);
+        ImGui::End();
     }
     const char *name() const override { return "Normal Mapping (brickwall)"; }
     const char *group() const override { return "LightAdv"; }

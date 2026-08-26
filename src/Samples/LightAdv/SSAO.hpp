@@ -151,8 +151,9 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Checkbox("SSAO", &m_ssaoOn);
-        ImGui::Text("room box + nanosuit, bluish light");
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable SSAO", &m_ssaoOn);
+        ImGui::End();
     }
     const char *name() const override { return "SSAO Contact Shadows"; }
     const char *group() const override { return "LightAdv"; }

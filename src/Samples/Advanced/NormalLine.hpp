@@ -49,7 +49,8 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("red wireframe + yellow normals");
+        ImGui::Begin("OpenGL");
+        ImGui::End();
     }
     const char *name() const override { return "Normal Visualization Lines"; }
     const char *group() const override { return "Advanced"; }

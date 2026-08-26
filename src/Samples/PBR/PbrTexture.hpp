@@ -76,7 +76,10 @@ private:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("rusted_iron albedo/metallic/roughness maps");
+        ImGui::Begin("OpenGL");
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+            1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::End();
     }
     const char *name() const override { return "PBR Textured Sphere (rusted iron)"; }
     const char *group() const override { return "PBR"; }

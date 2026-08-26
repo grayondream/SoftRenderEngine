@@ -32,7 +32,6 @@ public:
         rz.drawTriangleSolid(v[0], v[1], v[2]);
     }
     void drawUi(Application &) override {
-        ImGui::Text("red / blue / green gradient triangle");
     }
     const char *name() const override { return "Triangle (vertex color)"; }
     const char *group() const override { return "Base"; }

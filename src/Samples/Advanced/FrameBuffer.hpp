@@ -47,8 +47,11 @@ public:
         }
     }
     void drawUi(Application &) override {
-        const char *fx[] = {"None", "Inversion", "Gray", "Sharpen"};
-        ImGui::Combo("Filter", &m_effect, fx, 4);
+        ImGui::Begin("OpenGL");
+        ImGui::SetNextItemWidth(200);
+        const char* items[4] = { "None", "Inversion", "Gray", "Kernel"};
+        ImGui::Combo("Cube Count", &m_effect, items, IM_ARRAYSIZE(items));
+        ImGui::End();
     }
     const char *name() const override { return "FrameBuffer Post FX"; }
     const char *group() const override { return "Advanced"; }

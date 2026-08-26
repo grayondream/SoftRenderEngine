@@ -60,7 +60,8 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("planet with orbiting debris ring");
+        ImGui::Begin("OpenGL");
+        ImGui::End();
     }
     const char *name() const override { return "Saturn Ring System"; }
     const char *group() const override { return "Advanced"; }

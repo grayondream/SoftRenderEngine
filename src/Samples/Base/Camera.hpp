@@ -9,6 +9,7 @@ namespace SGE::Samples {
 
 class CameraWalkScene final : public IScene {
 public:
+    int m_count{10};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
     }
@@ -25,7 +26,7 @@ public:
             {1.3, -2.0, -2.5},    {1.5, 2.0, -2.5},
             {1.5, 0.2, -1.5},     {-1.3, 1.0, -1.5}};
         const auto vp = refViewProj(app.camera());
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < m_count; i++){
             Object4D cube = unitCube(app);
             const double angDeg = 20.0 * (i + 1) * app.angle();
             const double a = angDeg * M_PI / 180.0;
@@ -44,7 +45,10 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("WASD/RF roam, arrows look");
+        ImGui::Begin("OpenGL");
+        ImGui::SetNextItemWidth(200);
+        ImGui::SliderInt("Cube Count", &m_count, 1, 10);
+        ImGui::End();
     }
     const char *name() const override { return "Camera Walkthrough"; }
     const char *group() const override { return "Base"; }

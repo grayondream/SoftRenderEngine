@@ -46,7 +46,8 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("4 houses: colored body + white roof (GS mimic)");
+        ImGui::Begin("OpenGL");
+        ImGui::End();
     }
     const char *name() const override { return "Simple Geometry Houses"; }
     const char *group() const override { return "Advanced"; }

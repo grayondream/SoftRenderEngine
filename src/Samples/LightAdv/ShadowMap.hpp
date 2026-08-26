@@ -9,6 +9,10 @@ namespace SGE::Samples {
 
 class ShadowMapScene final : public IScene {
 public:
+    bool m_enableDebug{false};
+    bool m_enableBias{true};
+    bool m_cullFace{true};
+    bool m_enablePcf{true};
     void setup(Application &app) override {
         resetCamera(app, 0.4, 1.2, 5.5);
     }
@@ -114,12 +118,14 @@ public:
             }
         }
     }
-    void drawUi(Application &app) override {
-        ImGui::SliderInt("PCF Radius", &app.pcfRadius(), 0, 4);
-        ImGui::Checkbox("View Shadow Depth", &m_viewDepth);
-        if(m_viewDepth){
-            ImGui::Text("(reference ShadowMapApp mode)");
-        }
+    void drawUi(Application &) override {
+        ImGui::Begin("OpenGL");
+        ImGui::Checkbox("Enable Debug", &m_enableDebug);
+        ImGui::Checkbox("Enable DepthMap", &m_viewDepth);
+        ImGui::Checkbox("Enable Bias", &m_enableBias);
+        ImGui::Checkbox("Enable CullFace", &m_cullFace);
+        ImGui::Checkbox("Enable SimplePCF", &m_enablePcf);
+        ImGui::End();
     }
     bool m_viewDepth{false};
     const char *name() const override { return "Spot Shadow Map + PCF"; }

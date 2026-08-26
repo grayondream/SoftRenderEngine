@@ -13,6 +13,7 @@ public:
         resetCamera(app, 0.0, 0.0, 3.0);
     }
     bool m_cull{true};
+    int m_grassCount{10};
     void render(Application &app) override {
         auto &fb = app.framebuffer();
         fb.clear(kRefClear);
@@ -35,8 +36,10 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Checkbox("Cull Backface", &m_cull);
-    ImGui::Text("45-deg rotated cube");
+        ImGui::Begin("OpenGL");
+        ImGui::SetNextItemWidth(200);
+        ImGui::SliderInt("Grass Count", &m_grassCount, 1, 10);
+        ImGui::End();
     }
     const char *name() const override { return "Backface Culling"; }
     const char *group() const override { return "Advanced"; }

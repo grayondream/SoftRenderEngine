@@ -4,18 +4,18 @@
 #include "Render/ObjLoader.hpp"
 #include "Render/AtlasBuilder.hpp"
 
-#include <cmath>
 #include <vector>
 
 namespace SGE::Samples {
 
-// GL AppType: LoadModel — nanosuit.obj with real MTL diffuse atlas
+// GL AppType: LoadModel — backpack.obj, unlit diffuse direct-out,
+// identity model matrix, default camera at the origin (reference parity)
 class LoadModelScene final : public IScene {
 public:
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 0.5, 6.0, 3.14159265358979, -0.12);
+        resetCamera(app, 0.0, 0.0, 0.0);
         m_loaded = loadObjMultiMaterial(
-            "assets/models/nanosuit/nanosuit.obj",
+            "assets/models/backpack/backpack.obj",
             m_chunks, m_faceMtl, m_mats);
         if(m_loaded){
             m_atlas = SGE::Render::BuildDiffuseAtlas(m_mats);
@@ -47,27 +47,23 @@ public:
         auto &fb = app.framebuffer();
         fb.clear(kRefClear);
         if(!m_loaded){ return; }
-        // reference: unlit direct-out, camera z=6
+        // reference: FragColor = texture(diffuse, uv); model = identity
         ShadingContext ctx{};
-        auto cam = refCamera(0, 0.5, 6.0);
-        cam.pitch = -0.12;
-        const auto vp = refViewProj(cam);
-        auto model2 = SGE::Math::translation(0.0, -1.4, 4.5)
-            .mul(SGE::Math::rotationY(app.angle() * 0.3));
-        auto mnrm = SGE::Math::normalMatrix(model2);
+        const auto vp = refViewProj(app.camera());
+        const auto idm = SGE::Math::translation(0.0, 0.0, 0.0);
+        const auto inm = SGE::Math::normalMatrix(idm);
         SGE::Render::TileRenderer tiled{fb};
         for(const auto &c : m_chunks){
-            auto mt = Pipeline::projectObject(c, model2,
-                vp, mnrm, g_renderW, g_renderH);
+            auto mt = Pipeline::projectObject(c, idm,
+                vp, inm, g_renderW, g_renderH);
             tiled.drawTextured(mt, m_atlas.texture, &ctx);
         }
     }
     void drawUi(Application &) override {
-        ImGui::Text("nanosuit.obj — %d chunks, %d materials",
-                    static_cast<int>(m_chunks.size()),
-                    static_cast<int>(m_mats.names.size()));
+        ImGui::Begin("OpenGL");
+        ImGui::End();
     }
-    const char *name() const override { return "Load Model (nanosuit MTL)"; }
+    const char *name() const override { return "Load Model (backpack)"; }
     const char *group() const override { return "Model"; }
 private:
     bool m_loaded{false};

@@ -40,6 +40,7 @@
 #include "PBR/PbrBase.hpp"
 #include "PBR/PbrTexture.hpp"
 #include "PBR/Irradiance.hpp"
+#include "PBR/CausticScene.hpp"
 
 namespace SGE::Samples {
 
@@ -129,6 +130,8 @@ reg.add("Base", "Triangle (vertex color)",
         []() -> std::unique_ptr<IScene> { return std::make_unique<PbrTextureScene>(); });
     reg.add("PBR", "IBL Diffuse Irradiance (loft)",
         []() -> std::unique_ptr<IScene> { return std::make_unique<IrradianceScene>(); });
+    reg.add("RayTracing", "PBR Caustic / Light Cone",
+        []() -> std::unique_ptr<IScene> { return std::make_unique<CausticScene>(); });
 }
 
 }

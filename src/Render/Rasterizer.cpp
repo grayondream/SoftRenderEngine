@@ -405,10 +405,11 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                         const uint32_t ap = m.albedoTex->sample(
                             uShaded, vShaded, TextureFilter::Bilinear,
                             TextureWrap::Repeat);
-                        albedo = Color32{
+                        m.baseColor = Color32{
                             static_cast<int32_t>((ap >> 16) & 0xFF),
                             static_cast<int32_t>((ap >> 8) & 0xFF),
                             static_cast<int32_t>(ap & 0xFF), 255};
+                        albedo = m.baseColor;
                     }
                     if(m.metallicTex){
                         const uint32_t mp = m.metallicTex->sample(
@@ -506,7 +507,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                 const double dotVN = Vd.x*N.x + Vd.y*N.y + Vd.z*N.z;
                 const auto reflDir = Vector3DBase<double>{
                     Vd.x - 2.0*dotVN*N.x, Vd.y - 2.0*dotVN*N.y, Vd.z - 2.0*dotVN*N.z};
-                const Color32 reflCol = SGE::Render::SampleEnvironment(reflDir);
+                const Color32 reflCol = ep.sampleDir(reflDir);
 
                 Color32 refrCol{25, 28, 40, 255};
                 if(ep.refractivity > 0.0){
@@ -516,7 +517,7 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
                         const double tK = eta*dotVN - std::sqrt(k);
                         const auto refrDir = SGE::Render::EnvNormalize(Vector3DBase<double>{
                             eta*Vd.x + tK*N.x, eta*Vd.y + tK*N.y, eta*Vd.z + tK*N.z});
-                        refrCol = SGE::Render::SampleEnvironment(refrDir);
+                        refrCol = ep.sampleDir(refrDir);
                     }
                 }
 

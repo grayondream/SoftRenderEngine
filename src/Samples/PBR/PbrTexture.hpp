@@ -22,6 +22,7 @@ private:
         fb.clear(kRefClear);
         static Texture albedoT = SGE::Render::ImageLoader::loadTexture(
             "assets/textures/rusted_iron/albedo.png");
+
         static Texture metallicT = SGE::Render::ImageLoader::loadTexture(
             "assets/textures/rusted_iron/metallic.png");
         static Texture roughnessT = SGE::Render::ImageLoader::loadTexture(

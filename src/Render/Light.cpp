@@ -208,12 +208,13 @@ uint32_t pbrShade(const LightingRig &rig,
                / std::max(1e-6, 4.0 * NoV * NoL) * Fg;
         specB += radiance * shadowFactor * D * G
                / std::max(1e-6, 4.0 * NoV * NoL) * Fb;
-        // light colors are linear 0..N (reference uses 300-strength lamps),
-        // never re-normalized by 255 here
+        // diffuse: albedo * kd * NoL * radiance — radiance already carries
+        // the light intensity, do NOT multiply by the light color again
+        // (that oversaturated Lambert and washed out PBR textures to white)
         const double kd = (1.0 - mat.metallic) * (1.0 - Fr);
-        lr += pl.color.r * radiance * kd * NoL * shadowFactor;
-        lg += pl.color.g * radiance * kd * NoL * shadowFactor;
-        lb += pl.color.b * radiance * kd * NoL * shadowFactor;
+        lr += radiance * kd * NoL * shadowFactor;
+        lg += radiance * kd * NoL * shadowFactor;
+        lb += radiance * kd * NoL * shadowFactor;
     }
 
     // analytic image-based approximation: hemispheric irradiance + roughened specular

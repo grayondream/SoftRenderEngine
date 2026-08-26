@@ -74,6 +74,9 @@ public:
             ep.reflectivity = m_enableReflect ? 1.0 : 0.0;
             ep.refractivity = m_enableRefract ? 1.0f : 0.0f;
             ep.ior = 0.917f;
+            for(int f2 = 0; f2 < 6; f2++){
+                ep.cubemapFaces[f2] = &m_faces[f2];
+            }
             ctx.env = &ep;
             for(auto &t : ct){
                 rz.drawTriangleTextured(t.v[0], t.v[1], t.v[2],

@@ -1,5 +1,6 @@
 #include "IScene.hpp"
 
+#include "Base/AngleLine.hpp"
 #include "Base/Triangle.hpp"
 #include "Base/Rect.hpp"
 #include "Base/SimpleTexture.hpp"
@@ -48,7 +49,9 @@ void registerBuiltinScenes(){
     done = true;
     auto &reg = SceneRegistry::instance();
     // Order mirrors GraphicsAPILearn AppType enum (GL samples sequence)
-    reg.add("Base", "Triangle (vertex color)",
+        reg.add("Base", "30-degree Line",
+             [] { return std::make_unique<AngleLineScene>(); });
+reg.add("Base", "Triangle (vertex color)",
         []() -> std::unique_ptr<IScene> { return std::make_unique<TriangleScene>(); });
     reg.add("Base", "Textured Rect",
         []() -> std::unique_ptr<IScene> { return std::make_unique<RectScene>(); });

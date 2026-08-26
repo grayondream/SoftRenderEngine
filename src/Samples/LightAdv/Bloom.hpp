@@ -104,14 +104,14 @@ public:
                     if(lum > thr * 255.0){
                         const double k = (lum - thr * 255.0)
                             / std::max(1e-3, lum);
-                        bright.setPixel(x, y,
+                        bright.setPixelOverlay(x, y,
                             0xFF000000u
                             | (static_cast<uint32_t>(
                                 lumR * k) << 16)
                             | (static_cast<uint32_t>(
                                 lumG * k) << 8)
                             | static_cast<uint32_t>(
-                                lumB * k), -2.0f);
+                                lumB * k));
                     }
                 }
             }
@@ -122,8 +122,8 @@ public:
             const auto *bp = bright.colorData();
             for(int y = 0; y < g_renderH; y++){
                 for(int x = 0; x < g_renderW; x++){
-                    brightFull.setPixel(x, y,
-                        bp[(static_cast<std::size_t>(y) * bright.height() / g_renderH) * bright.width() + static_cast<std::size_t>(x) * bright.width() / g_renderW], -2.0f);
+                    brightFull.setPixelOverlay(x, y,
+                        bp[(static_cast<std::size_t>(y) * bright.height() / g_renderH) * bright.width() + static_cast<std::size_t>(x) * bright.width() / g_renderW]);
                 }
             }
             SGE::Render::AdditiveBlend(fb, brightFull);
@@ -139,9 +139,9 @@ public:
                             1.0 - std::exp(-(ch / 255.0)), 0.0, 1.0),
                             1.0 / 2.2) * 255.0 + 0.5);
                 };
-                fb.setPixel(x2, y2,
+                fb.setPixelOverlay(x2, y2,
                     0xFF000000u | (tm((c >> 16) & 0xFF) << 16)
-                    | (tm((c >> 8) & 0xFF) << 8) | tm(c & 0xFF), -2.0f);
+                    | (tm((c >> 8) & 0xFF) << 8) | tm(c & 0xFF));
             }
         }
     }

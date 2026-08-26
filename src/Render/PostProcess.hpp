@@ -19,11 +19,11 @@ inline void RunPass(const FrameBuffer &src, FrameBuffer &dst, const PixelFn &fn)
         for(std::size_t x = 0; x < w; x++){
             const double u = (static_cast<double>(x) + 0.5) / w;
             const Color32 rc = fn(u, v, src);
-            dst.setPixel(x, y,
+            dst.setPixelOverlay(x, y,
                 (static_cast<uint32_t>(rc.a) << 24)
                     | (static_cast<uint32_t>(rc.r) << 16)
                     | (static_cast<uint32_t>(rc.g) << 8)
-                    | static_cast<uint32_t>(rc.b), -2.0f);
+                    | static_cast<uint32_t>(rc.b));
         }
     }
 }
@@ -98,10 +98,10 @@ inline void GaussianBlur(FrameBuffer &img, int radius){
                 acc[2] += (c & 0xFF) * wt;
                 wsum += wt;
             }
-            img.setPixel(x, y, 0xFF000000u
+            img.setPixelOverlay(x, y, 0xFF000000u
                 | (static_cast<uint32_t>(acc[0] / wsum + 0.5) << 16)
                 | (static_cast<uint32_t>(acc[1] / wsum + 0.5) << 8)
-                | static_cast<uint32_t>(acc[2] / wsum + 0.5), -2.0f);
+                | static_cast<uint32_t>(acc[2] / wsum + 0.5));
         }
     }
 }
@@ -163,7 +163,7 @@ inline void AdditiveBlend(FrameBuffer &base, const FrameBuffer &layer){
             const uint32_t nr = std::min(255u, ((b >> 16) & 0xFF) + ((l >> 16) & 0xFF));
             const uint32_t ng = std::min(255u, ((b >> 8) & 0xFF) + ((l >> 8) & 0xFF));
             const uint32_t nb = std::min(255u, (b & 0xFF) + (l & 0xFF));
-            base.setPixel(x, y, 0xFF000000u | (nr << 16) | (ng << 8) | nb, -2.0f);
+            base.setPixelOverlay(x, y, 0xFF000000u | (nr << 16) | (ng << 8) | nb);
         }
     }
 }
@@ -208,11 +208,11 @@ inline void DrawEquirectSky(FrameBuffer &fb, const Camera &cam,
                     std::clamp(c / (c + 1.0f), 0.0f, 1.0f) * 255.0f + 0.5f);
             };
             const Color32 sc{tone(r), tone(g), tone(b), 255};
-            fb.setPixel(x, y,
+            fb.setPixelOverlay(x, y,
                 (static_cast<uint32_t>(sc.a) << 24)
                     | (static_cast<uint32_t>(sc.r) << 16)
                     | (static_cast<uint32_t>(sc.g) << 8)
-                    | static_cast<uint32_t>(sc.b), -2.0f);
+                    | static_cast<uint32_t>(sc.b));
         }
     }
 }

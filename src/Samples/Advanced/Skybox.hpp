@@ -50,7 +50,7 @@ public:
                     fwd.y + right.y * nx * tanH + up.y * ny * tanV,
                     fwd.z + right.z * nx * tanH + up.z * ny * tanV};
                 dir = dir.normalize();
-                fb.setPixel(x2, y2, sampleCube(dir), -2.0f);
+                fb.setPixelOverlay(x2, y2, sampleCube(dir));
             }
         }
         // center dog cube (reference: RotY(45))

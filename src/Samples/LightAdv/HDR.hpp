@@ -115,7 +115,7 @@ private:
         for(std::size_t y = 0; y < h; y++){
             for(std::size_t x = 0; x < w; x++){
                 const uint32_t c = fb.colorData()[y * w + x];
-                fb.setPixel(x, y,
+                fb.setPixelOverlay(x, y,
                     0xFF000000u | (static_cast<uint32_t>(
                         lut[std::min(4095u,
                             ((c >> 16) & 0xFFu) * 16u)]) << 16)
@@ -123,7 +123,7 @@ private:
                         lut[std::min(4095u,
                             ((c >> 8) & 0xFFu) * 16u)]) << 8)
                     | static_cast<uint32_t>(lut[std::min(4095u,
-                        (c & 0xFFu) * 16u)]), -2.0f);
+                        (c & 0xFFu) * 16u)]));
             }
         }
     }

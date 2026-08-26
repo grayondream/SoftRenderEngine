@@ -144,8 +144,8 @@ public:
                         ((c >> 8) & 0xFF) * (1.0f - occ));
                     const uint32_t nb = static_cast<uint32_t>(
                         (c & 0xFF) * (1.0f - occ));
-                    fb.setPixel(x, y,
-                        0xFF000000u | (nr << 16) | (ng << 8) | nb, -2.0f);
+                    fb.setPixelOverlay(x, y,
+                        0xFF000000u | (nr << 16) | (ng << 8) | nb);
                 }
             }
         }

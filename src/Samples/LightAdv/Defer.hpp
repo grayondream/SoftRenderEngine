@@ -108,7 +108,7 @@ public:
                         const double lz = (gz - 4.5) * 1.0 - 2.0;
                         const double dx = lx, dz = lz;
                         const double d2 = dx * dx + dz * dz + 9.0;
-                        if(d2 > 60.0){ continue; }
+                        if(m_enableVolume && d2 > 60.0){ continue; }
                         const double att = 1.0 /
                             (1.0 + 0.7 * std::sqrt(d2) + 1.8 * d2 * 0.06);
                         const float cr = std::min(1.0f,
@@ -130,11 +130,11 @@ public:
                     }
                 }
             }
-            fb.setPixel(x2, y2,
+            fb.setPixelOverlay(x2, y2,
                 0xFF000000u
                 | (static_cast<uint32_t>(std::min(255.0, or2)) << 16)
                 | (static_cast<uint32_t>(std::min(255.0, og)) << 8)
-                | static_cast<uint32_t>(std::min(255.0, ob)), -2.0f);
+                | static_cast<uint32_t>(std::min(255.0, ob)));
             }
         }
     }

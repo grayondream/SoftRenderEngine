@@ -42,10 +42,10 @@ public:
                         0.2126 * ((c >> 16) & 0xFF)
                         + 0.7152 * ((c >> 8) & 0xFF)
                         + 0.0722 * (c & 0xFF));
-                    fb.setPixel(x, y, 0xFF000000u
+                    fb.setPixelOverlay(x, y, 0xFF000000u
                         | (static_cast<uint32_t>(g) << 16)
                         | (static_cast<uint32_t>(g) << 8)
-                        | static_cast<uint32_t>(g), -2.0f);
+                        | static_cast<uint32_t>(g));
                 }
             }
         }

@@ -341,7 +341,7 @@ void RayTracer::render(const RayScene &scene, const Camera &camera,
                     color = mixIn(color);
                 }
             }
-            m_fb.setPixel(px, py, color, -1.0f);
+            m_fb.setPixelOverlay(px, py, color);
         }
     }
 }

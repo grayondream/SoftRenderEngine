@@ -96,10 +96,10 @@ r = static_cast<int>(std::clamp(ch(16), 0.0, 255.0));
                     g = static_cast<int>(std::clamp(ch(8), 0.0, 255.0));
                     b = static_cast<int>(std::clamp(ch(0), 0.0, 255.0));
                 }
-                fb.setPixel(x, y,
+                fb.setPixelOverlay(x, y,
                     0xFF000000u | (static_cast<uint32_t>(r) << 16)
                     | (static_cast<uint32_t>(g) << 8)
-                    | static_cast<uint32_t>(b), -2.0f);
+                    | static_cast<uint32_t>(b));
             }
         }
     }

@@ -113,6 +113,7 @@ private:
         cs.lightPos = m_lightPos;
         cs.farPlane = 25.0;
         cs.bias = 0.008;
+        cs.pcfRadius = m_enablePcf ? 2 : 0;
         for(int f = 0; f < 6; f++){ cs.faces[f] = &faces[f]; }
         ShadingContext ctx = m_shadows
             ? ShadingContext{&rig, app.camera().position,

@@ -65,6 +65,7 @@ public:
 
         {
             Rasterizer srz{shadowMap};
+            srz.cullBackface = m_cullFace;
             auto gtris = Pipeline::projectObject(ground,
                 SGE::Math::translation(0.0,0.0,0.0), lightVP, nrm, 256, 256);
             for(auto &t : gtris) srz.drawTriangleDepth(t.v[0], t.v[1], t.v[2]);
@@ -77,8 +78,9 @@ public:
             }
         }
 
-        SGE::Render::ShadowData sd{&shadowMap, lightVP, 0.004};
-        sd.pcfRadius = app.pcfRadius();
+        SGE::Render::ShadowData sd{&shadowMap, lightVP,
+            m_enableBias ? 0.004 : 0.0};
+        sd.pcfRadius = m_enablePcf ? app.pcfRadius() : 0;
         ShadingContext shadCtx{&rig, cam.position,
                                app.fogEnabled() ? &fog : nullptr, &sd};
         {
@@ -103,7 +105,7 @@ public:
                 SGE::Math::normalMatrix(SGE::Math::rotationY(ang)), g_renderW, g_renderH);
             tiled.drawTextured(ctris, app.checker(), &shadCtx);
         }
-        if(m_viewDepth){
+        if(m_viewDepth || m_enableDebug){
             // reference ShadowMapApp: fullscreen raw depth grayscale
             for(std::size_t y2 = 0; y2 < static_cast<std::size_t>(g_renderH); y2++){
                 for(std::size_t x2 = 0; x2 < static_cast<std::size_t>(g_renderW); x2++){
@@ -112,10 +114,10 @@ public:
                         * 255.0f;
                     const int g = std::min(255,
                         static_cast<int>(d));
-                    fb.setPixel(x2, y2, 0xFF000000u
+                    fb.setPixelOverlay(x2, y2, 0xFF000000u
                         | (static_cast<uint32_t>(g) << 16)
                         | (static_cast<uint32_t>(g) << 8)
-                        | static_cast<uint32_t>(g), -2.0f);
+                        | static_cast<uint32_t>(g));
                 }
             }
         }

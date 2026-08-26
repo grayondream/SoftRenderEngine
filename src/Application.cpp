@@ -229,8 +229,48 @@ void Application::RenderDebugUi(){
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    // reference parity: each sample owns its own "OpenGL" window;
-    // scene switching stays on the [ / ] keys
+    // compact sample switcher (keyboard [ / ] still works)
+    SGE::Samples::registerBuiltinScenes();
+    auto &entries = SGE::Samples::SceneRegistry::instance().entries();
+    static std::vector<std::string> labels;
+    static std::vector<const char*> labelPtrs;
+    if(labels.size() != entries.size()){
+        labels.clear();
+        labelPtrs.clear();
+        for(const auto &e : entries){
+            labels.push_back(std::string("[") + e.group + "] " + e.name);
+        }
+        for(auto &l : labels){ labelPtrs.push_back(l.c_str()); }
+    }
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(340, 70), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Samples");
+    if(ImGui::Combo("##scene", &m_sceneIndex,
+                    labelPtrs.data(), static_cast<int>(labelPtrs.size()))){
+        LOGI("[UI] scene -> {} via ImGui", m_sceneIndex);
+        m_framebuffer.clearDepth();
+        m_sceneDirty = true;
+    }
+    const int sceneCount = static_cast<int>(entries.size());
+    if(ImGui::Button("<")){
+        m_sceneIndex = (m_sceneIndex - 1 + sceneCount)
+            % std::max(1, sceneCount);
+        m_framebuffer.clearDepth();
+        m_sceneDirty = true;
+    }
+    ImGui::SameLine();
+    if(ImGui::Button(">")){
+        m_sceneIndex = (m_sceneIndex + 1) % std::max(1, sceneCount);
+        m_framebuffer.clearDepth();
+        m_sceneDirty = true;
+    }
+    ImGui::SameLine();
+    if(m_sceneIndex >= 0 && m_sceneIndex < sceneCount){
+        ImGui::Text("%s", entries[m_sceneIndex].name);
+    }
+    ImGui::End();
+
+    // reference parity: each sample owns its own "OpenGL" window
     if(m_scene){
         m_scene->drawUi(*this);
     }

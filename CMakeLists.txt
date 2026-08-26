@@ -14,6 +14,19 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
+# default to an optimized build: a plain `cmake -B build` used to produce
+# -O0 binaries, which made the software rasterizer unusably slow
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "build type" FORCE)
+endif()
+
+# CPU acceleration: let the compiler emit AVX2/FMA for the hot math and
+# rasterizer loops (auto-vectorization). Turn off for portable binaries.
+option(SGE_NATIVE_ARCH "compile with -march=native" ON)
+if(SGE_NATIVE_ARCH AND CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+    add_compile_options(-march=native)
+endif()
+
 set(SGE_WARNING_FLAGS -Wall -Wextra -Werror CACHE STRING "warning flags for project targets")
 
 if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo|MinSizeRel")

@@ -66,7 +66,7 @@ public:
 
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::End();
     }
     const char *name() const override { return "Depth Test Grid"; }

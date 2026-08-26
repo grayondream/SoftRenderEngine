@@ -37,8 +37,9 @@ TEST(ShadowPassTest, DepthPassRecordsNearestSurface){
     FillQuadDepth(rz, -0.5f);
     FillQuadDepth(rz, 0.5f);
 
+    // depth pass stores linear [0,1] depth: NDC -0.5 -> 0.25
     for(std::size_t i = 0; i < 256u; i++){
-        EXPECT_FLOAT_EQ(fb.depthData()[i], -0.5f);
+        EXPECT_FLOAT_EQ(fb.depthData()[i], 0.25f);
     }
 }
 

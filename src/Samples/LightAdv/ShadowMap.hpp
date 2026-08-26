@@ -24,7 +24,7 @@ public:
         auto fog = defaultFog(app);
         const double ang = app.angle();
 
-        fb.clear(0xFF000000u);
+        fb.clear(kRefClear);
         Rasterizer rz{fb};
         const auto viewProj = defaultViewProj(app);
         const auto nrm = SGE::Math::normalMatrix(
@@ -83,15 +83,17 @@ public:
                                app.fogEnabled() ? &fog : nullptr, &sd};
         {
             SGE::Render::TileRenderer tiled{fb};
+            // obstacles receive the same lit+shadowed shading as the floor
+            static Texture whiteTint = Texture(
+                1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
             for(const auto &ob : obstacles){
                 if(ob.obj == &obstacleCube) continue;
                 auto om = SGE::Math::translation(ob.x, ob.y, ob.z)
                     .mul(SGE::Math::rotationY(ob.ry));
                 auto onrm = SGE::Math::normalMatrix(om);
-                auto ot = Pipeline::projectObject(*ob.obj, om, viewProj, onrm, g_renderW, g_renderH);
-                for(auto &t : ot){
-                    rz.drawTriangleSolid(t.v[0], t.v[1], t.v[2]);
-                }
+                auto ot = Pipeline::projectObject(*ob.obj, om, viewProj,
+                    onrm, g_renderW, g_renderH);
+                tiled.drawTextured(ot, whiteTint, &shadCtx);
             }
             auto gtris = Pipeline::projectObject(ground,
                 SGE::Math::translation(0.0,0.0,0.0), viewProj, nrm, g_renderW, g_renderH);
@@ -119,7 +121,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable Debug", &m_enableDebug);
         ImGui::Checkbox("Enable DepthMap", &m_viewDepth);
         ImGui::Checkbox("Enable Bias", &m_enableBias);

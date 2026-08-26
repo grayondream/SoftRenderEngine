@@ -87,7 +87,7 @@ private:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::SetNextItemWidth(200);
         ImGui::SliderInt("Window Count", &m_winCount, 1, 5);
         ImGui::End();

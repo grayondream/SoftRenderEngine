@@ -88,7 +88,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable Reflection", &m_enableReflect);
         ImGui::Checkbox("Enable Refraction", &m_enableRefract);
         if(m_enableReflect && m_enableRefract){

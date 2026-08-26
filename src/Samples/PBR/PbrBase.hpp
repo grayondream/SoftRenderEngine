@@ -28,6 +28,7 @@ private:
             PointLight p{};
             p.position = Vector3DBase<double>{lp[i][0], lp[i][1], lp[i][2]};
             p.range = 200.0;
+            p.color = ColorFlt{300.0f, 300.0f, 300.0f, 1.0f};
             rig.point.push_back(p);
         }
         Rasterizer rz{fb};
@@ -68,7 +69,7 @@ private:
         }
     }
     void drawUi(Application &app) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::SliderFloat("Roughness", &app.pbrRoughness(), 0.0f, 1.0f);

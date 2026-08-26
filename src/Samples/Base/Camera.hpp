@@ -45,7 +45,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::SetNextItemWidth(200);
         ImGui::SliderInt("Cube Count", &m_count, 1, 10);
         ImGui::End();

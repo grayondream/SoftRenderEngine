@@ -151,7 +151,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable SSAO", &m_ssaoOn);
         ImGui::End();
     }

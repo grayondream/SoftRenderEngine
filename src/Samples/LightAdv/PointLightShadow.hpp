@@ -133,7 +133,7 @@ private:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable PCF", &m_enablePcf);
         ImGui::Checkbox("Enable Shadow", &m_shadows);
         const auto &cp = m_camPos;

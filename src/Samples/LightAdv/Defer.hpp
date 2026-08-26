@@ -139,7 +139,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::SliderInt("Cube Count", &m_count, 1, 13);
         ImGui::Checkbox("Enable Volume", &m_enableVolume);
         ImGui::End();

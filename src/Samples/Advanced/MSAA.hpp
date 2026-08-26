@@ -51,7 +51,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::SetNextItemWidth(200);
         ImGui::Checkbox("Enable MSSA", &m_gray);
         ImGui::Checkbox("Enable FrameBuffer MSSA", &m_4x);

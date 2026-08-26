@@ -48,7 +48,7 @@ public:
         drawLamp(app, rz, p.position, 0.06);
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable Normal Map", &m_enableNormalMap);
         ImGui::End();
     }

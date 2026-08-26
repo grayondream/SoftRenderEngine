@@ -53,7 +53,7 @@ public:
         drawLightMarker(app, rz, p.position, Color32{255, 250, 220, 255});
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable Normal Map", &m_enableDisp);
         ImGui::Checkbox("Enable Steep", &m_enableSteep);
         ImGui::Checkbox("Enable Occlusion", &m_enableOcclusion);

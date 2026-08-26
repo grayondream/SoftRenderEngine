@@ -87,7 +87,7 @@ public:
         if(m_enableHdr){ tonemapPass(fb, m_exposure); }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable Hdr", &m_enableHdr);
         ImGui::InputFloat("Exposure", &m_exposure, 0.1f, 4.0f, "%.2f");
         const auto &cp = m_camPos;

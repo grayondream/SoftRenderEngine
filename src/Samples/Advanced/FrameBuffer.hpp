@@ -47,7 +47,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::SetNextItemWidth(200);
         const char* items[4] = { "None", "Inversion", "Gray", "Kernel"};
         ImGui::Combo("Cube Count", &m_effect, items, IM_ARRAYSIZE(items));

@@ -70,7 +70,7 @@ public:
 
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Text("Color Picker with Alpha:");
         ImGui::ColorEdit4("Color with Alpha", m_lightColor);
         ImGui::SetNextItemWidth(200);

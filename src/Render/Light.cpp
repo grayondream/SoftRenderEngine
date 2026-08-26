@@ -196,10 +196,12 @@ uint32_t pbrShade(const LightingRig &rig,
                / std::max(1e-6, 4.0 * NoV * NoL) * Fg;
         specB += radiance * shadowFactor * D * G
                / std::max(1e-6, 4.0 * NoV * NoL) * Fb;
+        // light colors are linear 0..N (reference uses 300-strength lamps),
+        // never re-normalized by 255 here
         const double kd = (1.0 - mat.metallic) * (1.0 - Fr);
-        lr += pl.color.r / 255.0 * radiance * kd * NoL * shadowFactor;
-        lg += pl.color.g / 255.0 * radiance * kd * NoL * shadowFactor;
-        lb += pl.color.b / 255.0 * radiance * kd * NoL * shadowFactor;
+        lr += pl.color.r * radiance * kd * NoL * shadowFactor;
+        lg += pl.color.g * radiance * kd * NoL * shadowFactor;
+        lb += pl.color.b * radiance * kd * NoL * shadowFactor;
     }
 
     // analytic image-based approximation: hemispheric irradiance + roughened specular

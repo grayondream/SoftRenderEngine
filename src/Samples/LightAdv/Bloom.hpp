@@ -146,7 +146,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Checkbox("Enable Bloom", &m_bloomEnabled);
         ImGui::SliderFloat("Expose Value", &m_expose, 0.0f, 1.0f);
         ImGui::End();

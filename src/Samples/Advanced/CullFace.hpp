@@ -36,7 +36,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::SetNextItemWidth(200);
         ImGui::SliderInt("Grass Count", &m_grassCount, 1, 10);
         ImGui::End();

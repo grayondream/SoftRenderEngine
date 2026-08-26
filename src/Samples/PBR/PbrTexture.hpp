@@ -33,6 +33,7 @@ private:
         const double lp[4][3] = {{-10,10,10},{10,10,10},{-10,-10,10},{10,-10,10}};
         for(int i = 0; i < 4; i++){
             PointLight p{};
+            p.color = ColorFlt{300.0f, 300.0f, 300.0f, 1.0f};
             p.position = Vector3DBase<double>{lp[i][0], lp[i][1], lp[i][2]};
             p.range = 200.0;
             rig.point.push_back(p);
@@ -76,7 +77,7 @@ private:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();

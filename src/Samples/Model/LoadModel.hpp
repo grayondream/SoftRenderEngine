@@ -13,7 +13,7 @@ namespace SGE::Samples {
 class LoadModelScene final : public IScene {
 public:
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 0.0, 0.0);
+        resetCamera(app, 0.0, 0.6, 6.0);
         m_loaded = loadObjMultiMaterial(
             "assets/models/backpack/backpack.obj",
             m_chunks, m_faceMtl, m_mats);
@@ -60,7 +60,7 @@ public:
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::End();
     }
     const char *name() const override { return "Load Model (backpack)"; }

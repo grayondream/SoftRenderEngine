@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../SceneUtil.hpp"
+#include "Render/ObjLoader.hpp"
 #include "Render/ImageLoader.hpp"
 
 #include <cmath>
@@ -25,19 +26,30 @@ public:
         Rasterizer rz{fb};
         ShadingContext ctx{&rig, app.camera().position};
         const auto vp = refViewProj(app.camera());
-        // planet at origin-ish center (reference T(0,0,-3) S0.3 of big mesh)
-        static Object4D planet = SGE::Render::MakeSphere(1.0, 28, 18);
-        Texture tint(1, 1, std::vector<uint32_t>{0xFFC8A05A}.data());
+        // reference planet mesh (planet.obj, mars.png)
+        static Texture marsTex = SGE::Render::ImageLoader::loadTexture(
+            "assets/models/planet/mars.png");
+        static Object4D planet = []{
+            Object4D o{};
+            loadObjFromFile("assets/models/planet/planet.obj", o);
+            return o;
+        }();
         const double spin = app.angle() * 0.6;
-        auto pm = SGE::Math::translation(0.0, 0.0, -3.0 + 3.0)
-            .mul(SGE::Math::translation(0.0, 0.9, 0.0))
-            .mul(SGE::Math::rotationY(spin));
+        auto pm = SGE::Math::translation(0.0, 0.9, 0.0)
+            .mul(SGE::Math::rotationY(spin))
+            .mul(SGE::Math::scale(0.3, 0.3, 0.3));
         auto pnrm = SGE::Math::normalMatrix(pm);
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(planet, pm,
-            vp, pnrm, g_renderW, g_renderH), tint, &ctx);
-        // rock ring: radius 20->scaled 4, y*0.4, slow orbit
-        static Object4D rock = SGE::Render::MakeSphere(1.0, 8, 5);
+            vp, pnrm, g_renderW, g_renderH), marsTex, &ctx);
+        // reference rock ring: rock.obj instances, radius 20 -> local 4
+        static Texture rockTex = SGE::Render::ImageLoader::loadTexture(
+            "assets/models/rock/rock.png");
+        static Object4D rock = []{
+            Object4D o{};
+            loadObjFromFile("assets/models/rock/rock.obj", o);
+            return o;
+        }();
         constexpr int kRocks = 240;
         for(int i = 0; i < kRocks; i++){
             const double angle = i * 360.0 / kRocks;
@@ -47,20 +59,23 @@ public:
             double x = std::sin(rad) * rr + disp * 0.08;
             double y = disp * 0.032;
             double z = std::cos(rad) * rr + disp * 0.08;
-            const double sc = ((i * 13) % 20) / 100.0 + 0.05;
+            const double sc = (((i * 13) % 20) / 100.0 + 0.05) * 1.6;
             const double orbit = app.angle() / 10.0;
             const double cx = std::cos(orbit), sy2 = std::sin(orbit);
             const double wx = x * cx - z * sy2;
             const double wz = x * sy2 + z * cx;
-            auto rm = SGE::Math::translation(wx, y + 0.9, wz - 0.0)
+            const double ra = (i % 7) * 0.9 + orbit;
+            auto rm = SGE::Math::translation(wx, y + 0.9, wz)
+                .mul(SGE::Math::rotationY(ra))
+                .mul(SGE::Math::rotationZ(ra * 0.4))
                 .mul(SGE::Math::scale(sc, sc, sc));
             auto rnrm = SGE::Math::normalMatrix(rm);
             tiled.drawTextured(Pipeline::projectObject(rock, rm,
-                vp, rnrm, g_renderW, g_renderH), tint, &ctx);
+                vp, rnrm, g_renderW, g_renderH), rockTex, &ctx);
         }
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::End();
     }
     const char *name() const override { return "Saturn Ring System"; }

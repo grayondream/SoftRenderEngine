@@ -82,9 +82,12 @@ void Rasterizer::drawTriangleDepth(const ScreenVertex &v0, const ScreenVertex &v
             if(iw <= 0) continue;
             const float zNdc = static_cast<float>(
                 (w0*v0.z/v0.w + w1*v1.z/v1.w + w2*v2.z/v2.w) / iw);
+            // store linear [0,1] depth so the shadow comparison
+            // (nz * 0.5 + 0.5) reads the same scale back
+            const float z01 = zNdc * 0.5f + 0.5f;
             auto idx = static_cast<std::size_t>(y)*m_fb.width() + static_cast<std::size_t>(x);
-            if(zNdc < depth[idx]){
-                depth[idx] = zNdc;
+            if(z01 < depth[idx]){
+                depth[idx] = z01;
             }
         }
     }

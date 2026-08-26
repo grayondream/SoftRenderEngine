@@ -49,7 +49,7 @@ public:
         drawLamp(app, rz, Vector3DBase<double>{0, 0, 2.0}, 0.06);
     }
     void drawUi(Application &) override {
-        ImGui::Begin("OpenGL");
+        ImGui::Begin("Settings");
         ImGui::Text("Color Picker with Alpha:");
         ImGui::ColorEdit4("Color with Alpha", m_lightColor);
         ImGui::Checkbox("Enable Blinn Phong", &m_blinn);

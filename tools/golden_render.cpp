@@ -29,10 +29,11 @@ Object4D MakeCube(){
         {0,1,5},{0,5,4},{3,7,6},{3,6,2},
         {1,2,6},{1,6,5},{0,4,7},{0,7,3}};
     cube.numPolys = 12;
+    // keep in sync with Application::MakeCube (outward-facing winding)
     for(int i = 0;i < 12;i++){
         cube.plist[i].vlist[0] = v[faces[i].a];
-        cube.plist[i].vlist[1] = v[faces[i].b];
-        cube.plist[i].vlist[2] = v[faces[i].c];
+        cube.plist[i].vlist[1] = v[faces[i].c];
+        cube.plist[i].vlist[2] = v[faces[i].b];
         cube.plist[i].color = Color32{255, 255, 255, 255};
     }
     const Vector3DBase<double> faceNormals[6] = {

@@ -30,13 +30,14 @@ public:
             c.numVertices = 8;
             c.numPolys = 12;
             for(int i = 0; i < 12; i++){
+                // outward-facing winding (sync with Application::MakeCube)
                 for(int k = 0; k < 3; k++){
                     c.plist[i].vlist[k] = v[(k == 0 ? fs[i].a :
-                                             k == 1 ? fs[i].b : fs[i].c)];
+                                             k == 1 ? fs[i].c : fs[i].b)];
                 }
                 c.plist[i].uvlist[0] = {0,0};
-                c.plist[i].uvlist[1] = {1,0};
-                c.plist[i].uvlist[2] = {1,1};
+                c.plist[i].uvlist[1] = {1,1};
+                c.plist[i].uvlist[2] = {1,0};
             }
             return c;
         }();

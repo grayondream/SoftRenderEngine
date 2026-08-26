@@ -58,19 +58,22 @@ Object4D MakeCube(){
         {0,4,7, {0,255,255,255}},{0,7,3, {0,255,255,255}},
     };
     cube.numPolys = 12;
+    // Outward-facing winding: with the screen-space front=POS convention,
+    // each face must be CW in world coords when seen from outside.
+    // (b/c swapped relative to the historical inward table; the matching
+    // UV slots swap with the vertices so texturing stays aligned.)
     for(int i = 0;i < 12;i++){
         cube.plist[i].vlist[0] = v[faces[i].a];
-        cube.plist[i].vlist[1] = v[faces[i].b];
-        cube.plist[i].vlist[2] = v[faces[i].c];
-        cube.plist[i].color = faces[i].col;
+        cube.plist[i].vlist[1] = v[faces[i].c];
+        cube.plist[i].vlist[2] = v[faces[i].b];
     }
     for(int i = 0;i < 12;i += 2){
-        cube.plist[i].uvlist[0]   = {0, 0};
-        cube.plist[i].uvlist[1]   = {1, 0};
-        cube.plist[i].uvlist[2]   = {1, 1};
-        cube.plist[i+1].uvlist[0] = {0, 0};
-        cube.plist[i+1].uvlist[1] = {1, 1};
-        cube.plist[i+1].uvlist[2] = {0, 1};
+        cube.plist[i].uvlist[0]     = {0, 0};
+        cube.plist[i].uvlist[2]     = {1, 0};
+        cube.plist[i].uvlist[1]     = {1, 1};
+        cube.plist[i+1].uvlist[0]   = {0, 0};
+        cube.plist[i+1].uvlist[2]   = {1, 1};
+        cube.plist[i+1].uvlist[1]   = {0, 1};
     }
     const Vector3DBase<double> faceNormals[6] = {
         {0, 0, -1}, {0, 0, 1}, {0, -1, 0}, {0, 1, 0}, {1, 0, 0}, {-1, 0, 0}};

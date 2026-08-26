@@ -31,6 +31,8 @@ struct LightingRig{
     ColorFlt ambientColor{1.0f, 1.0f, 1.0f, 1.0f};
     float shininess{32.0f};
     float specularStrength{0.5f};
+    // true: Blinn-Phong (halfway N.H), false: classic Phong (reflect R.V)
+    bool blinnPhong{true};
     std::vector<DirectionalLight> directional{};
     std::vector<PointLight> point{};
     std::vector<SpotLight> spot{};
@@ -42,6 +44,7 @@ struct PbrMaterial{
     Color32 baseColor{200, 60, 60, 255};
     float metallic{0.0f};
     float roughness{0.35f};
+    float ao{1.0f};
     const class Texture *albedoTex{};
     const class Texture *metallicTex{};
     const class Texture *roughnessTex{};

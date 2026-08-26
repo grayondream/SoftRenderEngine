@@ -30,16 +30,23 @@ public:
             r2.color = Color32{255, 0, 0, 255};
             rz.drawTriangleWireframe(r0, r1, r2);
         }
-        // yellow normals (world space, magnitude 0.4 scaled by model)
+        // yellow normals (world space, magnitude 0.4 scaled by model);
+        // both endpoints go through the same model transform as the mesh
+        // so the lines start exactly on the visible vertices
         const double mag = 0.4;
         for(int i = 0; i < static_cast<int>(sphere.numVertices); i += 2){
             const auto &sv = sphere.vlistLocal[static_cast<std::size_t>(i)];
             Vector3DBase<double> n{sv.x, sv.y, sv.z};
             if(n.length() < 1e-9){ continue; }
             n = n.normalize();
-            Point4D p0{sv.x * 2.0, sv.y * 2.0, sv.z * 2.0, 1};
-            Point4D p1{(sv.x + n.x * mag) * 2.0, (sv.y + n.y * mag) * 2.0,
-                       (sv.z + n.z * mag) * 2.0, 1};
+            Point4D p0{sm[0][0][0][0] * sv.x + sm[0][0][0][1] * sv.y
+                + sm[0][0][0][2] * sv.z + sm[0][0][0][3],
+                sm[0][0][1][0] * sv.x + sm[0][0][1][1] * sv.y
+                + sm[0][0][1][2] * sv.z + sm[0][0][1][3],
+                sm[0][0][2][0] * sv.x + sm[0][0][2][1] * sv.y
+                + sm[0][0][2][2] * sv.z + sm[0][0][2][3], 1};
+            Point4D p1{p0.x + n.x * mag * 2.0, p0.y + n.y * mag * 2.0,
+                       p0.z + n.z * mag * 2.0, 1};
             ScreenVertex a{}, b{};
             if(!projectWorldPoint(vp, p0, g_renderW, g_renderH, a)){ continue; }
             if(!projectWorldPoint(vp, p1, g_renderW, g_renderH, b)){ continue; }

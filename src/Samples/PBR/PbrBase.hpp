@@ -12,7 +12,7 @@ public:
 public:
     void setup(Application &app) override {
         m_white = Texture(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
-        resetCamera(app, 0.0, 0.0, 4.5);
+        resetCamera(app, 0.0, 0.0, 11.0);
     }
 private:
     Texture m_white{};
@@ -46,7 +46,7 @@ private:
                     nullptr, nullptr, nullptr, nullptr, &mat};
                 static Object4D protoBall = SGE::Render::MakeSphere(1.0, 24, 16);
                 Object4D ball = protoBall;
-                const double sc = 0.4;
+                const double sc = 1.0;
                 for(int vi = 0; vi < static_cast<int>(ball.numVertices); vi++){
                     ball.vlistLocal[static_cast<std::size_t>(vi)].x =
                         protoBall.vlistLocal[static_cast<std::size_t>(vi)].x * sc;
@@ -56,8 +56,8 @@ private:
                         protoBall.vlistLocal[static_cast<std::size_t>(vi)].z * sc;
                 }
                 auto bm = SGE::Math::translation(
-                    static_cast<double>(col) * 1.0,
-                    static_cast<double>(row) * 1.05, 0.0);
+                    static_cast<double>(col) * 2.5,
+                    static_cast<double>(row) * 2.5, 0.0);
                 auto bnrm = SGE::Math::normalMatrix(bm);
                 auto bt = Pipeline::projectObject(ball, bm, vp, bnrm, g_renderW, g_renderH);
                 for(auto &t : bt){

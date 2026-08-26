@@ -17,6 +17,12 @@ public:
         if(x >= m_width || y >= m_height) return;
         if(!std::isfinite(depth)) return;
         auto idx = y * m_width + x;
+        // negative depth = unconditional color write (post FX, sky,
+        // debug overlays) that must NOT poison the depth buffer
+        if(depth < 0.0f){
+            m_color[idx] = bgra;
+            return;
+        }
         if(depth >= m_depth[idx]) return;
         m_depth[idx] = depth;
         m_color[idx] = bgra;

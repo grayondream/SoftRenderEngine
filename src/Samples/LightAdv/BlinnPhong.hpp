@@ -19,7 +19,7 @@ class BlinnPhongScene final : public IScene {
             rig.ambientColor.g * t.g, rig.ambientColor.b * t.b, 1.0f};
     }
 public:
-    bool m_blinn{true};
+    bool m_blinn{std::getenv("BP_PHONG") == nullptr};
     void setup(Application &app) override {
         resetCamera(app, 0.0, 0.0, 3.0);
     }
@@ -32,8 +32,10 @@ public:
         // reference: point light at origin, lamp 0.05, amb .05 spec .3
         LightingRig rig{};
         rig.ambient = 0.05f;
-        rig.specularStrength = 0.3f;
+        rig.specularStrength = 0.8f;
+        rig.blinnPhong = m_blinn;
         rig.shininess = m_blinn ? 32.0f : 8.0f;
+
         PointLight p{};
         p.position = Vector3DBase<double>{0, 0, 2.0};
         p.range = 60.0;
@@ -46,6 +48,19 @@ public:
         SGE::Render::TileRenderer tiled{fb};
         tiled.drawTextured(Pipeline::projectObject(fpv, fpm,
             refViewProj(app.camera()), fpnrm, g_renderW, g_renderH), wood, &ctx);
+        // a cube sits under the light so the specular highlight on its
+        // surface visibly differs between Blinn-Phong (N.H) and Phong (R.V)
+        Object4D cube = app.cube();
+        const double rot = app.angle() * 0.4;
+        auto cm = SGE::Math::translation(0.0, 0.3, 0.0)
+            .mul(SGE::Math::rotationY(rot))
+            .mul(SGE::Math::scale(0.6, 0.6, 0.6));
+        auto cnrm = SGE::Math::normalMatrix(cm);
+        static Texture specWhite =
+            Texture(1, 1, std::vector<uint32_t>{0xFFFFFFFFu}.data());
+        tiled.drawTextured(Pipeline::projectObject(cube, cm,
+            refViewProj(app.camera()), cnrm, g_renderW, g_renderH),
+            specWhite, &ctx);
         drawLamp(app, rz, Vector3DBase<double>{0, 0, 2.0}, 0.06);
     }
     void drawUi(Application &) override {

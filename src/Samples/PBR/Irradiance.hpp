@@ -10,7 +10,7 @@ namespace SGE::Samples {
 class IrradianceScene final : public IScene {
 public:
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 0.0, 3.0);
+        resetCamera(app, 0.0, 0.0, 9.0);
     }
 
     void render(Application &app) override {
@@ -32,6 +32,7 @@ public:
                 e, "assets/cache/ibl_irradiance_loft.bin");
         }();
         auto &fb = app.framebuffer();
+        fb.clear(kRefClear);
         SGE::Render::DrawEquirectSky(fb, app.camera(), env, m_exposure);
         // reference: 25-sphere grid (col,row in [-2,2]) at z=6, albedo red ramp
         LightingRig rig2{};
@@ -41,6 +42,7 @@ public:
             PointLight p{};
             p.position = Vector3DBase<double>{lp[li][0], lp[li][1], lp[li][2]};
             p.range = 200.0;
+            p.color = ColorFlt{300.0f, 300.0f, 300.0f, 1.0f};
             rig2.point.push_back(p);
         }
         Rasterizer rz{fb};
@@ -56,19 +58,20 @@ public:
                 PbrMaterial mat{};
                 const int rr = std::min(255, idx * 255 / 25);
                 mat.baseColor = Color32{rr, 0, 0, 255};
-                mat.metallic = app.pbrMetallic();
-                mat.roughness = std::max(0.05f, app.pbrRoughness());
+                mat.metallic = m_metallic;
+                mat.roughness = std::max(0.05f, m_roughness);
+                mat.ao = m_ao;
                 ctx.pbr = &mat;
                 Object4D ball = protoBall;
-                const double sc = 0.4;
+                const double sc = 1.0;
                 for(int vi = 0; vi < static_cast<int>(ball.numVertices); vi++){
                     ball.vlistLocal[static_cast<std::size_t>(vi)].x *= sc;
                     ball.vlistLocal[static_cast<std::size_t>(vi)].y *= sc;
                     ball.vlistLocal[static_cast<std::size_t>(vi)].z *= sc;
                 }
                 auto bm = SGE::Math::translation(
-                    static_cast<double>(col) * 1.0,
-                    static_cast<double>(row) * 1.0, 6.0);
+                    static_cast<double>(col) * 2.5,
+                    static_cast<double>(row) * 2.5, -6.0);
                 auto bnrm = SGE::Math::normalMatrix(bm);
                 auto bt = Pipeline::projectObject(ball, bm, vp, bnrm, g_renderW, g_renderH);
                 for(auto &t : bt){

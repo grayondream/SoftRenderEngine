@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "Environment.hpp"
 #include <cmath>
+#include <cstdio>
 
 namespace{
 Vector3DBase<double> Sub(const Vector3DBase<double> &a, const Vector3DBase<double> &b){
@@ -37,11 +38,22 @@ uint32_t shade(const LightingRig &rig,
         diffG += lc.g * ndotl * atten * shadowFactor;
         diffB += lc.b * ndotl * atten * shadowFactor;
 
-        const Vector3DBase<double> Hv = Vector3DBase<double>{
-            L.x + V.x, L.y + V.y, L.z + V.z}.normalize();
-        const double sp = std::pow(std::max(0.0, N.dot(Hv)),
-                                   static_cast<double>(rig.shininess))
-                        * rig.specularStrength * atten * shadowFactor;
+        double sp = 0.0;
+        if(rig.blinnPhong){
+            // Blinn-Phong: halfway vector N.H
+            const Vector3DBase<double> Hv = Vector3DBase<double>{
+                L.x + V.x, L.y + V.y, L.z + V.z}.normalize();
+            sp = std::pow(std::max(0.0, N.dot(Hv)),
+                          static_cast<double>(rig.shininess));
+        }else{
+            // classic Phong: reflected light direction R.V
+            const double ndl2 = 2.0 * N.dot(L);
+            const Vector3DBase<double> R{
+                ndl2 * N.x - L.x, ndl2 * N.y - L.y, ndl2 * N.z - L.z};
+            sp = std::pow(std::max(0.0, R.dot(V)),
+                          static_cast<double>(rig.shininess));
+        }
+        sp *= rig.specularStrength * atten * shadowFactor;
         specR += lc.r * sp;
         specG += lc.g * sp;
         specB += lc.b * sp;
@@ -222,9 +234,10 @@ uint32_t pbrShade(const LightingRig &rig,
         return static_cast<uint32_t>(std::min(
             255.0, std::max(0.0, lin * 255.0)));
     };
-    const uint32_t outR = chFinal(mat.baseColor.r, lr, specR);
-    const uint32_t outG = chFinal(mat.baseColor.g, lg, specG);
-    const uint32_t outB = chFinal(mat.baseColor.b, lb, specB);
+    const double aoK = std::max(0.0, static_cast<double>(mat.ao));
+    const uint32_t outR = chFinal(mat.baseColor.r, lr * aoK, specR * aoK);
+    const uint32_t outG = chFinal(mat.baseColor.g, lg * aoK, specG * aoK);
+    const uint32_t outB = chFinal(mat.baseColor.b, lb * aoK, specB * aoK);
     return 0xFF000000u | (std::min(outR, 255u) << 16) |
            (std::min(outG, 255u) << 8) | std::min(outB, 255u);
 }

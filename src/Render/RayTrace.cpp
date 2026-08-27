@@ -171,58 +171,19 @@ uint32_t RayTracer::shadeHit(const RayScene &scene, const LightingRig &rig,
             break;
         }
     }
+    for(const auto &pl : rig.point){
+        const auto diff = Sub(pl.position, hit.point);
+        const double dist = diff.length();
+        if(dist < 1e-9) continue;
+        const auto L = Scale(diff, 1.0 / dist);
+        if(occluded(scene, Add(hit.point, Scale(L, kEps * 8)), L, dist)){
+            shadowFactor = 0.0;
+            break;
+        }
+    }
 
     uint32_t local = shade(rig, hit.albedo, hit.normal, hit.point, viewPos, shadowFactor);
 
-    // caustic light spots on receivers from glass spheres under the cone
-    uint32_t causticAdd = 0;
-    {
-        double cr = 0, cg = 0, cb = 0;
-        for(const auto &gs : scene.spheres){
-            if(gs.refractivity <= 0.0f) continue;
-            const auto toBall = Sub(gs.center, scene.cone.position);
-            if(DotP(SGE::Render::EnvNormalize(toBall),
-                    SGE::Render::EnvNormalize(scene.cone.direction)) < scene.cone.cutoffCos)
-                continue;
-            const auto Ld = SGE::Render::EnvNormalize(scene.cone.direction);
-            // project ball center along L onto the hit plane
-            const double denom = DotP(Ld, hit.normal);
-            if(std::abs(denom) < 1e-6) continue;
-            const double tHit = DotP(Sub(gs.center, hit.point), hit.normal) / denom;
-            if(tHit <= 0) continue;
-            const auto focus = Sub(hit.point, Scale(Ld, -tHit));
-            (void)focus;
-            const auto rel = Sub(hit.point, gs.center);
-            const double lateral = std::sqrt(std::max(0.0,
-                DotP(rel, rel) - DotP(rel, Ld) * DotP(rel, Ld)));
-            const double spotR = gs.radius * 0.9;
-            if(lateral < spotR && DotP(rel, rel) > gs.radius * gs.radius){
-                const double w = (1.0 - lateral / spotR) * gs.refractivity
-                               * scene.cone.intensity * 1.4;
-                cr += gs.albedo.r * 0.5 + 120.0 * w;
-                cg += gs.albedo.g * 0.5 + 120.0 * w;
-                cb += gs.albedo.b * 0.5 + 120.0 * w;
-            }
-        }
-        if(cr > 0 || cg > 0 || cb > 0){
-            auto clamp255 = [](double v){
-                v *= 0.35;
-                return static_cast<uint32_t>(std::min(255.0, v));
-            };
-            causticAdd = 0xFF000000u |
-                (clamp255(cr) << 16) | (clamp255(cg) << 8) | clamp255(cb);
-        }
-    }
-    if(causticAdd != 0xFF000000u){
-        auto addC = [](uint32_t a, uint32_t b, int shift){
-            const uint32_t v = ((a >> shift) & 0xFF) + ((b >> shift) & 0xFF);
-            return std::min(255u, v) << shift;
-        };
-        local = 0xFF000000u | addC(local, causticAdd, 16) |
-                addC(local, causticAdd, 8) | addC(local, causticAdd, 0);
-    }
-
-    // glass refraction
     if(hit.reflectivity <= 0.0f){
         for(const auto &gs : scene.spheres){
             if(gs.refractivity <= 0.0f) continue;

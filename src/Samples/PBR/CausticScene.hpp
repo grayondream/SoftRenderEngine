@@ -22,8 +22,8 @@ public:
         SGE::Render::RayTriangle t1, t2;
         t1.a = {-gS, gY, -gS}; t1.b = {gS, gY, -gS}; t1.c = {gS, gY, gS};
         t2.a = {-gS, gY, -gS}; t2.b = {gS, gY, gS};  t2.c = {-gS, gY, gS};
-        t1.albedo = {180, 180, 185, 255}; t1.reflectivity = 0.15f;
-        t2.albedo = {180, 180, 185, 255}; t2.reflectivity = 0.15f;
+        t1.albedo = {180, 180, 185, 255}; t1.reflectivity = 1.0f;
+        t2.albedo = {180, 180, 185, 255}; t2.reflectivity = 1.0f;
         m_scene.triangles.push_back(t1);
         m_scene.triangles.push_back(t2);
 
@@ -127,7 +127,9 @@ private:
 
         // --- directional lighting ---
         LightingRig rig{};
-        rig.ambient = 0.18f;
+        rig.ambient = 0.2f;
+        rig.specularStrength = 0.15f;
+        rig.shininess = 16.0f;
         {
             DirectionalLight key{};
             key.direction = Vector3DBase<double>{-0.4, 0.9, -0.6};

@@ -34,11 +34,14 @@ struct RayScene{
     std::vector<RaySphere> spheres{};
     std::vector<RayTriangle> triangles{};
     SpotCone cone{};
+    Vector3DBase<double> bboxMin{}, bboxMax{};
+    bool hasBBox{false};
 };
 
 struct RayTraceOptions{
     int maxDepth{3};
     Color32 background{};
+    int renderScale{1};
 };
 
 namespace RayDetail{
@@ -49,6 +52,8 @@ struct Hit{
     Vector3DBase<double> normal{};
     Color32 albedo{255, 255, 255, 255};
     float reflectivity{0.0f};
+    float refractivity{0.0f};
+    double ior{1.0};
 };
 
 bool raySphereIntersect(const RaySphere &s,

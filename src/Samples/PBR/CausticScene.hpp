@@ -15,7 +15,7 @@ public:
     bool m_enableCones{true};
 
     void setup(Application &app) override {
-        resetCamera(app, 0.0, 2.5, 0.0, 3.14159, -0.5);
+        resetCamera(app, 0.0, 3.0, -4.5, 0.0, -0.85);
 
         const double S = 5.0;
         const double FY = -S;
@@ -35,7 +35,6 @@ public:
         Color32 red{220, 40, 40, 255};
         Color32 grn{40, 200, 40, 255};
         Color32 blu{50, 80, 230, 255};
-        float mr = 0.88f;
         float fg = 0.25f;
 
         // floor  y=-S  (normal up) — frosted glass
@@ -46,10 +45,10 @@ public:
         addQuad({-S,FY,-S},{-S,FY, S},{-S, S, S},{-S, S,-S}, grn, fg);
         // right  x=+S  (normal -x) — frosted glass
         addQuad({ S,FY, S},{ S,FY,-S},{ S, S,-S},{ S, S, S}, grn, fg);
-        // back   z=-S  (normal +z)
-        addQuad({ S,FY,-S},{-S,FY,-S},{-S, S,-S},{ S, S,-S}, blu, mr);
-        // front  z=+S  (normal -z = inward)
-        addQuad({-S,FY, S},{ S,FY, S},{ S, S, S},{-S, S, S}, blu, mr);
+        // back   z=-S  (normal +z) — frosted glass
+        addQuad({ S,FY,-S},{-S,FY,-S},{-S, S,-S},{ S, S,-S}, blu, fg);
+        // front  z=+S  (normal -z = inward) — frosted glass
+        addQuad({-S,FY, S},{ S,FY, S},{ S, S, S},{-S, S, S}, blu, fg);
 
         // --- objects on the floor ---
         // 1. large metal sphere (center)
@@ -193,6 +192,10 @@ public:
         m_scene.cone.range = 20.0;
         m_scene.cone.intensity = 1.0f;
         m_scene.cone.enabled = true;
+
+        m_scene.bboxMin = {-50.0, -50.0, -50.0};
+        m_scene.bboxMax = {50.0, 50.0, 50.0};
+        m_scene.hasBBox = false;
     }
 
 private:
@@ -237,8 +240,9 @@ private:
         addPL( 1.5, 1.5, -3.0, 1.0, 0.6, 0.5, 1.5f);
 
         SGE::Render::RayTraceOptions opt{};
-        opt.maxDepth = 6;
+        opt.maxDepth = 3;
         opt.background = Color32{20, 20, 30, 255};
+        opt.renderScale = 2;
 
         m_scene.cone.enabled = m_enableCones;
 

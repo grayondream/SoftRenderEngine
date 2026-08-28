@@ -235,25 +235,39 @@ void Rasterizer::drawTriangleTextured(const ScreenVertex &v0, const ScreenVertex
             const bool skipTex = (shading != nullptr && shading->pbr != nullptr);
             double uShaded = uPix, vShaded = vPix;
             if(shading && shading->heightTex && shading->parallaxScale > 0.0){
+                // Steep Parallax Mapping（8 层），对齐 GraphicsAPILearn 参考着色器：
+                // 视线从表面指向相机，其在切面的投影方向为 viewDir.xy/viewDir.z，
+                // 采样点沿相反方向（远离相机）偏移，每层推进 -P/steps；
+                // 层深度从 0 递增，当前层深度 >= 高度图值 h 时说明视线已穿入表面。
                 Vector3DBase<double> V{shading->viewPos.x - wxp,
                     shading->viewPos.y - wyp, shading->viewPos.z - wzp};
-                Vector3DBase<double> T{shading->tangentU};
-                Vector3DBase<double> B{shading->tangentV};
-                Vector3DBase<double> N{nxc, nyc, nzc};
-                const double tx = V.dot(T), ty = V.dot(B);
-                const int steps = 8;
-                double layerD = 1.0 / steps;
-                double cu = 0.0, cv = 0.0;
-                for(int i2 = 0; i2 < steps; i2++){
-                    const uint32_t hpx = shading->heightTex->sample(
-                        uPix + cu, vPix + cv, TextureFilter::Bilinear,
-                        TextureWrap::Repeat);
-                    const float h = static_cast<float>(hpx & 0xFF) / 255.0f;
-                    if(1.0 - (cu * steps) <= h){ break; }
-                    cu += layerD * shading->parallaxScale * tx;
-                    cv += layerD * shading->parallaxScale * ty;
+                const double vLen = V.length();
+                if(vLen > 1e-9){
+                    V = V / vLen;
+                    const Vector3DBase<double> T{shading->tangentU};
+                    const Vector3DBase<double> B{shading->tangentV};
+                    const Vector3DBase<double> N{nxc, nyc, nzc};
+                    const double tz = V.dot(N);
+                    if(std::abs(tz) > 1e-6){
+                        const double px = V.dot(T) / tz * shading->parallaxScale;
+                        const double py = V.dot(B) / tz * shading->parallaxScale;
+                        const int steps = 8;
+                        const double layerD = 1.0 / steps;
+                        double cu = 0.0, cv = 0.0;
+                        double curDepth = 0.0;
+                        for(int i2 = 0; i2 < steps; i2++){
+                            const uint32_t hpx = shading->heightTex->sample(
+                                uPix + cu, vPix + cv, TextureFilter::Bilinear,
+                                TextureWrap::Repeat);
+                            const float h = static_cast<float>(hpx & 0xFF) / 255.0f;
+                            if(curDepth >= h){ break; }
+                            cu -= px / steps;
+                            cv -= py / steps;
+                            curDepth += layerD;
+                        }
+                        uShaded += cu; vShaded += cv;
+                    }
                 }
-                uShaded += cu; vShaded += cv;
             }
             if(trilinear){
                 float lod = 0.0f;
